@@ -49,7 +49,6 @@
 #include "gtkicontheme.h"
 #include "gtkmain.h"
 #include "gtksettings.h"
-#include "gtkstylecontextprivate.h"
 #include "gtkdialogprivate.h"
 #include "gtkgestureclick.h"
 #include "gtkmodelbuttonprivate.h"
@@ -64,27 +63,21 @@
 #include <glib/gprintf.h>
 
 /**
- * SECTION:filesystem
- * @short_description: Functions for working with GIO
- * @Title: Filesystem utilities
+ * GtkMountOperation:
+ *
+ * `GtkMountOperation` is an implementation of `GMountOperation`.
  *
  * The functions and objects described here make working with GTK and
  * GIO more convenient.
  *
- * #GtkMountOperation is needed when mounting volumes:
- * It is an implementation of #GMountOperation that can be used with
+ * `GtkMountOperation` is needed when mounting volumes:
+ * It is an implementation of `GMountOperation` that can be used with
  * GIO functions for mounting volumes such as
  * g_file_mount_enclosing_volume(), g_file_mount_mountable(),
  * g_volume_mount(), g_mount_unmount_with_operation() and others.
  *
- * When necessary, #GtkMountOperation shows dialogs to ask for
- * passwords, questions or show processes blocking unmount.
- *
- * gtk_show_uri_on_window() is a convenient way to launch applications for URIs.
- *
- * Another object that is worth mentioning in this context is
- * #GdkAppLaunchContext, which provides visual feedback when launching
- * applications.
+ * When necessary, `GtkMountOperation` shows dialogs to let the user
+ * enter passwords, ask questions or show processes blocking unmount.
  */
 
 static void   gtk_mount_operation_finalize     (GObject          *object);
@@ -169,6 +162,11 @@ gtk_mount_operation_class_init (GtkMountOperationClass *klass)
   mount_op_class->show_processes = gtk_mount_operation_show_processes;
   mount_op_class->aborted = gtk_mount_operation_aborted;
 
+  /**
+   * GtkMountOperation:parent: (attributes org.gtk.Property.get=gtk_mount_operation_get_parent org.gtk.Property.set=gtk_mount_operation_set_parent)
+   *
+   * The parent window.
+   */
   g_object_class_install_property (object_class,
                                    PROP_PARENT,
                                    g_param_spec_object ("parent",
@@ -177,6 +175,11 @@ gtk_mount_operation_class_init (GtkMountOperationClass *klass)
                                                         GTK_TYPE_WINDOW,
                                                         GTK_PARAM_READWRITE));
 
+  /**
+   * GtkMountOperation:is-showing: (attributes org.gtk.Property.get=gtk_mount_operation_is_showing)
+   *
+   * Whether a dialog is currently shown.
+   */
   g_object_class_install_property (object_class,
                                    PROP_IS_SHOWING,
                                    g_param_spec_boolean ("is-showing",
@@ -185,6 +188,11 @@ gtk_mount_operation_class_init (GtkMountOperationClass *klass)
                                                          FALSE,
                                                          GTK_PARAM_READABLE));
 
+  /**
+   * GtkMountOperation:display: (attributes org.gtk.Property.get=gtk_mount_operation_get_display org.gtk.Property.set=gtk_mount_operation_set_display)
+   *
+   * The display where dialogs will be shown.
+   */
   g_object_class_install_property (object_class,
                                    PROP_DISPLAY,
                                    g_param_spec_object ("display",
@@ -572,12 +580,11 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   GtkWidget *hbox, *main_vbox, *icon;
   GtkWidget *grid;
   GtkWidget *label;
-  GtkWidget *content_area, *action_area;
+  GtkWidget *content_area;
   gboolean   can_anonymous;
   guint      rows;
   char *primary;
   const char *secondary = NULL;
-  PangoAttrList *attrs;
   gboolean use_header;
 
   priv = operation->priv;
@@ -594,11 +601,6 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   priv->dialog = dialog;
 
   content_area = gtk_dialog_get_content_area (dialog);
-  action_area = gtk_dialog_get_action_area (dialog);
-
-  /* Set the dialog up with HIG properties */
-  gtk_box_set_spacing (GTK_BOX (content_area), 2); /* 2 * 5 + 2 = 12 */
-  gtk_box_set_spacing (GTK_BOX (action_area), 6);
 
   gtk_window_set_resizable (window, FALSE);
   gtk_window_set_title (window, "");
@@ -613,6 +615,12 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
 
   /* Build contents */
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
+  g_object_set (hbox,
+                "margin-start", 12,
+                "margin-end", 12,
+                "margin-top", 12,
+                "margin-bottom", 12,
+                NULL);
   gtk_box_append (GTK_BOX (content_area), hbox);
 
   icon = gtk_image_new_from_icon_name ("dialog-password");
@@ -638,10 +646,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_box_append (GTK_BOX (main_vbox), GTK_WIDGET (label));
   g_free (primary);
-  attrs = pango_attr_list_new ();
-  pango_attr_list_insert (attrs, pango_attr_weight_new (PANGO_WEIGHT_BOLD));
-  gtk_label_set_attributes (GTK_LABEL (label), attrs);
-  pango_attr_list_unref (attrs);
+  gtk_widget_add_css_class (label, "title-3");
 
   if (secondary != NULL)
     {
@@ -1785,11 +1790,11 @@ gtk_mount_operation_aborted (GMountOperation *op)
 
 /**
  * gtk_mount_operation_new:
- * @parent: (allow-none): transient parent of the window, or %NULL
+ * @parent: (nullable): transient parent of the window
  *
- * Creates a new #GtkMountOperation
+ * Creates a new `GtkMountOperation`.
  *
- * Returns: a new #GtkMountOperation
+ * Returns: a new `GtkMountOperation`
  */
 GMountOperation *
 gtk_mount_operation_new (GtkWindow *parent)
@@ -1803,10 +1808,10 @@ gtk_mount_operation_new (GtkWindow *parent)
 }
 
 /**
- * gtk_mount_operation_is_showing:
- * @op: a #GtkMountOperation
+ * gtk_mount_operation_is_showing: (attributes org.gtk.Method.get_property=is-showing)
+ * @op: a `GtkMountOperation`
  *
- * Returns whether the #GtkMountOperation is currently displaying
+ * Returns whether the `GtkMountOperation` is currently displaying
  * a window.
  *
  * Returns: %TRUE if @op is currently displaying a window
@@ -1820,12 +1825,12 @@ gtk_mount_operation_is_showing (GtkMountOperation *op)
 }
 
 /**
- * gtk_mount_operation_set_parent:
- * @op: a #GtkMountOperation
- * @parent: (allow-none): transient parent of the window, or %NULL
+ * gtk_mount_operation_set_parent: (attributes org.gtk.Method.set_property=parent)
+ * @op: a `GtkMountOperation`
+ * @parent: (nullable): transient parent of the window
  *
  * Sets the transient parent for windows shown by the
- * #GtkMountOperation.
+ * `GtkMountOperation`.
  */
 void
 gtk_mount_operation_set_parent (GtkMountOperation *op,
@@ -1863,10 +1868,10 @@ gtk_mount_operation_set_parent (GtkMountOperation *op,
 }
 
 /**
- * gtk_mount_operation_get_parent:
- * @op: a #GtkMountOperation
+ * gtk_mount_operation_get_parent: (attributes org.gtk.Method.get_property=parent)
+ * @op: a `GtkMountOperation`
  *
- * Gets the transient parent used by the #GtkMountOperation
+ * Gets the transient parent used by the `GtkMountOperation`.
  *
  * Returns: (transfer none): the transient parent for windows shown by @op
  */
@@ -1879,11 +1884,11 @@ gtk_mount_operation_get_parent (GtkMountOperation *op)
 }
 
 /**
- * gtk_mount_operation_set_display:
- * @op: a #GtkMountOperation
- * @display: a #GdkDisplay
+ * gtk_mount_operation_set_display: (attributes org.gtk.Method.set_property=display)
+ * @op: a `GtkMountOperation`
+ * @display: a `GdkDisplay`
  *
- * Sets the display to show windows of the #GtkMountOperation on.
+ * Sets the display to show windows of the `GtkMountOperation` on.
  */
 void
 gtk_mount_operation_set_display (GtkMountOperation *op,
@@ -1911,10 +1916,10 @@ gtk_mount_operation_set_display (GtkMountOperation *op,
 }
 
 /**
- * gtk_mount_operation_get_display:
- * @op: a #GtkMountOperation
+ * gtk_mount_operation_get_display: (attributes org.gtk.Method.get_property=display)
+ * @op: a `GtkMountOperation`
  *
- * Gets the display on which windows of the #GtkMountOperation
+ * Gets the display on which windows of the `GtkMountOperation`
  * will be shown.
  *
  * Returns: (transfer none): the display on which windows of @op are shown

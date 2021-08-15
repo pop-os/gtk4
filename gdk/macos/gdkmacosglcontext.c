@@ -103,8 +103,7 @@ create_pixel_format (int      major,
     NSOpenGLPFABackingStore,
     NSOpenGLPFAColorSize, 24,
     NSOpenGLPFAAlphaSize, 8,
-
-    (NSOpenGLPixelFormatAttribute)nil
+    0
   };
 
   if (major == 3 && minor == 2)
@@ -136,7 +135,7 @@ ensure_gl_view (GdkMacosGLContext *self)
   nsview = _gdk_macos_surface_get_view (surface);
   nswindow = _gdk_macos_surface_get_native (surface);
 
-  if (!GDK_IS_MACOS_GL_VIEW (nsview))
+  if G_UNLIKELY (!GDK_IS_MACOS_GL_VIEW (nsview))
     {
       NSRect frame;
 
@@ -146,6 +145,7 @@ ensure_gl_view (GdkMacosGLContext *self)
       [nsview setPostsFrameChangedNotifications: YES];
       [nsview setNeedsDisplay:YES];
       [nswindow setContentView:nsview];
+      [nswindow makeFirstResponder:nsview];
       [nsview release];
 
       if (self->dummy_view != NULL)
@@ -170,12 +170,12 @@ gdk_macos_gl_context_real_realize (GdkGLContext  *context,
 {
   GdkMacosGLContext *self = (GdkMacosGLContext *)context;
   GdkSurface *surface;
+  GdkDisplay *display;
   NSOpenGLContext *shared_gl_context = nil;
   NSOpenGLContext *gl_context;
   NSOpenGLPixelFormat *pixelFormat;
   CGLContextObj cgl_context;
   GdkGLContext *shared;
-  GdkGLContext *shared_data;
   NSOpenGLContext *existing;
   GLint sync_to_framerate = 1;
   GLint validate = 0;
@@ -192,21 +192,16 @@ gdk_macos_gl_context_real_realize (GdkGLContext  *context,
   gdk_gl_context_get_required_version (context, &major, &minor);
 
   surface = gdk_draw_context_get_surface (GDK_DRAW_CONTEXT (context));
-  shared = gdk_gl_context_get_shared_context (context);
-  shared_data = gdk_surface_get_shared_data_gl_context (surface);
+  display = gdk_gl_context_get_display (context);
+  shared = gdk_display_get_gl_context (display);
 
   if (shared != NULL)
     {
       if (!(shared_gl_context = get_ns_open_gl_context (GDK_MACOS_GL_CONTEXT (shared), error)))
         return FALSE;
     }
-  else if (shared_data != NULL)
-    {
-      if (!(shared_gl_context = get_ns_open_gl_context (GDK_MACOS_GL_CONTEXT (shared_data), error)))
-        return FALSE;
-    }
 
-  GDK_DISPLAY_NOTE (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)),
+  GDK_DISPLAY_NOTE (display,
                     OPENGL,
                     g_message ("Creating NSOpenGLContext (version %d.%d)",
                                major, minor));
@@ -253,7 +248,7 @@ gdk_macos_gl_context_real_realize (GdkGLContext  *context,
 
   GLint renderer_id = 0;
   [gl_context getValues:&renderer_id forParameter:NSOpenGLContextParameterCurrentRendererID];
-  GDK_DISPLAY_NOTE (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)),
+  GDK_DISPLAY_NOTE (display,
                     OPENGL,
                     g_message ("Created NSOpenGLContext[%p] using %s",
                                gl_context,
@@ -267,6 +262,34 @@ gdk_macos_gl_context_real_realize (GdkGLContext  *context,
   return TRUE;
 }
 
+static gboolean
+opaque_region_covers_surface (GdkMacosGLContext *self)
+{
+  GdkSurface *surface;
+  cairo_region_t *region;
+
+  g_assert (GDK_IS_MACOS_GL_CONTEXT (self));
+
+  surface = gdk_draw_context_get_surface (GDK_DRAW_CONTEXT (self));
+  region = GDK_MACOS_SURFACE (surface)->opaque_region;
+
+  if (region != NULL &&
+      cairo_region_num_rectangles (region) == 1)
+    {
+      cairo_rectangle_int_t extents;
+
+      cairo_region_get_extents (region, &extents);
+
+      if (extents.x == 0 &&
+          extents.y == 0 &&
+          extents.width == surface->width &&
+          extents.height == surface->height)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 static void
 gdk_macos_gl_context_begin_frame (GdkDrawContext *context,
                                   cairo_region_t *painted)
@@ -278,36 +301,16 @@ gdk_macos_gl_context_begin_frame (GdkDrawContext *context,
 
   surface = gdk_draw_context_get_surface (context);
 
+  g_clear_pointer (&self->damage, cairo_region_destroy);
+  self->damage = cairo_region_copy (painted);
+
   /* If begin frame is called, that means we are trying to draw to
    * the NSWindow using our view. That might be a GdkMacosCairoView
    * but we need it to be a GL view. Also, only in this case do we
    * want to replace our damage region for the next frame (to avoid
    * doing it multiple times).
    */
-  if (!self->is_attached &&
-      gdk_gl_context_get_shared_context (GDK_GL_CONTEXT (context)))
-    {
-      CGLContextObj glctx = [self->gl_context CGLContextObj];
-      GLint swapRect[4];
-
-      ensure_gl_view (self);
-
-      g_clear_pointer (&self->damage, cairo_region_destroy);
-      self->damage = cairo_region_copy (painted);
-
-      cairo_region_get_extents (painted, &self->flush_rect);
-
-      /* Coordinates are in display coordinates, where as flush_rect is
-       * in GDK coordinates. Must flip Y to match display coordinates where
-       * 0,0 is the bottom-left corner.
-       */
-      swapRect[0] = self->flush_rect.x;                   /* left */
-      swapRect[1] = surface->height - self->flush_rect.y; /* bottom */
-      swapRect[2] = self->flush_rect.width;               /* width */
-      swapRect[3] = self->flush_rect.height;              /* height */
-
-      CGLSetParameter (glctx, kCGLCPSwapRectangle, swapRect);
-    }
+  ensure_gl_view (self);
 
   if (self->needs_resize)
     {
@@ -332,6 +335,10 @@ gdk_macos_gl_context_begin_frame (GdkDrawContext *context,
         opaque = GDK_MACOS_TOPLEVEL_SURFACE (surface)->decorated;
       else
         opaque = FALSE;
+
+      /* If we are maximized, we might be able to make it opaque */
+      if (opaque == FALSE)
+        opaque = opaque_region_covers_surface (self);
 
       CGLSetParameter (cgl_context, kCGLCPSurfaceOpacity, &opaque);
 
@@ -362,7 +369,26 @@ gdk_macos_gl_context_end_frame (GdkDrawContext *context,
 
   GDK_DRAW_CONTEXT_CLASS (gdk_macos_gl_context_parent_class)->end_frame (context, painted);
 
-  [self->gl_context flushBuffer];
+  if (!self->is_attached)
+    {
+      GdkSurface *surface = gdk_draw_context_get_surface (context);
+      CGLContextObj glctx = [self->gl_context CGLContextObj];
+      cairo_rectangle_int_t flush_rect;
+      GLint swapRect[4];
+
+      /* Coordinates are in display coordinates, where as flush_rect is
+       * in GDK coordinates. Must flip Y to match display coordinates where
+       * 0,0 is the bottom-left corner.
+       */
+      cairo_region_get_extents (painted, &flush_rect);
+      swapRect[0] = flush_rect.x;                   /* left */
+      swapRect[1] = surface->height - flush_rect.y; /* bottom */
+      swapRect[2] = flush_rect.width;               /* width */
+      swapRect[3] = flush_rect.height;              /* height */
+      CGLSetParameter (glctx, kCGLCPSwapRectangle, swapRect);
+
+      [self->gl_context flushBuffer];
+    }
 }
 
 static void
@@ -375,6 +401,57 @@ gdk_macos_gl_context_surface_resized (GdkDrawContext *draw_context)
   self->needs_resize = TRUE;
 
   g_clear_pointer (&self->damage, cairo_region_destroy);
+}
+
+static gboolean
+gdk_macos_gl_context_clear_current (GdkGLContext *context)
+{
+  GdkMacosGLContext *self = GDK_MACOS_GL_CONTEXT (context);
+  NSOpenGLContext *current;
+
+  g_return_val_if_fail (GDK_IS_MACOS_GL_CONTEXT (self), FALSE);
+
+  current = [NSOpenGLContext currentContext];
+
+  if (self->gl_context == current)
+    {
+      /* The OpenGL mac programming guide suggests that glFlush() is called
+       * before switching current contexts to ensure that the drawing commands
+       * are submitted.
+       */
+      if (current != NULL)
+        glFlush ();
+
+      [NSOpenGLContext clearCurrentContext];
+    }
+
+  return TRUE;
+}
+
+static gboolean
+gdk_macos_gl_context_make_current (GdkGLContext *context,
+                                   gboolean      surfaceless)
+{
+  GdkMacosGLContext *self = GDK_MACOS_GL_CONTEXT (context);
+  NSOpenGLContext *current;
+
+  g_return_val_if_fail (GDK_IS_MACOS_GL_CONTEXT (self), FALSE);
+
+  current = [NSOpenGLContext currentContext];
+
+  if (self->gl_context != current)
+    {
+      /* The OpenGL mac programming guide suggests that glFlush() is called
+       * before switching current contexts to ensure that the drawing commands
+       * are submitted.
+       */
+      if (current != NULL)
+        glFlush ();
+
+      [self->gl_context makeCurrentContext];
+    }
+
+  return TRUE;
 }
 
 static cairo_region_t *
@@ -443,54 +520,6 @@ gdk_macos_gl_context_class_init (GdkMacosGLContextClass *klass)
 static void
 gdk_macos_gl_context_init (GdkMacosGLContext *self)
 {
-}
-
-GdkGLContext *
-_gdk_macos_gl_context_new (GdkMacosSurface  *surface,
-                           gboolean          attached,
-                           GdkGLContext     *share,
-                           GError          **error)
-{
-  GdkMacosGLContext *context;
-
-  g_return_val_if_fail (GDK_IS_MACOS_SURFACE (surface), NULL);
-  g_return_val_if_fail (!share || GDK_IS_MACOS_GL_CONTEXT (share), NULL);
-
-  context = g_object_new (GDK_TYPE_MACOS_GL_CONTEXT,
-                          "surface", surface,
-                          "shared-context", share,
-                          NULL);
-
-  context->is_attached = !!attached;
-
-  return GDK_GL_CONTEXT (context);
-}
-
-gboolean
-_gdk_macos_gl_context_make_current (GdkMacosGLContext *self)
-{
-  NSOpenGLContext *current;
-
-  g_return_val_if_fail (GDK_IS_MACOS_GL_CONTEXT (self), FALSE);
-
-  if (self->gl_context == NULL)
-    return FALSE;
-
-  current = [NSOpenGLContext currentContext];
-
-  if (self->gl_context != current)
-    {
-      /* The OpenGL mac programming guide suggests that glFlush() is called
-       * before switching current contexts to ensure that the drawing commands
-       * are submitted.
-       */
-      if (current != NULL)
-        glFlush ();
-
-      [self->gl_context makeCurrentContext];
-    }
-
-  return TRUE;
 }
 
 G_GNUC_END_IGNORE_DEPRECATIONS

@@ -15,24 +15,24 @@
             <attribute name="target">current</attribute>
           </item>
           <item>
-            <attribute name="label" translatable="yes">Adwaita</attribute>
+            <attribute name="label" translatable="yes">Default</attribute>
             <attribute name="action">win.theme</attribute>
-            <attribute name="target">adwaita</attribute>
+            <attribute name="target">default</attribute>
           </item>
           <item>
-            <attribute name="label" translatable="yes">Adwaita dark</attribute>
+            <attribute name="label" translatable="yes">Dark</attribute>
             <attribute name="action">win.theme</attribute>
-            <attribute name="target">adwaita-dark</attribute>
+            <attribute name="target">dark</attribute>
           </item>
           <item>
-            <attribute name="label" translatable="yes">High contrast</attribute>
+            <attribute name="label" translatable="yes">Highcontrast</attribute>
             <attribute name="action">win.theme</attribute>
-            <attribute name="target">highcontrast</attribute>
+            <attribute name="target">hc</attribute>
           </item>
           <item>
-            <attribute name="label" translatable="yes">High contrast inverse</attribute>
+            <attribute name="label" translatable="yes">Highcontrast inverse</attribute>
             <attribute name="action">win.theme</attribute>
-            <attribute name="target">highcontrast-inverse</attribute>
+            <attribute name="target">hc-dark</attribute>
           </item>
         </section>
       </submenu>
@@ -312,9 +312,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
         <col id="0">camera-photo-symbolic</col>
       </row>
       <row>
-        <col id="0">camera-video-symbolic</col>
-      </row>
-      <row>
         <col id="0">camera-web-symbolic</col>
       </row>
       <row>
@@ -328,9 +325,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
       </row>
       <row>
         <col id="0">drive-harddisk-symbolic</col>
-      </row>
-      <row>
-        <col id="0">drive-multidisk-symbolic</col>
       </row>
       <row>
         <col id="0">drive-optical-symbolic</col>
@@ -444,6 +438,7 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
         <child type="end">
           <object class="GtkMenuButton" id="gear_menu_button">
             <property name="valign">center</property>
+            <property name="focus-on-click">0</property>
             <property name="popover">
               <object class="GtkPopoverMenu" id="gear_menu">
                 <property name="menu-model">gear_menu_model</property>
@@ -2611,12 +2606,12 @@ microphone-sensitivity-medium-symbolic</property>
                                     </style>
                                     <child>
                                       <object class="GtkButton">
-                                        <property name="icon-name">pan-start-symbolic</property>
+                                        <property name="icon-name">go-previous-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
                                       <object class="GtkButton">
-                                        <property name="icon-name">pan-end-symbolic</property>
+                                        <property name="icon-name">go-next-symbolic</property>
                                       </object>
                                     </child>
                                   </object>
@@ -2907,7 +2902,7 @@ bad things might happen.</property>
 
     <action-widgets>
       <action-widget response="cancel">cancel_info_dialog</action-widget>
-      <action-widget response="ok">doit_info_dialog</action-widget>
+      <action-widget response="ok" default="true">doit_info_dialog</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="action_dialog">

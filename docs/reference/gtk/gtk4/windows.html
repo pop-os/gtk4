@@ -1,0 +1,132 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk &ndash; 4.0: Using GTK on Windows</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk: Using GTK on Windows"/>
+  <meta property="og:description" content="Reference for Gtk-4.0: Using GTK on Windows"/>
+  <meta name="twitter:title" content="Gtk: Using GTK on Windows"/>
+  <meta name="twitter:description" content="Reference for Gtk-4.0: Using GTK on Windows"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+      
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <section>
+    <div class="docblock">
+    <p>The Windows port of <span class="caps">GTK</span> is an implementation of <span class="caps">GDK</span> (and therefore <span class="caps">GTK</span>)
+on top of the Win32 <span class="caps">API</span>. When compiling <span class="caps">GTK</span> on Windows, this backend is
+the&nbsp;default.</p>
+<p>More information about <span class="caps">GTK</span> on Windows, including detailed build
+instructions, binary downloads, etc, can be found
+<a href="https://wiki.gnome.org/Projects/GTK/Win32">online</a>.</p>
+<h2 id="windows-specific-environment-variables">Windows-specific environment variables<a class="md-anchor" href="#windows-specific-environment-variables" title="Permanent link"></a></h2>
+<p>The Win32 <span class="caps">GDK</span> backend can be influenced with some additional environment&nbsp;variables.</p>
+<h3 id="gdk_ignore_wintab">GDK_IGNORE_WINTAB<a class="md-anchor" href="#gdk_ignore_wintab" title="Permanent link"></a></h3>
+<p>If this variable is set, <span class="caps">GTK</span> doesn&#8217;t use the Wintab <span class="caps">API</span> for tablet&nbsp;support.</p>
+<h3 id="gdk_use_wintab">GDK_USE_WINTAB<a class="md-anchor" href="#gdk_use_wintab" title="Permanent link"></a></h3>
+<p>If this variable is set, <span class="caps">GTK</span> uses the Wintab <span class="caps">API</span> for tablet support.
+This is the&nbsp;default.</p>
+<h2 id="windows-specific-handling-of-cursors">Windows-specific handling of cursors<a class="md-anchor" href="#windows-specific-handling-of-cursors" title="Permanent link"></a></h2>
+<p>By default the &#8220;system&#8221; cursor theme is used. This makes <span class="caps">GTK</span> prefer cursors
+that Windows currently uses, falling back to Adwaita cursors and (as the last
+resort) built-in X&nbsp;cursors.</p>
+<p>When any other cursor theme is used, <span class="caps">GTK</span> will prefer cursors from that theme,
+falling back to Windows cursors and built-in X&nbsp;cursors.</p>
+<p>Theme can be changed by setting <code>gtk-cursor-theme-name</code> <span class="caps">GTK</span> setting. Users
+can override <span class="caps">GTK</span> settings in the <code>settings.ini</code> file or at runtime in the
+<span class="caps">GTK</span>&nbsp;Inspector.</p>
+<p>Themes are loaded from normal Windows variants of the <span class="caps">XDG</span> locations:
+<code>HOME`%/icons/THEME/cursors`,</code><span class="caps">APPDATA</span><code>%/icons/THEME/cursors</code>,
+<code>RUNTIME_PREFIX/share/icons/THEME/cursors</code></p>
+<p>The <code>gtk-cursor-theme-size</code> setting is ignored, <span class="caps">GTK</span> will use
+the cursor size that Windows tells it to&nbsp;use.</p>
+    </div>
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

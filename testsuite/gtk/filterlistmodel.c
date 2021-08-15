@@ -30,7 +30,7 @@ get (GListModel *model,
 {
   GObject *object = g_list_model_get_item (model, position);
   guint number;
-  g_assert (object != NULL);
+  g_assert_nonnull (object);
   number = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
   g_object_unref (object);
   return number;
@@ -64,7 +64,7 @@ add (GListStore *store,
   GObject *object;
 
   /* 0 cannot be differentiated from NULL, so don't use it */
-  g_assert (number != 0);
+  g_assert_cmpint (number, !=, 0);
 
   object = g_object_new (G_TYPE_OBJECT, NULL);
   g_object_set_qdata (object, number_quark, GUINT_TO_POINTER (number));
@@ -120,7 +120,7 @@ items_changed (GListModel *model,
                guint       added,
                GString    *changes)
 {
-  g_assert (removed != 0 || added != 0);
+  g_assert_true (removed != 0 || added != 0);
 
   if (changes->len)
     g_string_append (changes, ", ");
@@ -376,10 +376,39 @@ test_incremental (void)
   g_object_unref (filter);
 }
 
+static void
+test_empty (void)
+{
+  GtkFilterListModel *filter;
+  GListStore *store;
+  GtkFilter *f;
+
+  filter = gtk_filter_list_model_new (NULL, NULL);
+
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (filter)), ==, 0);
+  g_assert_null (g_list_model_get_item (G_LIST_MODEL (filter), 11));
+
+  store = g_list_store_new (G_TYPE_OBJECT);
+  gtk_filter_list_model_set_model (filter, G_LIST_MODEL (store));
+  g_object_unref (store);
+
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (filter)), ==, 0);
+  g_assert_null (g_list_model_get_item (G_LIST_MODEL (filter), 11));
+
+  f = GTK_FILTER (gtk_every_filter_new ());
+  gtk_filter_list_model_set_filter (filter, f);
+  g_object_unref (f);
+
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (filter)), ==, 0);
+  g_assert_null (g_list_model_get_item (G_LIST_MODEL (filter), 11));
+
+  g_object_unref (filter);
+}
+
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
 
   number_quark = g_quark_from_static_string ("Hell and fire was spawned to be released.");
@@ -389,6 +418,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/filterlistmodel/empty_set_filter", test_empty_set_filter);
   g_test_add_func ("/filterlistmodel/change_filter", test_change_filter);
   g_test_add_func ("/filterlistmodel/incremental", test_incremental);
+  g_test_add_func ("/filterlistmodel/empty", test_empty);
 
   return g_test_run ();
 }

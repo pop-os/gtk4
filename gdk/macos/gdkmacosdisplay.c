@@ -31,46 +31,14 @@
 #include "gdkmacoscairocontext-private.h"
 #include "gdkmacoseventsource-private.h"
 #include "gdkmacosdisplay-private.h"
+#include "gdkmacosdrag-private.h"
+#include "gdkmacosdrop-private.h"
 #include "gdkmacosglcontext-private.h"
 #include "gdkmacoskeymap-private.h"
 #include "gdkmacosmonitor-private.h"
 #include "gdkmacosseat-private.h"
 #include "gdkmacossurface-private.h"
 #include "gdkmacosutils-private.h"
-
-/**
- * SECTION:macos_interaction
- * @Short_description: macOS backend-specific functions
- * @Title: macOS Interaction
- * @Include: gdk/macos/gdkmacos.h
- *
- * The functions in this section are specific to the GDK macOS backend.
- * To use them, you need to include the `<gdk/macos/gdkmacos.h>` header and
- * use the macOS-specific pkg-config `gtk4-macos` file to build your
- * application.
- *
- * To make your code compile with other GDK backends, guard backend-specific
- * calls by an ifdef as follows. Since GDK may be built with multiple
- * backends, you should also check for the backend that is in use (e.g. by
- * using the GDK_IS_MACOS_DISPLAY() macro).
- * |[<!-- language="C" -->
- * #ifdef GDK_WINDOWING_MACOS
- *   if (GDK_IS_MACOS_DISPLAY (display))
- *     {
- *       // make macOS-specific calls here
- *     }
- *   else
- * #endif
- * #ifdef GDK_WINDOWING_X11
- *   if (GDK_IS_X11_DISPLAY (display))
- *     {
- *       // make X11-specific calls here
- *     }
- *   else
- * #endif
- *   g_error ("Unsupported GDK backend");
- * ]|
- */
 
 G_DEFINE_TYPE (GdkMacosDisplay, gdk_macos_display, GDK_TYPE_DISPLAY)
 
@@ -547,6 +515,20 @@ _gdk_macos_display_surface_resigned_key (GdkMacosDisplay *self,
   _gdk_macos_display_clear_sorting (self);
 }
 
+/* Raises a transient window.
+ */
+static void
+raise_transient (GdkMacosSurface *surface)
+{
+  GdkMacosSurface *parent_surface = GDK_MACOS_SURFACE (GDK_SURFACE (surface)->transient_for);
+
+  NSWindow *parent = _gdk_macos_surface_get_native (parent_surface);
+  NSWindow *window = _gdk_macos_surface_get_native (surface);
+
+  [parent removeChildWindow:window];
+  [parent addChildWindow:window ordered:NSWindowAbove];
+}
+
 void
 _gdk_macos_display_surface_became_main (GdkMacosDisplay *self,
                                         GdkMacosSurface *surface)
@@ -558,6 +540,9 @@ _gdk_macos_display_surface_became_main (GdkMacosDisplay *self,
     g_queue_unlink (&self->main_surfaces, &surface->main);
 
   g_queue_push_head_link (&self->main_surfaces, &surface->main);
+
+  if (GDK_SURFACE (surface)->transient_for)
+    raise_transient (surface);
 
   _gdk_macos_display_clear_sorting (self);
 }
@@ -652,17 +637,13 @@ gdk_macos_display_load_clipboard (GdkMacosDisplay *self)
   GDK_DISPLAY (self)->clipboard = _gdk_macos_clipboard_new (self);
 }
 
-static gboolean
-gdk_macos_display_make_gl_context_current (GdkDisplay   *display,
-                                           GdkGLContext *gl_context)
+static GdkGLContext *
+gdk_macos_display_init_gl (GdkDisplay  *display,
+                           GError     **error)
 {
-  g_assert (GDK_IS_MACOS_DISPLAY (display));
-  g_assert (!gl_context || GDK_IS_MACOS_GL_CONTEXT (gl_context));
-
-  if (gl_context == NULL)
-    return FALSE;
-
-  return _gdk_macos_gl_context_make_current (GDK_MACOS_GL_CONTEXT (gl_context));
+  return g_object_new (GDK_TYPE_MACOS_GL_CONTEXT,
+                       "display", display,
+                       NULL);
 }
 
 static void
@@ -680,6 +661,8 @@ gdk_macos_display_finalize (GObject *object)
                                       CFSTR ("NSUserDefaultsDidChangeNotification"),
                                       NULL);
 
+  g_clear_pointer (&self->active_drags, g_hash_table_unref);
+  g_clear_pointer (&self->active_drops, g_hash_table_unref);
   g_clear_object (&GDK_DISPLAY (self)->clipboard);
   g_clear_pointer (&self->frame_source, g_source_unref);
   g_clear_object (&self->monitors);
@@ -708,7 +691,7 @@ gdk_macos_display_class_init (GdkMacosDisplayClass *klass)
   display_class->get_name = gdk_macos_display_get_name;
   display_class->get_setting = gdk_macos_display_get_setting;
   display_class->has_pending = gdk_macos_display_has_pending;
-  display_class->make_gl_context_current = gdk_macos_display_make_gl_context_current;
+  display_class->init_gl = gdk_macos_display_init_gl;
   display_class->notify_startup_complete = gdk_macos_display_notify_startup_complete;
   display_class->queue_events = gdk_macos_display_queue_events;
   display_class->sync = gdk_macos_display_sync;
@@ -718,6 +701,8 @@ static void
 gdk_macos_display_init (GdkMacosDisplay *self)
 {
   self->monitors = g_list_store_new (GDK_TYPE_MONITOR);
+  self->active_drags = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
+  self->active_drops = g_hash_table_new_full (NULL, NULL, NULL, g_object_unref);
 
   gdk_display_set_composited (GDK_DISPLAY (self), TRUE);
   gdk_display_set_input_shapes (GDK_DISPLAY (self), FALSE);
@@ -1129,4 +1114,56 @@ _gdk_macos_display_get_nsevent (GdkEvent *event)
     }
 
   return NULL;
+}
+
+GdkDrag *
+_gdk_macos_display_find_drag (GdkMacosDisplay *self,
+                              NSInteger        sequence_number)
+{
+  g_return_val_if_fail (GDK_IS_MACOS_DISPLAY (self), NULL);
+
+  return g_hash_table_lookup (self->active_drags, GSIZE_TO_POINTER (sequence_number));
+}
+
+void
+_gdk_macos_display_set_drag (GdkMacosDisplay *self,
+                             NSInteger        sequence_number,
+                             GdkDrag         *drag)
+{
+  g_return_if_fail (GDK_IS_MACOS_DISPLAY (self));
+  g_return_if_fail (!drag || GDK_IS_MACOS_DRAG (drag));
+
+  if (drag)
+    g_hash_table_insert (self->active_drags,
+                         GSIZE_TO_POINTER (sequence_number),
+                         g_object_ref (drag));
+  else
+    g_hash_table_remove (self->active_drags,
+                         GSIZE_TO_POINTER (sequence_number));
+}
+
+GdkDrop *
+_gdk_macos_display_find_drop (GdkMacosDisplay *self,
+                              NSInteger        sequence_number)
+{
+  g_return_val_if_fail (GDK_IS_MACOS_DISPLAY (self), NULL);
+
+  return g_hash_table_lookup (self->active_drops, GSIZE_TO_POINTER (sequence_number));
+}
+
+void
+_gdk_macos_display_set_drop (GdkMacosDisplay *self,
+                             NSInteger        sequence_number,
+                             GdkDrop         *drop)
+{
+  g_return_if_fail (GDK_IS_MACOS_DISPLAY (self));
+  g_return_if_fail (!drop || GDK_IS_MACOS_DROP (drop));
+
+  if (drop)
+    g_hash_table_insert (self->active_drops,
+                         GSIZE_TO_POINTER (sequence_number),
+                         g_object_ref (drop));
+  else
+    g_hash_table_remove (self->active_drops,
+                         GSIZE_TO_POINTER (sequence_number));
 }

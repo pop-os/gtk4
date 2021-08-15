@@ -81,12 +81,6 @@ struct _GtkRecentData
   gboolean is_private;
 };
 
-/**
- * GtkRecentManager:
- *
- * #GtkRecentManager-struct contains only private data
- * and should be accessed using the provided API.
- */
 struct _GtkRecentManager
 {
   /*< private >*/
@@ -98,7 +92,7 @@ struct _GtkRecentManager
 /**
  * GtkRecentManagerClass:
  *
- * #GtkRecentManagerClass contains only private data.
+ * `GtkRecentManagerClass` contains only private data.
  */
 struct _GtkRecentManagerClass
 {
@@ -129,7 +123,7 @@ struct _GtkRecentManagerClass
  *   resources file.
  * @GTK_RECENT_MANAGER_ERROR_UNKNOWN: unspecified error.
  *
- * Error codes for #GtkRecentManager operations
+ * Error codes for `GtkRecentManager` operations
  */
 typedef enum
 {
@@ -145,7 +139,7 @@ typedef enum
 /**
  * GTK_RECENT_MANAGER_ERROR:
  *
- * The #GError domain for #GtkRecentManager errors.
+ * The `GError` domain for `GtkRecentManager` errors.
  */
 #define GTK_RECENT_MANAGER_ERROR	(gtk_recent_manager_error_quark ())
 GDK_AVAILABLE_IN_ALL

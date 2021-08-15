@@ -98,9 +98,16 @@ static void
 gdk_macos_surface_set_opaque_region (GdkSurface     *surface,
                                      cairo_region_t *region)
 {
+  GdkMacosSurface *self = (GdkMacosSurface *)surface;
   NSView *nsview;
 
-  g_assert (GDK_IS_MACOS_SURFACE (surface));
+  g_assert (GDK_IS_MACOS_SURFACE (self));
+
+  if (region != self->opaque_region)
+    {
+      g_clear_pointer (&self->opaque_region, cairo_region_destroy);
+      self->opaque_region = cairo_region_copy (region);
+    }
 
   if ((nsview = _gdk_macos_surface_get_view (GDK_MACOS_SURFACE (surface))) &&
       GDK_IS_MACOS_CAIRO_VIEW (nsview))
@@ -325,7 +332,7 @@ gdk_macos_surface_drag_begin (GdkSurface         *surface,
   drag_surface = _gdk_macos_surface_new (GDK_MACOS_DISPLAY (surface->display),
                                          GDK_SURFACE_TEMP,
                                          surface,
-                                         -99, -99, 1, 1);
+                                         sx, sy, 1, 1);
   drag = g_object_new (GDK_TYPE_MACOS_DRAG,
                        "drag-surface", drag_surface,
                        "surface", surface,
@@ -351,20 +358,6 @@ gdk_macos_surface_drag_begin (GdkSurface         *surface,
   return GDK_DRAG (g_steal_pointer (&drag));
 }
 
-static GdkGLContext *
-gdk_macos_surface_create_gl_context (GdkSurface    *surface,
-                                     gboolean       attached,
-                                     GdkGLContext  *share,
-                                     GError       **error)
-{
-  GdkMacosSurface *self = (GdkMacosSurface *)surface;
-
-  g_assert (GDK_IS_MACOS_SURFACE (self));
-  g_assert (!share || GDK_IS_GL_CONTEXT (share));
-
-  return _gdk_macos_gl_context_new (self, attached, share, error);
-}
-
 static void
 gdk_macos_surface_destroy (GdkSurface *surface,
                            gboolean    foreign_destroy)
@@ -386,6 +379,7 @@ gdk_macos_surface_destroy (GdkSurface *surface,
     }
 
   g_clear_pointer (&self->title, g_free);
+  g_clear_pointer (&self->opaque_region, cairo_region_destroy);
 
   if (window != NULL)
     [window close];
@@ -487,7 +481,6 @@ gdk_macos_surface_class_init (GdkMacosSurfaceClass *klass)
   object_class->get_property = gdk_macos_surface_get_property;
   object_class->set_property = gdk_macos_surface_set_property;
 
-  surface_class->create_gl_context = gdk_macos_surface_create_gl_context;
   surface_class->destroy = gdk_macos_surface_destroy;
   surface_class->drag_begin = gdk_macos_surface_drag_begin;
   surface_class->get_device_state = gdk_macos_surface_get_device_state;

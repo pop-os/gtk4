@@ -51,7 +51,7 @@ static int debug_indent = 0;
 
 /**
  * gdk_win32_display_add_filter:
- * @display: a #GdkWin32Display
+ * @display: a `GdkWin32Display`
  * @function: filter callback
  * @data: data to pass to filter callback
  *
@@ -94,7 +94,7 @@ gdk_win32_display_add_filter (GdkWin32Display           *display,
 
 /**
  * _gdk_win32_message_filter_unref:
- * @display: A #GdkWin32Display
+ * @display: A `GdkWin32Display`
  * @filter: A message filter
  *
  * Release a reference to @filter.  Note this function may
@@ -136,7 +136,7 @@ _gdk_win32_message_filter_unref (GdkWin32Display       *display,
 
 /**
  * gdk_win32_display_remove_filter:
- * @display: A #GdkWin32Display
+ * @display: A `GdkWin32Display`
  * @function: previously-added filter function
  * @data: user data for previously-added filter function
  *
@@ -327,20 +327,20 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
 
 /**
  * gdk_win32_display_set_cursor_theme:
- * @display: (type GdkWin32Display): a #GdkDisplay
- * @name: (allow-none): the name of the cursor theme to use, or %NULL to unset
- *         a previously set value
+ * @display: (type GdkWin32Display): a `GdkDisplay`
+ * @name: (nullable): the name of the cursor theme to use, or %NULL
+ *   to unset a previously set value
  * @size: the cursor size to use, or 0 to keep the previous size
  *
  * Sets the cursor theme from which the images for cursor
  * should be taken.
  *
  * If the windowing system supports it, existing cursors created
- * with gdk_cursor_new_from_name() are updated to reflect the theme
- * change. Custom cursors constructed with gdk_cursor_new_from_texture()
+ * with [ctor@Gdk.Cursor.new_from_name] are updated to reflect the theme
+ * change. Custom cursors constructed with [ctor@Gdk.Cursor.new_from_texture]
  * will have to be handled by the application (GTK applications can
  * learn about cursor theme changes by listening for change notification
- * for the corresponding #GtkSetting).
+ * for the corresponding `GtkSetting`).
  */
 void
 gdk_win32_display_set_cursor_theme (GdkDisplay  *display,
@@ -481,6 +481,7 @@ register_display_change_notification (GdkDisplay *display)
   wclass.lpszClassName = "GdkDisplayChange";
   wclass.lpfnWndProc = display_change_window_procedure;
   wclass.hInstance = _gdk_app_hmodule;
+  wclass.style = CS_OWNDC;
 
   klass = RegisterClass (&wclass);
   if (klass)
@@ -656,6 +657,13 @@ gdk_win32_display_dispose (GObject *object)
 
   if (display_win32->hwnd != NULL)
     {
+      if (display_win32->dummy_context_wgl.hglrc != NULL)
+        {
+          wglMakeCurrent (NULL, NULL);
+          wglDeleteContext (display_win32->dummy_context_wgl.hglrc);
+          display_win32->dummy_context_wgl.hglrc = NULL;
+        }
+
       DestroyWindow (display_win32->hwnd);
       display_win32->hwnd = NULL;
     }
@@ -982,31 +990,32 @@ _gdk_win32_check_on_arm64 (GdkWin32Display *display)
 }
 
 static void
-gdk_win32_display_init (GdkWin32Display *display)
+gdk_win32_display_init (GdkWin32Display *display_win32)
 {
   const char *scale_str = g_getenv ("GDK_SCALE");
 
-  display->monitors = G_LIST_MODEL (g_list_store_new (GDK_TYPE_MONITOR));
+  display_win32->monitors = G_LIST_MODEL (g_list_store_new (GDK_TYPE_MONITOR));
 
-  _gdk_win32_enable_hidpi (display);
-  _gdk_win32_check_on_arm64 (display);
+  _gdk_win32_enable_hidpi (display_win32);
+  _gdk_win32_check_on_arm64 (display_win32);
 
   /* if we have DPI awareness, set up fixed scale if set */
-  if (display->dpi_aware_type != PROCESS_DPI_UNAWARE &&
+  if (display_win32->dpi_aware_type != PROCESS_DPI_UNAWARE &&
       scale_str != NULL)
     {
-      display->surface_scale = atol (scale_str);
+      display_win32->surface_scale = atol (scale_str);
 
-      if (display->surface_scale <= 0)
-        display->surface_scale = 1;
+      if (display_win32->surface_scale <= 0)
+        display_win32->surface_scale = 1;
 
-      display->has_fixed_scale = TRUE;
+      display_win32->has_fixed_scale = TRUE;
     }
   else
-    display->surface_scale = _gdk_win32_display_get_monitor_scale_factor (display, NULL, NULL, NULL);
+    display_win32->surface_scale =
+      gdk_win32_display_get_monitor_scale_factor (display_win32, NULL, NULL);
 
-  _gdk_win32_display_init_cursors (display);
-  gdk_win32_display_check_composited (display);
+  _gdk_win32_display_init_cursors (display_win32);
+  gdk_win32_display_check_composited (display_win32);
 }
 
 void
@@ -1057,64 +1066,64 @@ gdk_win32_display_get_monitors (GdkDisplay *display)
 }
 
 guint
-_gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *win32_display,
-                                             HMONITOR         hmonitor,
-                                             HWND             hwnd,
-                                             int             *dpi)
+gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *display_win32,
+                                            GdkSurface      *surface,
+                                            HMONITOR         hmonitor)
 {
   gboolean is_scale_acquired = FALSE;
   gboolean use_dpi_for_monitor = FALSE;
   guint dpix, dpiy;
 
-  if (win32_display->have_at_least_win81)
+  if (display_win32->have_at_least_win81)
     {
-      if (hmonitor != NULL)
+      if (surface != NULL && hmonitor == NULL)
+        hmonitor = MonitorFromWindow (GDK_SURFACE_HWND (surface),
+                                      MONITOR_DEFAULTTONEAREST);
+      if (hmonitor != NULL &&
+          display_win32->shcore_funcs.hshcore != NULL &&
+          display_win32->shcore_funcs.getDpiForMonitorFunc != NULL)
         use_dpi_for_monitor = TRUE;
-
-      else
-        {
-          if (hwnd != NULL)
-            {
-              hmonitor = MonitorFromWindow (hwnd, MONITOR_DEFAULTTONEAREST);
-              use_dpi_for_monitor = TRUE;
-            }
-        }
     }
 
   if (use_dpi_for_monitor)
     {
       /* Use GetDpiForMonitor() for Windows 8.1+, when we have a HMONITOR */
-      if (win32_display->shcore_funcs.hshcore != NULL &&
-          win32_display->shcore_funcs.getDpiForMonitorFunc != NULL)
-        {
-          if (win32_display->shcore_funcs.getDpiForMonitorFunc (hmonitor,
-                                                                MDT_EFFECTIVE_DPI,
-                                                                &dpix,
-                                                                &dpiy) == S_OK)
-            {
-              is_scale_acquired = TRUE;
-            }
-        }
+      if (display_win32->shcore_funcs.getDpiForMonitorFunc (hmonitor,
+                                                            MDT_EFFECTIVE_DPI,
+                                                           &dpix,
+                                                           &dpiy) == S_OK)
+        is_scale_acquired = TRUE;
     }
   else
     {
       /* Go back to GetDeviceCaps() for Windows 8 and earlier, or when we don't
        * have a HMONITOR nor a HWND
        */
-      HDC hdc = GetDC (hwnd);
+      HDC hdc;
+
+      if (surface != NULL)
+        {
+          if (GDK_WIN32_SURFACE (surface)->hdc == NULL)
+            GDK_WIN32_SURFACE (surface)->hdc = GetDC (GDK_SURFACE_HWND (surface));
+
+          hdc = GDK_WIN32_SURFACE (surface)->hdc;
+        }
+      else
+        hdc = GetDC (NULL);
 
       /* in case we can't get the DC for the window, return 1 for the scale */
       if (hdc == NULL)
-        {
-          if (dpi != NULL)
-            *dpi = USER_DEFAULT_SCREEN_DPI;
-
-          return 1;
-        }
+        return 1;
 
       dpix = GetDeviceCaps (hdc, LOGPIXELSX);
       dpiy = GetDeviceCaps (hdc, LOGPIXELSY);
-      ReleaseDC (hwnd, hdc);
+
+      /*
+       * If surface is not NULL, the HDC should not be released, since surfaces have
+       * Win32 windows created with CS_OWNDC
+       */
+      if (surface == NULL)
+        ReleaseDC (NULL, hdc);
 
       is_scale_acquired = TRUE;
     }
@@ -1122,21 +1131,13 @@ _gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *win32_display,
   if (is_scale_acquired)
     /* USER_DEFAULT_SCREEN_DPI = 96, in winuser.h */
     {
-      if (dpi != NULL)
-        *dpi = dpix;
-
-      if (win32_display->has_fixed_scale)
-        return win32_display->surface_scale;
+      if (display_win32->has_fixed_scale)
+        return display_win32->surface_scale;
       else
         return dpix / USER_DEFAULT_SCREEN_DPI > 1 ? dpix / USER_DEFAULT_SCREEN_DPI : 1;
     }
   else
-    {
-      if (dpi != NULL)
-        *dpi = USER_DEFAULT_SCREEN_DPI;
-
-      return 1;
-  }
+    return 1;
 }
 
 static gboolean
@@ -1145,6 +1146,85 @@ gdk_win32_display_get_setting (GdkDisplay  *display,
                                GValue      *value)
 {
   return _gdk_win32_get_setting (name, value);
+}
+
+static gboolean
+gdk_win32_display_init_gl_backend (GdkDisplay  *display,
+                                   GError     **error)
+{
+#ifdef GDK_WIN32_ENABLE_EGL
+  if (GDK_DISPLAY_DEBUG_CHECK (display, GL_EGL))
+    return gdk_win32_display_init_egl (display, error);
+#endif
+  if (GDK_DISPLAY_DEBUG_CHECK (display, GL_WGL))
+    return gdk_win32_display_init_wgl (display, error);
+
+  /* No env vars set, do the regular GL initialization, first WGL and then EGL,
+   * as WGL is the more tried-and-tested configuration.
+   */
+
+  if (gdk_win32_display_init_wgl (display, error))
+    return TRUE;
+  g_clear_error (error);
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  if (gdk_win32_display_init_egl (display, error))
+    return TRUE;
+#endif
+  g_clear_error (error);
+
+  return gdk_win32_display_init_wgl (display, error);
+}
+
+static GdkGLContext *
+gdk_win32_display_init_gl (GdkDisplay  *display,
+                           GError     **error)
+{
+  GdkWin32Display *display_win32 = GDK_WIN32_DISPLAY (display);
+  GdkGLContext *gl_context = NULL;
+
+  if (!gdk_win32_display_init_gl_backend (display, error))
+    return NULL;
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  if (display_win32->egl_disp)
+    gl_context = g_object_new (GDK_TYPE_WIN32_GL_CONTEXT_EGL, "display", display, NULL);
+  else
+#endif
+  if (display_win32->wgl_pixel_format != 0)
+    gl_context = g_object_new (GDK_TYPE_WIN32_GL_CONTEXT_WGL, "display", display, NULL);
+
+  g_return_val_if_fail (gl_context != NULL, NULL);
+
+  return gl_context;
+}
+
+/**
+ * gdk_win32_display_get_egl_display:
+ * @display: (type GdkWin32Display): a Win32 display
+ *
+ * Retrieves the EGL display connection object for the given GDK display.
+ *
+ * Returns: (nullable): the EGL display
+ */
+gpointer
+gdk_win32_display_get_egl_display (GdkDisplay *display)
+{
+  GdkWin32Display *display_win32;
+
+  g_return_val_if_fail (GDK_IS_WIN32_DISPLAY (display), NULL);
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  display_win32 = GDK_WIN32_DISPLAY (display);
+
+  if (display_win32->wgl_pixel_format != 0)
+    return NULL;
+
+  return display_win32->egl_disp;
+#else
+  /* no EGL support */
+  return NULL;
+#endif
 }
 
 static void
@@ -1172,7 +1252,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->create_surface = _gdk_win32_display_create_surface;
 
   display_class->get_keymap = _gdk_win32_display_get_keymap;
-  display_class->make_gl_context_current = _gdk_win32_display_make_gl_context_current;
 
   display_class->get_monitors = gdk_win32_display_get_monitors;
 
@@ -1183,6 +1262,7 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
 
   display_class->get_setting = gdk_win32_display_get_setting;
   display_class->set_cursor_theme = gdk_win32_display_set_cursor_theme;
+  display_class->init_gl = gdk_win32_display_init_gl;
 
   _gdk_win32_surfaceing_init ();
 }

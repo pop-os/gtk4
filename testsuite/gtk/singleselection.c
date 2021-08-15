@@ -30,7 +30,7 @@ get (GListModel *model,
 {
   guint number;
   GObject *object = g_list_model_get_item (model, position);
-  g_assert (object != NULL);
+  g_assert_nonnull (object);
   number = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
   g_object_unref (object);
   return number;
@@ -82,7 +82,7 @@ make_object (guint number)
   GObject *object;
 
   /* 0 cannot be differentiated from NULL, so don't use it */
-  g_assert (number != 0);
+  g_assert_cmpint (number, !=, 0);
 
   object = g_object_new (G_TYPE_OBJECT, NULL);
   g_object_set_qdata (object, number_quark, GUINT_TO_POINTER (number));
@@ -197,7 +197,7 @@ items_changed (GListModel *model,
                guint       added,
                GString    *changes)
 {
-  g_assert (removed != 0 || added != 0);
+  g_assert_true (removed != 0 || added != 0);
 
   if (changes->len)
     g_string_append (changes, ", ");
@@ -300,6 +300,17 @@ test_create (void)
   assert_changes (selection, "");
   assert_selection (selection, "");
   assert_selection_changes (selection, "");
+
+  g_object_unref (selection);
+}
+
+static void
+test_create_empty (void)
+{
+  GtkSingleSelection *selection;
+
+  selection = gtk_single_selection_new (NULL);
+  g_assert_cmpint (g_list_model_get_n_items (G_LIST_MODEL (selection)), ==, 0);
 
   g_object_unref (selection);
 }
@@ -695,10 +706,31 @@ test_set_model (void)
   g_object_unref (selection);
 }
 
+static void
+test_empty (void)
+{
+  GtkSingleSelection *selection;
+  GListStore *store;
+
+  selection = gtk_single_selection_new (NULL);
+
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (selection)), ==, 0);
+  g_assert_null (g_list_model_get_item (G_LIST_MODEL (selection), 11));
+
+  store = g_list_store_new (G_TYPE_OBJECT);
+  gtk_single_selection_set_model (selection, G_LIST_MODEL (store));
+  g_object_unref (store);
+
+  g_assert_cmpuint (g_list_model_get_n_items (G_LIST_MODEL (selection)), ==, 0);
+  g_assert_null (g_list_model_get_item (G_LIST_MODEL (selection), 11));
+
+  g_object_unref (selection);
+}
+
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
 
   number_quark = g_quark_from_static_string ("Hell and fire was spawned to be released.");
@@ -706,6 +738,7 @@ main (int argc, char *argv[])
   selection_quark = g_quark_from_static_string ("Mana mana, badibidibi");
 
   g_test_add_func ("/singleselection/create", test_create);
+  g_test_add_func ("/singleselection/create-empty", test_create_empty);
   g_test_add_func ("/singleselection/autoselect", test_autoselect);
   g_test_add_func ("/singleselection/autoselect-toggle", test_autoselect_toggle);
   g_test_add_func ("/singleselection/selection", test_selection);
@@ -714,6 +747,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/singleselection/query-range", test_query_range);
   g_test_add_func ("/singleselection/changes", test_changes);
   g_test_add_func ("/singleselection/set-model", test_set_model);
+  g_test_add_func ("/singleselection/empty", test_empty);
 
   return g_test_run ();
 }

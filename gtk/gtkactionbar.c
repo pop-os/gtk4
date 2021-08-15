@@ -33,14 +33,14 @@
 #include <string.h>
 
 /**
- * SECTION:gtkactionbar
- * @Short_description: A full width bar for presenting contextual actions
- * @Title: GtkActionBar
- * @See_also: #GtkBox
+ * GtkActionBar:
  *
- * GtkActionBar is designed to present contextual actions. It is
- * expected to be displayed below the content and expand horizontally
- * to fill the area.
+ * `GtkActionBar` is designed to present contextual actions.
+ *
+ * ![An example GtkActionBar](action-bar.png)
+ *
+ * It is expected to be displayed below the content and expand
+ * horizontally to fill the area.
  *
  * It allows placing children at the start or the end. In addition, it
  * contains an internal centered box which is centered with respect to
@@ -49,7 +49,23 @@
  *
  * # CSS nodes
  *
- * GtkActionBar has a single CSS node with name actionbar.
+ * ```
+ * actionbar
+ * ╰── revealer
+ *     ╰── box
+ *         ├── box.start
+ *         │   ╰── [start children]
+ *         ├── [center widget]
+ *         ╰── box.end
+ *             ╰── [end children]
+ * ```
+ *
+ * A `GtkActionBar`'s CSS node is called `actionbar`. It contains a `revealer`
+ * subnode, which contains a `box` subnode, which contains two `box` subnodes at
+ * the start and end of the action bar, with `start` and `end style classes
+ * respectively, as well as a center node that represents the center child.
+ *
+ * Each of the boxes contains children packed for that side.
  */
 
 typedef struct _GtkActionBarClass         GtkActionBarClass;
@@ -149,6 +165,11 @@ gtk_action_bar_class_init (GtkActionBarClass *klass)
 
   widget_class->focus = gtk_widget_focus_child;
 
+  /**
+   * GtkActionBar:revealed: (attributes org.gtk.Property.get=gtk_action_bar_get_revealed org.gtk.Property.set=gtk_action_bar_set_revealed)
+   *
+   * Controls whether the action bar shows its contents.
+   */
   props[PROP_REVEALED] =
     g_param_spec_boolean ("revealed",
                           P_("Reveal"),
@@ -175,6 +196,9 @@ gtk_action_bar_init (GtkActionBar *self)
 
   self->start_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   self->end_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+
+  gtk_widget_add_css_class (self->start_box, "start");
+  gtk_widget_add_css_class (self->end_box, "end");
 
   self->center_box = gtk_center_box_new ();
   gtk_center_box_set_start_widget (GTK_CENTER_BOX (self->center_box), self->start_box);
@@ -214,8 +238,8 @@ gtk_action_bar_buildable_interface_init (GtkBuildableIface *iface)
 
 /**
  * gtk_action_bar_pack_start:
- * @action_bar: A #GtkActionBar
- * @child: the #GtkWidget to be added to @action_bar
+ * @action_bar: A `GtkActionBar`
+ * @child: the `GtkWidget` to be added to @action_bar
  *
  * Adds @child to @action_bar, packed with reference to the
  * start of the @action_bar.
@@ -229,8 +253,8 @@ gtk_action_bar_pack_start (GtkActionBar *action_bar,
 
 /**
  * gtk_action_bar_pack_end:
- * @action_bar: A #GtkActionBar
- * @child: the #GtkWidget to be added to @action_bar
+ * @action_bar: A `GtkActionBar`
+ * @child: the `GtkWidget` to be added to @action_bar
  *
  * Adds @child to @action_bar, packed with reference to the
  * end of the @action_bar.
@@ -244,8 +268,8 @@ gtk_action_bar_pack_end (GtkActionBar *action_bar,
 
 /**
  * gtk_action_bar_remove:
- * @action_bar: a #GtkActionBar
- * @child: the #GtkWidget to be removed
+ * @action_bar: a `GtkActionBar`
+ * @child: the `GtkWidget` to be removed
  *
  * Removes a child from @action_bar.
  */
@@ -266,10 +290,10 @@ gtk_action_bar_remove (GtkActionBar *action_bar,
 
 /**
  * gtk_action_bar_set_center_widget:
- * @action_bar: a #GtkActionBar
- * @center_widget: (allow-none): a widget to use for the center
+ * @action_bar: a `GtkActionBar`
+ * @center_widget: (nullable): a widget to use for the center
  *
- * Sets the center widget for the #GtkActionBar.
+ * Sets the center widget for the `GtkActionBar`.
  */
 void
 gtk_action_bar_set_center_widget (GtkActionBar *action_bar,
@@ -280,11 +304,11 @@ gtk_action_bar_set_center_widget (GtkActionBar *action_bar,
 
 /**
  * gtk_action_bar_get_center_widget:
- * @action_bar: a #GtkActionBar
+ * @action_bar: a `GtkActionBar`
  *
  * Retrieves the center bar widget of the bar.
  *
- * Returns: (transfer none) (nullable): the center #GtkWidget or %NULL.
+ * Returns: (transfer none) (nullable): the center `GtkWidget`
  */
 GtkWidget *
 gtk_action_bar_get_center_widget (GtkActionBar *action_bar)
@@ -297,9 +321,9 @@ gtk_action_bar_get_center_widget (GtkActionBar *action_bar)
 /**
  * gtk_action_bar_new:
  *
- * Creates a new #GtkActionBar widget.
+ * Creates a new `GtkActionBar` widget.
  *
- * Returns: a new #GtkActionBar
+ * Returns: a new `GtkActionBar`
  */
 GtkWidget *
 gtk_action_bar_new (void)
@@ -308,16 +332,15 @@ gtk_action_bar_new (void)
 }
 
 /**
- * gtk_action_bar_set_revealed:
- * @action_bar: a #GtkActionBar
+ * gtk_action_bar_set_revealed: (attributes org.gtk.Method.set_property=revealed)
+ * @action_bar: a `GtkActionBar`
  * @revealed: The new value of the property
  *
- * Sets the #GtkActionBar:revealed property to @revealed. Changing this will
- * make @action_bar reveal (%TRUE) or conceal (%FALSE) itself via a sliding
- * transition.
+ * Reveals or conceals the content of the action bar.
  *
- * Note: this does not show or hide @action_bar in the #GtkWidget:visible sense,
- * so revealing has no effect if #GtkWidget:visible is %FALSE.
+ * Note: this does not show or hide @action_bar in the
+ * [property@Gtk.Widget:visible] sense, so revealing has
+ * no effect if the action bar is hidden.
  */
 void
 gtk_action_bar_set_revealed (GtkActionBar *action_bar,
@@ -333,12 +356,13 @@ gtk_action_bar_set_revealed (GtkActionBar *action_bar,
 }
 
 /**
- * gtk_action_bar_get_revealed:
- * @action_bar: a #GtkActionBar
+ * gtk_action_bar_get_revealed: (attributes org.gtk.Method.get_property=revealed)
+ * @action_bar: a `GtkActionBar`
  *
- * Gets the value of the #GtkActionBar:revealed property.
+ * Gets whether the contents of the action bar are revealed.
  *
- * Returns: the current value of the #GtkActionBar:revealed property.
+ * Returns: the current value of the [property@Gtk.ActionBar:revealed]
+ *   property
  */
 gboolean
 gtk_action_bar_get_revealed (GtkActionBar *action_bar)

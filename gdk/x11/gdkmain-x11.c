@@ -46,39 +46,6 @@
 #include <X11/XKBlib.h>
 #endif
 
-/**
- * SECTION:x_interaction
- * @Short_description: X backend-specific functions
- * @Title: X Window System Interaction
- * @Include: gdk/x11/gdkx.h
- *
- * The functions in this section are specific to the GDK X11 backend.
- * To use them, you need to include the `<gdk/x11/gdkx.h>` header and use
- * the X11-specific pkg-config file `gtk4-x11` to build your application.
- *
- * To make your code compile with other GDK backends, guard backend-specific
- * calls by an ifdef as follows. Since GDK may be built with multiple
- * backends, you should also check for the backend that is in use (e.g. by
- * using the GDK_IS_X11_DISPLAY() macro).
- * |[
- * #ifdef GDK_WINDOWING_X11
- *   if (GDK_IS_X11_DISPLAY (display))
- *     {
- *       // make X11-specific calls here
- *     }
- *   else
- * #endif
- * #ifdef GDK_WINDOWING_MACOS
- *   if (GDK_IS_MACOS_DISPLAY (display))
- *     {
- *       // make MacOS-specific calls here
- *     }
- *   else
- * #endif
- *   g_error ("Unsupported GDK backend");
- * ]|
- */
-
 /* non-GDK previous error handler */
 typedef int (*GdkXErrorHandler) (Display *, XErrorEvent *);
 static GdkXErrorHandler _gdk_old_error_handler;
@@ -123,7 +90,7 @@ _gdk_x11_convert_grab_status (int status)
 
 /*
  * _gdk_x11_surface_grab_check_unmap:
- * @surface: a #GdkSurface
+ * @surface: a `GdkSurface`
  * @serial: serial from Unmap event (or from NextRequest(display)
  *   if the unmap is being done by this client.)
  *
@@ -154,7 +121,7 @@ _gdk_x11_surface_grab_check_unmap (GdkSurface *surface,
 
 /*
  * _gdk_x11_surface_grab_check_destroy:
- * @surface: a #GdkSurface
+ * @surface: a `GdkSurface`
  * 
  * Checks to see if surface is the current grab surface, and if
  * so, clear the current grab surface.
@@ -218,24 +185,13 @@ gdk_x_io_error (Display *display)
   /* This is basically modelled after the code in XLib. We need
    * an explicit error handler here, so we can disable our atexit()
    * which would otherwise cause a nice segfault.
-   * We fprintf(stderr, instead of g_warning() because g_warning()
-   * could possibly be redirected to a dialog
+   * We g_debug() instead of g_warning(), because g_warning()
+   * could possibly be redirected to the log
    */
-  if (errno == EPIPE)
-    {
-      g_message ("The application '%s' lost its connection to the display %s;\n"
-                 "most likely the X server was shut down or you killed/destroyed\n"
-                 "the application.\n",
-                 g_get_prgname (),
-                 display ? DisplayString (display) : NULL);
-    }
-  else
-    {
-      g_message ("%s: Fatal IO error %d (%s) on X server %s.\n",
-                 g_get_prgname (),
-                 errno, g_strerror (errno),
-                 display ? DisplayString (display) : NULL);
-    }
+  g_debug ("%s: Fatal IO error %d (%s) on X server %s.\n",
+           g_get_prgname (),
+           errno, g_strerror (errno),
+           display ? DisplayString (display) : "");
 
   _exit (1);
 }

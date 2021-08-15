@@ -433,8 +433,6 @@ gsk_gl_driver_slice_texture (GskGLDriver   *self,
                              guint         *out_n_slices)
 {
   const int max_texture_size = gsk_gl_driver_get_max_texture_size (self) / 4; // XXX Too much?
-  const int tex_width = texture->width;
-  const int tex_height = texture->height;
   const int cols = (texture->width / max_texture_size) + 1;
   const int rows = (texture->height / max_texture_size) + 1;
   int col, row;
@@ -442,7 +440,7 @@ gsk_gl_driver_slice_texture (GskGLDriver   *self,
   TextureSlice *slices;
   Texture *tex;
 
-  g_assert (tex_width > max_texture_size || tex_height > max_texture_size);
+  g_assert (texture->width > max_texture_size || texture->height > max_texture_size);
 
 
   tex = gdk_texture_get_render_data (texture, self);
@@ -520,14 +518,13 @@ gsk_gl_driver_get_texture_for_texture (GskGLDriver *self,
 
   if (GDK_IS_GL_TEXTURE (texture))
     {
-      GdkGLContext *texture_context = gdk_gl_texture_get_context ((GdkGLTexture *)texture);
-      GdkGLContext *shared_context = gdk_gl_context_get_shared_context (self->gl_context);
+      GdkGLTexture *gl_texture = (GdkGLTexture *) texture;
+      GdkGLContext *texture_context = gdk_gl_texture_get_context (gl_texture);
 
-      if (texture_context == self->gl_context ||
-          (gdk_gl_context_get_shared_context (texture_context) == shared_context && shared_context != NULL))
+      if (gdk_gl_context_is_shared (self->gl_context, texture_context))
         {
           /* A GL texture from the same GL context is a simple task... */
-          return gdk_gl_texture_get_id ((GdkGLTexture *)texture);
+          return gdk_gl_texture_get_id (gl_texture);
         }
       else
         {

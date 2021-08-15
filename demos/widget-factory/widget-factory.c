@@ -25,6 +25,8 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
+#include "demo_conf.h"
+
 static void
 change_dark_state (GSimpleAction *action,
                     GVariant      *state,
@@ -48,32 +50,19 @@ change_theme_state (GSimpleAction *action,
   GtkSettings *settings = gtk_settings_get_default ();
   const char *s;
   const char *theme;
-  gboolean prefer_dark = FALSE;
 
   g_simple_action_set_state (action, state);
 
   s = g_variant_get_string (state, NULL);
 
-  if (strcmp (s, "adwaita") == 0)
-    {
-      theme = "Adwaita";
-      prefer_dark = FALSE;
-    }
-  else if (strcmp (s, "adwaita-dark") == 0)
-    {
-      theme = "Adwaita";
-      prefer_dark = TRUE;
-    }
-  else if (strcmp (s, "highcontrast") == 0)
-    {
-      theme = "HighContrast";
-      prefer_dark = FALSE;
-    }
-  else if (strcmp (s, "highcontrast-inverse") == 0)
-    {
-      theme = "HighContrastInverse";
-      prefer_dark = FALSE;
-    }
+  if (strcmp (s, "default") == 0)
+    theme = "Default";
+  else if (strcmp (s, "dark") == 0)
+    theme = "Default-dark";
+  else if (strcmp (s, "hc") == 0)
+    theme = "Default-hc";
+  else if (strcmp (s, "hc-dark") == 0)
+    theme = "Default-hc-dark";
   else if (strcmp (s, "current") == 0)
     {
       gtk_settings_reset_property (settings, "gtk-theme-name");
@@ -85,7 +74,7 @@ change_theme_state (GSimpleAction *action,
 
   g_object_set (G_OBJECT (settings),
                 "gtk-theme-name", theme,
-                "gtk-application-prefer-dark-theme", prefer_dark,
+                "gtk-application-prefer-dark-theme", FALSE,
                 NULL);
 }
 
@@ -300,8 +289,10 @@ activate_about (GSimpleAction *action,
                           gtk_get_micro_version ());
   g_string_append_printf (s, "\nA link can appear here: <http://www.gtk.org>");
 
-  version = g_strdup_printf ("%s\nRunning against GTK %d.%d.%d",
+  version = g_strdup_printf ("%s%s%s\nRunning against GTK %d.%d.%d",
                              PACKAGE_VERSION,
+                             g_strcmp0 (PROFILE, "devel") == 0 ? "-" : "",
+                             g_strcmp0 (PROFILE, "devel") == 0 ? VCS_TAG : "",
                              gtk_get_major_version (),
                              gtk_get_minor_version (),
                              gtk_get_micro_version ());
@@ -309,9 +300,11 @@ activate_about (GSimpleAction *action,
   dialog = g_object_new (GTK_TYPE_ABOUT_DIALOG,
                          "transient-for", gtk_application_get_active_window (app),
                          "modal", TRUE,
-                         "program-name", "GTK Widget Factory",
+                         "program-name", g_strcmp0 (PROFILE, "devel") == 0
+                                         ? "GTK Widget Factory (Development)"
+                                         : "GTK Widget Factory",
                          "version", version,
-                         "copyright", "© 1997—2020 The GTK Team",
+                         "copyright", "© 1997—2021 The GTK Team",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
                          "comments", "Program to demonstrate GTK themes and widgets",
@@ -1880,6 +1873,7 @@ set_up_context_popover (GtkWidget *widget,
   gtk_widget_set_parent (popover, widget);
   gtk_popover_set_has_arrow (GTK_POPOVER (popover), FALSE);
   gesture = gtk_gesture_click_new ();
+  gtk_event_controller_set_name (GTK_EVENT_CONTROLLER (gesture), "widget-factory-context-click");
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
   g_signal_connect (gesture, "pressed", G_CALLBACK (clicked_cb), popover);
   gtk_widget_add_controller (widget, GTK_EVENT_CONTROLLER (gesture));
@@ -2003,6 +1997,7 @@ activate (GApplication *app)
     const char *accelerators[2];
   } accels[] = {
     { "app.about", { "F1", NULL } },
+    { "app.shortcuts", { "<Control>question", NULL } },
     { "app.quit", { "<Control>q", NULL } },
     { "app.open-in", { "<Control>n", NULL } },
     { "win.dark", { "<Control>d", NULL } },
@@ -2065,6 +2060,10 @@ activate (GApplication *app)
     }
 
   window = (GtkWindow *)gtk_builder_get_object (builder, "window");
+
+  if (g_strcmp0 (PROFILE, "devel") == 0)
+    gtk_widget_add_css_class (GTK_WIDGET (window), "devel");
+
   gtk_application_add_window (GTK_APPLICATION (app), window);
   g_action_map_add_action_entries (G_ACTION_MAP (window),
                                    win_entries, G_N_ELEMENTS (win_entries),
@@ -2319,10 +2318,10 @@ activate (GApplication *app)
 static void
 print_version (void)
 {
-  g_print ("gtk4-widget-factory %d.%d.%d\n",
-           gtk_get_major_version (),
-           gtk_get_minor_version (),
-           gtk_get_micro_version ());
+  g_print ("gtk4-widget-factory %s%s%s\n",
+           PACKAGE_VERSION,
+           g_strcmp0 (PROFILE, "devel") == 0 ? "-" : "",
+           g_strcmp0 (PROFILE, "devel") == 0 ? VCS_TAG : "");
 }
 
 static int

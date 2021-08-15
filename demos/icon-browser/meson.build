@@ -14,7 +14,7 @@ iconbrowser_resources = gnome.compile_resources('iconbrowser_resources',
 executable('gtk4-icon-browser',
   sources: [iconbrowser_sources, iconbrowser_resources],
   c_args: common_cflags,
-  dependencies: libgtk_dep,
+  dependencies: [ libgtk_dep, demo_conf_h ],
   include_directories: confinc,
   gui_app: true,
   link_args: extra_demo_ldflags,
@@ -32,5 +32,10 @@ endforeach
 install_data('org.gtk.IconBrowser4.desktop', install_dir: gtk_applicationsdir)
 
 # appdata
-install_data('org.gtk.IconBrowser4.appdata.xml', install_dir: gtk_appdatadir)
+configure_file(
+  input: 'org.gtk.IconBrowser4.appdata.xml.in',
+  output: 'org.gtk.IconBrowser4.appdata.xml',
+  configuration: appdata_config,
+  install_dir: gtk_appdatadir
+)
 

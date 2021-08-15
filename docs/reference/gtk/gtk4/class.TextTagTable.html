@@ -1,0 +1,468 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TextTagTable</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TextTagTable"/>
+  <meta property="og:description" content="Reference for Gtk.TextTagTable"/>
+  <meta name="twitter:title" content="Gtk.TextTagTable"/>
+  <meta name="twitter:description" content="Reference for Gtk.TextTagTable"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.TextTagTable.html#description">TextTagTable</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.TextTagTable.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TextTagTable.add.html">add</a>
+  
+    <a class="method" href="method.TextTagTable.foreach.html">foreach</a>
+  
+    <a class="method" href="method.TextTagTable.get_size.html">get_size</a>
+  
+    <a class="method" href="method.TextTagTable.lookup.html">lookup</a>
+  
+    <a class="method" href="method.TextTagTable.remove.html">remove</a>
+  
+  </div>
+</div>
+
+
+
+
+
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.TextTagTable.tag-added.html">tag-added</a>
+  
+    <a class="signal" href="signal.TextTagTable.tag-changed.html">tag-changed</a>
+  
+    <a class="signal" href="signal.TextTagTable.tag-removed.html">tag-removed</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>TextTagTable</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtktexttagtable.c#L39">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.TextTagTable : GObject.Object {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>The collection of tags in a <code>GtkTextBuffer</code></p>
+<p>You may wish to begin by reading the
+<a href="section-text-widget.html">text widget conceptual overview</a>,
+which gives an overview of all the objects and data types
+related to the text widget and how they work&nbsp;together.</p>
+<h1 id="gtktexttagtables-as-gtkbuildable">GtkTextTagTables as GtkBuildable<a class="md-anchor" href="#gtktexttagtables-as-gtkbuildable" title="Permanent link"></a></h1>
+<p>The <code>GtkTextTagTable</code> implementation of the <code>GtkBuildable</code> interface
+supports adding tags by specifying “tag” as the “type” attribute
+of a <child> element.</p>
+<p>An example of a <span class="caps">UI</span> definition fragment specifying tags:&nbsp;&#8220;`xml</p>
+<object class="GtkTextTagTable">
+ <child type="tag">
+   <object class="GtkTextTag"/>
+ </child>
+</object>
+<p><span class="dquo">&#8220;</span>`.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.TextTagTable">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="135pt" height="188pt"
+ viewBox="0.00 0.00 135.00 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkTextTagTable">
+<path fill="none" stroke="black" d="M115,-108C115,-108 12,-108 12,-108 6,-108 0,-102 0,-96 0,-96 0,-84 0,-84 0,-78 6,-72 12,-72 12,-72 115,-72 115,-72 121,-72 127,-78 127,-84 127,-84 127,-96 127,-96 127,-102 121,-108 115,-108"/>
+<text text-anchor="middle" x="63.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkTextTagTable</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node3" class="node link">
+<title>implements_0</title>
+<g id="a_node3"><a xlink:href="class.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="116,-36 11,-36 11,0 116,0 116,-36"/>
+<text text-anchor="middle" x="63.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge2" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M63.5,-71.7C63.5,-60.85 63.5,-46.92 63.5,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M87.5,-180C87.5,-180 39.5,-180 39.5,-180 33.5,-180 27.5,-174 27.5,-168 27.5,-168 27.5,-156 27.5,-156 27.5,-150 33.5,-144 39.5,-144 39.5,-144 87.5,-144 87.5,-144 93.5,-144 99.5,-150 99.5,-156 99.5,-156 99.5,-168 99.5,-168 99.5,-174 93.5,-180 87.5,-180"/>
+<text text-anchor="middle" x="63.5" y="-158.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M63.5,-143.7C63.5,-132.85 63.5,-118.92 63.5,-108.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.TextTagTable.new.html">gtk_text_tag_table_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new <code>GtkTextTagTable</code>.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.TextTagTable.add.html">gtk_text_tag_table_add</a></h6>
+          <div class="docblock">
+            <p>Add a tag to the&nbsp;table.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextTagTable.foreach.html">gtk_text_tag_table_foreach</a></h6>
+          <div class="docblock">
+            <p>Calls <code>func</code> on each tag in <code>table</code>, with user data <code>data</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextTagTable.get_size.html">gtk_text_tag_table_get_size</a></h6>
+          <div class="docblock">
+            <p>Returns the size of the table (number of&nbsp;tags).</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextTagTable.lookup.html">gtk_text_tag_table_lookup</a></h6>
+          <div class="docblock">
+            <p>Look up a named&nbsp;tag.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TextTagTable.remove.html">gtk_text_tag_table_remove</a></h6>
+          <div class="docblock">
+            <p>Remove a tag from the&nbsp;table.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6>
+            <div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+    </div>
+    
+
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.TextTagTable.tag-added.html">Gtk.TextTagTable::tag-added</a></h6>
+          <div class="docblock">
+            <p>Emitted every time a new tag is added in the <code>GtkTextTagTable</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextTagTable.tag-changed.html">Gtk.TextTagTable::tag-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted every time a tag in the <code>GtkTextTagTable</code> changes.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.TextTagTable.tag-removed.html">Gtk.TextTagTable::tag-removed</a></h6>
+          <div class="docblock">
+            <p>Emitted every time a tag is removed from the <code>GtkTextTagTable</code>.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+        
+      
+
+    </div>
+    
+
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

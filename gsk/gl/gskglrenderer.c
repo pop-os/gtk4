@@ -1129,13 +1129,13 @@ compile_glshader (GskGLRenderer  *self,
     }
 
   gsk_gl_shader_builder_init (&shader_builder,
-                              "/org/gtk/libgsk/glsl/preamble.glsl",
-                              "/org/gtk/libgsk/glsl/preamble.vs.glsl",
-                              "/org/gtk/libgsk/glsl/preamble.fs.glsl");
+                              "/org/gtk/libgsk/gl/preamble.glsl",
+                              "/org/gtk/libgsk/gl/preamble.vs.glsl",
+                              "/org/gtk/libgsk/gl/preamble.fs.glsl");
 
   init_shader_builder (self, &shader_builder);
   program_id = gsk_gl_shader_builder_create_program (&shader_builder,
-                                                     "/org/gtk/libgsk/glsl/custom.glsl",
+                                                     "/org/gtk/libgsk/gl/custom.glsl",
                                                      shader_source, shader_source_len,
                                                      error);
   gsk_gl_shader_builder_finish (&shader_builder);
@@ -1452,6 +1452,7 @@ render_linear_gradient_node (GskGLRenderer   *self,
       ops_set_linear_gradient (builder,
                                n_color_stops,
                                stops,
+                               gsk_render_node_get_node_type (node) == GSK_REPEATING_LINEAR_GRADIENT_NODE,
                                builder->dx + start->x,
                                builder->dy + start->y,
                                builder->dx + end->x,
@@ -1485,6 +1486,7 @@ render_radial_gradient_node (GskGLRenderer   *self,
       ops_set_radial_gradient (builder,
                                n_color_stops,
                                stops,
+                               gsk_render_node_get_node_type (node) == GSK_REPEATING_RADIAL_GRADIENT_NODE,
                                builder->dx + center->x,
                                builder->dy + center->y,
                                start, end,
@@ -1510,7 +1512,7 @@ render_conic_gradient_node (GskGLRenderer   *self,
     {
       const GskColorStop *stops = gsk_conic_gradient_node_get_color_stops (node, NULL);
       const graphene_point_t *center = gsk_conic_gradient_node_get_center (node);
-      const float rotation = gsk_conic_gradient_node_get_rotation (node);
+      const float angle = gsk_conic_gradient_node_get_angle (node);
 
       ops_set_program (builder, &self->programs->conic_gradient_program);
       ops_set_conic_gradient (builder,
@@ -1518,7 +1520,7 @@ render_conic_gradient_node (GskGLRenderer   *self,
                               stops,
                               builder->dx + center->x,
                               builder->dy + center->y,
-                              rotation);
+                              angle);
 
       load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
     }
@@ -1739,7 +1741,6 @@ render_rounded_clip_node (GskGLRenderer       *self,
           return;
         }
 
-      /* TODO: Intersect current and new clip */
       ops_push_clip (builder, &transformed_clip);
       gsk_gl_renderer_add_render_ops (self, child, builder);
       ops_pop_clip (builder);
@@ -1748,19 +1749,13 @@ render_rounded_clip_node (GskGLRenderer       *self,
     {
       gboolean is_offscreen;
       TextureRegion region;
-      /* NOTE: We are *not* transforming the clip by the current modelview here.
-       *       We instead draw the untransformed clip to a texture and then transform
-       *       that texture.
-       *
-       *       We do, however, apply the scale factor to the child clip of course.
-       */
+
       ops_push_clip (builder, &transformed_clip);
       if (!add_offscreen_ops (self, builder, &node->bounds,
                               child,
                               &region, &is_offscreen,
-                              0))
+                              FORCE_OFFSCREEN))
         g_assert_not_reached ();
-
       ops_pop_clip (builder);
 
       ops_set_program (builder, &self->programs->blit_program);
@@ -2002,12 +1997,11 @@ render_unblurred_inset_shadow_node (GskGLRenderer   *self,
                                     GskRenderNode   *node,
                                     RenderOpBuilder *builder)
 {
-  const float blur_radius = gsk_inset_shadow_node_get_blur_radius (node);
   const float dx = gsk_inset_shadow_node_get_dx (node);
   const float dy = gsk_inset_shadow_node_get_dy (node);
   const float spread = gsk_inset_shadow_node_get_spread (node);
 
-  g_assert (blur_radius == 0);
+  g_assert (gsk_inset_shadow_node_get_blur_radius (node) == 0);
 
   ops_set_program (builder, &self->programs->inset_shadow_program);
   ops_set_inset_shadow (builder, transform_rect (self, builder, gsk_inset_shadow_node_get_outline (node)),
@@ -3041,14 +3035,19 @@ apply_linear_gradient_op (const Program          *program,
                   op->n_color_stops.value * 5,
                   (float *)op->color_stops.value);
 
-  glUniform2f (program->linear_gradient.start_point_location, op->start_point[0], op->start_point[1]);
-  glUniform2f (program->linear_gradient.end_point_location, op->end_point[0], op->end_point[1]);
+  glUniform4f (program->linear_gradient.points_location,
+               op->start_point[0], op->start_point[1],
+               op->end_point[0] - op->start_point[0], op->end_point[1] - op->start_point[1]);
+  glUniform1i (program->linear_gradient.repeat_location, op->repeat);
 }
 
 static inline void
 apply_radial_gradient_op (const Program          *program,
                           const OpRadialGradient *op)
 {
+  float scale;
+  float bias;
+
   OP_PRINT (" -> Radial gradient");
   if (op->n_color_stops.send)
     glUniform1i (program->radial_gradient.num_color_stops_location, op->n_color_stops.value);
@@ -3058,16 +3057,23 @@ apply_radial_gradient_op (const Program          *program,
                   op->n_color_stops.value * 5,
                   (float *)op->color_stops.value);
 
-  glUniform1f (program->radial_gradient.start_location, op->start);
-  glUniform1f (program->radial_gradient.end_location, op->end);
-  glUniform2f (program->radial_gradient.radius_location, op->radius[0], op->radius[1]);
-  glUniform2f (program->radial_gradient.center_location, op->center[0], op->center[1]);
+  scale = 1.0f / (op->end - op->start);
+  bias = -op->start * scale;
+
+  glUniform1i (program->radial_gradient.repeat_location, op->repeat);
+  glUniform2f (program->radial_gradient.range_location, scale, bias);
+  glUniform4f (program->radial_gradient.geometry_location,
+               op->center[0], op->center[1],
+               1.0f / op->radius[0], 1.0f / op->radius[1]);
 }
 
 static inline void
 apply_conic_gradient_op (const Program         *program,
                          const OpConicGradient *op)
 {
+  float bias;
+  float scale;
+
   OP_PRINT (" -> Conic gradient");
   if (op->n_color_stops.send)
     glUniform1i (program->conic_gradient.num_color_stops_location, op->n_color_stops.value);
@@ -3077,8 +3083,9 @@ apply_conic_gradient_op (const Program         *program,
                   op->n_color_stops.value * 5,
                   (float *)op->color_stops.value);
 
-  glUniform1f (program->conic_gradient.rotation_location, op->rotation);
-  glUniform2f (program->conic_gradient.center_location, op->center[0], op->center[1]);
+  scale = 0.5f * M_1_PI;
+  bias = op->angle * scale + 2.0f;
+  glUniform4f (program->conic_gradient.geometry_location, op->center[0], op->center[1], scale, bias);
 }
 
 static inline void
@@ -3305,27 +3312,27 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
     const char *resource_path;
     const char *name;
   } program_definitions[] = {
-    { "/org/gtk/libgsk/glsl/blend.glsl",                     "blend" },
-    { "/org/gtk/libgsk/glsl/blit.glsl",                      "blit" },
-    { "/org/gtk/libgsk/glsl/blur.glsl",                      "blur" },
-    { "/org/gtk/libgsk/glsl/border.glsl",                    "border" },
-    { "/org/gtk/libgsk/glsl/color_matrix.glsl",              "color matrix" },
-    { "/org/gtk/libgsk/glsl/color.glsl",                     "color" },
-    { "/org/gtk/libgsk/glsl/coloring.glsl",                  "coloring" },
-    { "/org/gtk/libgsk/glsl/cross_fade.glsl",                "cross fade" },
-    { "/org/gtk/libgsk/glsl/inset_shadow.glsl",              "inset shadow" },
-    { "/org/gtk/libgsk/glsl/linear_gradient.glsl",           "linear gradient" },
-    { "/org/gtk/libgsk/glsl/radial_gradient.glsl",           "radial gradient" },
-    { "/org/gtk/libgsk/glsl/conic_gradient.glsl",            "conic gradient" },
-    { "/org/gtk/libgsk/glsl/outset_shadow.glsl",             "outset shadow" },
-    { "/org/gtk/libgsk/glsl/repeat.glsl",                    "repeat" },
-    { "/org/gtk/libgsk/glsl/unblurred_outset_shadow.glsl",   "unblurred_outset shadow" },
+    { "/org/gtk/libgsk/gl/blend.glsl",                     "blend" },
+    { "/org/gtk/libgsk/gl/blit.glsl",                      "blit" },
+    { "/org/gtk/libgsk/gl/blur.glsl",                      "blur" },
+    { "/org/gtk/libgsk/gl/border.glsl",                    "border" },
+    { "/org/gtk/libgsk/gl/color_matrix.glsl",              "color matrix" },
+    { "/org/gtk/libgsk/gl/color.glsl",                     "color" },
+    { "/org/gtk/libgsk/gl/coloring.glsl",                  "coloring" },
+    { "/org/gtk/libgsk/gl/cross_fade.glsl",                "cross fade" },
+    { "/org/gtk/libgsk/gl/inset_shadow.glsl",              "inset shadow" },
+    { "/org/gtk/libgsk/gl/linear_gradient.glsl",           "linear gradient" },
+    { "/org/gtk/libgsk/gl/radial_gradient.glsl",           "radial gradient" },
+    { "/org/gtk/libgsk/gl/conic_gradient.glsl",            "conic gradient" },
+    { "/org/gtk/libgsk/gl/outset_shadow.glsl",             "outset shadow" },
+    { "/org/gtk/libgsk/gl/repeat.glsl",                    "repeat" },
+    { "/org/gtk/libgsk/gl/unblurred_outset_shadow.glsl",   "unblurred_outset shadow" },
   };
 
   gsk_gl_shader_builder_init (&shader_builder,
-                              "/org/gtk/libgsk/glsl/preamble.glsl",
-                              "/org/gtk/libgsk/glsl/preamble.vs.glsl",
-                              "/org/gtk/libgsk/glsl/preamble.fs.glsl");
+                              "/org/gtk/libgsk/gl/preamble.glsl",
+                              "/org/gtk/libgsk/gl/preamble.vs.glsl",
+                              "/org/gtk/libgsk/gl/preamble.fs.glsl");
 
   g_assert (G_N_ELEMENTS (program_definitions) == GL_N_PROGRAMS);
 
@@ -3368,22 +3375,20 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
   /* linear gradient */
   INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, color_stops);
   INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, num_color_stops);
-  INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, start_point);
-  INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, end_point);
+  INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, repeat);
+  INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, points);
 
   /* radial gradient */
   INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, color_stops);
   INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, num_color_stops);
-  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, center);
-  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, start);
-  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, end);
-  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, radius);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, repeat);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, geometry);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, range);
 
   /* conic gradient */
   INIT_PROGRAM_UNIFORM_LOCATION (conic_gradient, color_stops);
   INIT_PROGRAM_UNIFORM_LOCATION (conic_gradient, num_color_stops);
-  INIT_PROGRAM_UNIFORM_LOCATION (conic_gradient, center);
-  INIT_PROGRAM_UNIFORM_LOCATION (conic_gradient, rotation);
+  INIT_PROGRAM_UNIFORM_LOCATION (conic_gradient, geometry);
 
   /* blur */
   INIT_PROGRAM_UNIFORM_LOCATION (blur, blur_radius);
@@ -3729,10 +3734,12 @@ gsk_gl_renderer_add_render_ops (GskGLRenderer   *self,
     break;
 
     case GSK_LINEAR_GRADIENT_NODE:
+    case GSK_REPEATING_LINEAR_GRADIENT_NODE:
       render_linear_gradient_node (self, node, builder);
     break;
 
     case GSK_RADIAL_GRADIENT_NODE:
+    case GSK_REPEATING_RADIAL_GRADIENT_NODE:
       render_radial_gradient_node (self, node, builder);
     break;
 
@@ -3799,8 +3806,6 @@ gsk_gl_renderer_add_render_ops (GskGLRenderer   *self,
       render_gl_shader_node (self, node, builder);
     break;
 
-    case GSK_REPEATING_LINEAR_GRADIENT_NODE:
-    case GSK_REPEATING_RADIAL_GRADIENT_NODE:
     case GSK_CAIRO_NODE:
     default:
       {
@@ -3820,7 +3825,7 @@ add_offscreen_ops (GskGLRenderer         *self,
 {
   const float dx = builder->dx;
   const float dy = builder->dy;
-  float width, height;
+  float scaled_width, scaled_height;
   float scale_x;
   float scale_y;
   int render_target;
@@ -3876,8 +3881,6 @@ add_offscreen_ops (GskGLRenderer         *self,
       return TRUE;
     }
 
-  width = bounds->size.width;
-  height = bounds->size.height;
   scale_x = builder->scale_x;
   scale_y = builder->scale_y;
 
@@ -3888,23 +3891,23 @@ add_offscreen_ops (GskGLRenderer         *self,
   {
     const int max_texture_size = gsk_gl_driver_get_max_texture_size (self->gl_driver);
 
-    width = ceilf (width * scale_x);
-    if (width > max_texture_size)
+    scaled_width = ceilf (bounds->size.width * scale_x);
+    if (scaled_width > max_texture_size)
       {
-        scale_x *= (float)max_texture_size / width;
-        width = max_texture_size;
+        scale_x *= (float)max_texture_size / scaled_width;
+        scaled_width = max_texture_size;
       }
 
-    height = ceilf (height * scale_y);
-    if (height > max_texture_size)
+    scaled_height = ceilf (bounds->size.height * scale_y);
+    if (scaled_height > max_texture_size)
       {
-        scale_y *= (float)max_texture_size / height;
-        height = max_texture_size;
+        scale_y *= (float)max_texture_size / scaled_height;
+        scaled_height = max_texture_size;
       }
   }
 
   gsk_gl_driver_create_render_target (self->gl_driver,
-                                      width, height,
+                                      scaled_width, scaled_height,
                                       filter, filter,
                                       &texture_id, &render_target);
   if (gdk_gl_context_has_debug (self->gl_context))
@@ -3919,9 +3922,11 @@ add_offscreen_ops (GskGLRenderer         *self,
                                           render_target);
     }
 
-  viewport = GRAPHENE_RECT_INIT ((bounds->origin.x + dx) * scale_x,
-                                 (bounds->origin.y + dy) * scale_y,
-                                 width, height);
+  ops_transform_bounds_modelview (builder, bounds, &viewport);
+  /* Code above will scale the size with the scale we use in the render ops,
+   * but for the viewport size, we need our own size limited by the texture size */
+  viewport.size.width = scaled_width;
+  viewport.size.height = scaled_height;
 
   init_projection_matrix (&item_proj, &viewport);
   prev_render_target = ops_set_render_target (builder, render_target);
@@ -3949,7 +3954,7 @@ add_offscreen_ops (GskGLRenderer         *self,
                                              g_type_name_from_instance ((GTypeInstance *) child_node),
                                              child_node,
                                              k ++),
-                            width, height);
+                            scaled_width, scaled_height);
     }
 #endif
 
@@ -4543,11 +4548,10 @@ gsk_gl_renderer_init (GskGLRenderer *self)
 /**
  * gsk_gl_renderer_new:
  *
- * Creates a new #GskRenderer using OpenGL. This is the default renderer
- * used by GTK.
+ * Creates a new `GskRenderer` using OpenGL.
  *
  * Returns: a new GL renderer
- **/
+ */
 GskRenderer *
 gsk_gl_renderer_new (void)
 {

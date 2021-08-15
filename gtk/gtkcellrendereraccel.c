@@ -33,11 +33,11 @@
 
 
 /**
- * SECTION:gtkcellrendereraccel
- * @Short_description: Renders a keyboard accelerator in a cell
- * @Title: GtkCellRendererAccel
+ * GtkCellRendererAccel:
  *
- * #GtkCellRendererAccel displays a keyboard accelerator (i.e. a key
+ * Renders a keyboard accelerator in a cell
+ *
+ * `GtkCellRendererAccel` displays a keyboard accelerator (i.e. a key
  * combination like `Control + a`). If the cell renderer is editable,
  * the accelerator can be changed by simply typing the new combination.
  */
@@ -270,7 +270,7 @@ gtk_cell_renderer_accel_class_init (GtkCellRendererAccelClass *cell_accel_class)
 /**
  * gtk_cell_renderer_accel_new:
  *
- * Creates a new #GtkCellRendererAccel.
+ * Creates a new `GtkCellRendererAccel`.
  * 
  * Returns: the new cell renderer
  */

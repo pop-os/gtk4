@@ -103,7 +103,7 @@ char **
 g_io_module_query (void)
 {
   char *eps[] = {
-    GTK_PRINT_BACKEND_EXTENSION_POINT_NAME,
+    (char *)GTK_PRINT_BACKEND_EXTENSION_POINT_NAME,
     NULL
   };
 
@@ -336,18 +336,13 @@ gtk_print_backend_lpr_print_stream (GtkPrintBackend        *print_backend,
                                  NULL,
                                  NULL,
                                  &print_error))
-      goto out;
+    goto out;
 
   ps->in = g_io_channel_unix_new (in_fd);
 
   g_io_channel_set_encoding (ps->in, NULL, &print_error);
   if (print_error != NULL)
-    {
-      if (ps->in != NULL)
-        g_io_channel_unref (ps->in);
-
-      goto out;
-    }
+    goto out;
 
   g_io_channel_set_close_on_unref (ps->in, TRUE);
 
@@ -362,9 +357,14 @@ gtk_print_backend_lpr_print_stream (GtkPrintBackend        *print_backend,
 
   if (print_error != NULL)
     {
-      lpr_print_cb (GTK_PRINT_BACKEND_LPR (print_backend),
-		    print_error, ps);
+      lpr_print_cb (GTK_PRINT_BACKEND_LPR (print_backend), print_error, ps);
       g_error_free (print_error);
+
+      if (ps->in != NULL)
+        g_io_channel_unref (ps->in);
+      if (ps->job)
+        g_object_unref (ps->job);
+       g_free (ps);
     }
 }
 
@@ -399,13 +399,12 @@ lpr_printer_get_options (GtkPrinter           *printer,
   GtkPrinterOptionSet *set;
   GtkPrinterOption *option;
   const char *command;
-  char *n_up[] = {"1", "2", "4", "6", "9", "16" };
+  const char *n_up[] = {"1", "2", "4", "6", "9", "16" };
 
   set = gtk_printer_option_set_new ();
 
   option = gtk_printer_option_new ("gtk-n-up", _("Pages Per Sheet"), GTK_PRINTER_OPTION_TYPE_PICKONE);
-  gtk_printer_option_choices_from_array (option, G_N_ELEMENTS (n_up),
-                                         (char **)n_up, (char **)n_up);
+  gtk_printer_option_choices_from_array (option, G_N_ELEMENTS (n_up), n_up, n_up);
   gtk_printer_option_set (option, "1");
   gtk_printer_option_set_add (set, option);
   g_object_unref (option);

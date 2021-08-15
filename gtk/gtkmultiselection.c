@@ -26,13 +26,10 @@
 #include "gtkselectionmodel.h"
 
 /**
- * SECTION:gtkmultiselection
- * @Short_description: A selection model that allows selecting multiple items
- * @Title: GtkMultiSelection
- * @see_also: #GtkSelectionModel
+ * GtkMultiSelection:
  *
- * GtkMultiSelection is an implementation of the #GtkSelectionModel interface
- * that allows selecting multiple elements.
+ * `GtkMultiSelection` is a `GtkSelectionModel` that allows selecting multiple
+ * elements.
  */
 
 struct _GtkMultiSelection
@@ -347,9 +344,9 @@ gtk_multi_selection_class_init (GtkMultiSelectionClass *klass)
   gobject_class->dispose = gtk_multi_selection_dispose;
 
   /**
-   * GtkMultiSelection:model:
+   * GtkMultiSelection:model: (attributes org.gtk.Property.get=gtk_multi_selection_get_model org.gtk.Property.set=gtk_multi_selection_set_model)
    *
-   * The list managed by this selection
+   * The list managed by this selection.
    */
   properties[PROP_MODEL] =
     g_param_spec_object ("model",
@@ -370,18 +367,18 @@ gtk_multi_selection_init (GtkMultiSelection *self)
 
 /**
  * gtk_multi_selection_new:
- * @model: (allow-none) (transfer full): the #GListModel to manage, or %NULL
+ * @model: (nullable) (transfer full): the `GListModel` to manage
  *
  * Creates a new selection to handle @model.
  *
- * Returns: (transfer full): a new #GtkMultiSelection
- **/
+ * Returns: (transfer full): a new `GtkMultiSelection`
+ */
 GtkMultiSelection *
 gtk_multi_selection_new (GListModel *model)
 {
   GtkMultiSelection *self;
 
-  g_return_val_if_fail (G_IS_LIST_MODEL (model), NULL);
+  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
 
   self = g_object_new (GTK_TYPE_MULTI_SELECTION,
                        "model", model,
@@ -394,8 +391,8 @@ gtk_multi_selection_new (GListModel *model)
 }
 
 /**
- * gtk_multi_selection_get_model:
- * @self: a #GtkMultiSelection
+ * gtk_multi_selection_get_model: (attributes org.gtk.Method.get_property=model)
+ * @self: a `GtkMultiSelection`
  *
  * Returns the underlying model of @self.
  *
@@ -410,13 +407,14 @@ gtk_multi_selection_get_model (GtkMultiSelection *self)
 }
 
 /**
- * gtk_multi_selection_set_model:
- * @self: a #GtkMultiSelection
- * @model: (allow-none): A #GListModel to wrap
+ * gtk_multi_selection_set_model: (attributes org.gtk.Method.set_property=model)
+ * @self: a `GtkMultiSelection`
+ * @model: (nullable): A `GListModel` to wrap
  *
- * Sets the model that @self should wrap. If @model is %NULL, @self
- * will be empty.
- **/
+ * Sets the model that @self should wrap.
+ *
+ * If @model is %NULL, @self will be empty.
+ */
 void
 gtk_multi_selection_set_model (GtkMultiSelection *self,
                                GListModel        *model)

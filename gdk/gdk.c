@@ -48,30 +48,9 @@
 
 
 /**
- * SECTION:general
- * @Short_description: Library initialization and versioning
- * @Title: General
- *
- * This section describes miscellaneous macros and utility functions
- * related to library versioning, as well as deprecation facilities.
- *
- * The GDK and GTK headers annotate deprecated APIs in a way that produces
- * compiler warnings if these deprecated APIs are used. The warnings
- * can be turned off by defining the macro %GDK_DISABLE_DEPRECATION_WARNINGS
- * before including the glib.h header.
- *
- * GDK and GTK also provide support for building applications against
- * defined subsets of deprecated or new APIs. Define the macro
- * %GDK_VERSION_MIN_REQUIRED to specify up to what version
- * you want to receive warnings about deprecated APIs. Define the
- * macro %GDK_VERSION_MAX_ALLOWED to specify the newest version
- * whose API you want to use.
- */
-
-/**
  * GDK_WINDOWING_X11:
  *
- * The #GDK_WINDOWING_X11 macro is defined if the X11 backend
+ * The `GDK_WINDOWING_X11` macro is defined if the X11 backend
  * is supported.
  *
  * Use this macro to guard code that is specific to the X11 backend.
@@ -80,7 +59,7 @@
 /**
  * GDK_WINDOWING_WIN32:
  *
- * The #GDK_WINDOWING_WIN32 macro is defined if the Win32 backend
+ * The `GDK_WINDOWING_WIN32` macro is defined if the Win32 backend
  * is supported.
  *
  * Use this macro to guard code that is specific to the Win32 backend.
@@ -89,7 +68,7 @@
 /**
  * GDK_WINDOWING_MACOS:
  *
- * The #GDK_WINDOWING_MACOS macro is defined if the MacOS backend
+ * The `GDK_WINDOWING_MACOS` macro is defined if the MacOS backend
  * is supported.
  *
  * Use this macro to guard code that is specific to the MacOS backend.
@@ -98,7 +77,7 @@
 /**
  * GDK_WINDOWING_WAYLAND:
  *
- * The #GDK_WINDOWING_WAYLAND macro is defined if the Wayland backend
+ * The `GDK_WINDOWING_WAYLAND` macro is defined if the Wayland backend
  * is supported.
  *
  * Use this macro to guard code that is specific to the Wayland backend.
@@ -108,6 +87,7 @@
  * GDK_DISABLE_DEPRECATION_WARNINGS:
  *
  * A macro that should be defined before including the gdk.h header.
+ *
  * If it is defined, no compiler warnings will be produced for uses
  * of deprecated GDK APIs.
  */
@@ -147,6 +127,9 @@ static const GdkDebugKey gdk_debug_keys[] = {
   { "gl-legacy",       GDK_DEBUG_GL_LEGACY, "Use a legacy OpenGL context" },
   { "gl-gles",         GDK_DEBUG_GL_GLES, "Use a GLES OpenGL context" },
   { "gl-debug",        GDK_DEBUG_GL_DEBUG, "Insert debugging information in OpenGL" },
+  { "gl-egl",          GDK_DEBUG_GL_EGL, "Use EGL on X11 or Windows" },
+  { "gl-glx",          GDK_DEBUG_GL_GLX, "Use GLX on X11" },
+  { "gl-wgl",          GDK_DEBUG_GL_WGL, "Use WGL on Windows" },
   { "vulkan-disable",  GDK_DEBUG_VULKAN_DISABLE, "Disable Vulkan support" },
   { "vulkan-validate", GDK_DEBUG_VULKAN_VALIDATE, "Load the Vulkan validation layer" },
   { "default-settings",GDK_DEBUG_DEFAULT_SETTINGS, "Force default values for xsettings" },
@@ -349,14 +332,13 @@ gdk_display_open_default (void)
 }
 
 /*< private >
- *
- * gdk_get_startup_notification_id
+ * gdk_get_startup_notification_id:
  *
  * Returns the original value of the DESKTOP_STARTUP_ID environment
  * variable if it was defined and valid, or %NULL otherwise.
  *
  * Returns: (nullable) (transfer none): the original value of the
- *   DESKTOP_STARTUP_ID environment variable, or %NULL.
+ *   DESKTOP_STARTUP_ID environment variable
  */
 const char *
 gdk_get_startup_notification_id (void)

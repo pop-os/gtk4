@@ -1,0 +1,3 @@
+Name: gi-docgen
+Description: GObject-Introspection based documentation generator
+Version: @VERSION@

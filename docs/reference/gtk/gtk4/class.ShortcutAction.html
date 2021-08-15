@@ -1,0 +1,362 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.ShortcutAction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.ShortcutAction"/>
+  <meta property="og:description" content="Reference for Gtk.ShortcutAction"/>
+  <meta name="twitter:title" content="Gtk.ShortcutAction"/>
+  <meta name="twitter:description" content="Reference for Gtk.ShortcutAction"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.ShortcutAction.html#description">ShortcutAction</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.ShortcutAction.parse_string.html">parse_string</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.ShortcutAction.activate.html">activate</a>
+  
+    <a class="method" href="method.ShortcutAction.print.html">print</a>
+  
+    <a class="method" href="method.ShortcutAction.to_string.html">to_string</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>ShortcutAction</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkshortcutaction.c#L20">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.ShortcutAction : GObject.Object {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkShortcutAction</code> encodes an action that can be triggered by a
+keyboard&nbsp;shortcut.</p>
+<p><code>GtkShortcutActions</code> contain functions that allow easy presentation
+to end users as well as being printed for&nbsp;debugging.</p>
+<p>All <code>GtkShortcutActions</code> are immutable, you can only specify their
+properties during construction. If you want to change a action, you
+have to replace it with a new one. If you need to pass arguments to
+an action, these are specified by the higher-level <code>GtkShortcut</code> object.</p>
+<p>To activate a <code>GtkShortcutAction</code> manually, <a href="method.ShortcutAction.activate.html">gtk_shortcut_action_activate()</a>
+can be&nbsp;called.</p>
+<p><span class="caps">GTK</span> provides various&nbsp;actions:</p>
+<ul>
+<li><a href="class.MnemonicAction.html"><code>GtkMnemonicAction</code></a>: a shortcut action that calls&nbsp;gtk_widget_mnemonic_activate()</li>
+<li><a href="class.CallbackAction.html"><code>GtkCallbackAction</code></a>: a shortcut action that invokes
+   a given&nbsp;callback</li>
+<li><a href="class.SignalAction.html"><code>GtkSignalAction</code></a>: a shortcut action that emits a
+   given&nbsp;signal</li>
+<li><a href="class.ActivateAction.html"><code>GtkActivateAction</code></a>: a shortcut action that calls&nbsp;gtk_widget_activate()</li>
+<li><a href="class.NamedAction.html"><code>GtkNamedAction</code></a>: a shortcut action that calls&nbsp;gtk_widget_activate_action()</li>
+<li><a href="class.NothingAction.html"><code>GtkNothingAction</code></a>: a shortcut action that does&nbsp;nothing.</li>
+</ul>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.ShortcutAction">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="151pt" height="116pt"
+ viewBox="0.00 0.00 151.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkShortcutAction">
+<path fill="none" stroke="black" d="M131,-36C131,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 131,0 131,0 137,0 143,-6 143,-12 143,-12 143,-24 143,-24 143,-30 137,-36 131,-36"/>
+<text text-anchor="middle" x="71.5" y="-14.3" font-family="Times-Roman" font-size="14.00">GtkShortcutAction</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M95.5,-108C95.5,-108 47.5,-108 47.5,-108 41.5,-108 35.5,-102 35.5,-96 35.5,-96 35.5,-84 35.5,-84 35.5,-78 41.5,-72 47.5,-72 47.5,-72 95.5,-72 95.5,-72 101.5,-72 107.5,-78 107.5,-84 107.5,-84 107.5,-96 107.5,-96 107.5,-102 101.5,-108 95.5,-108"/>
+<text text-anchor="middle" x="71.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M71.5,-71.7C71.5,-60.85 71.5,-46.92 71.5,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.ShortcutAction.parse_string.html">gtk_shortcut_action_parse_string</a></h6>
+
+          <div class="docblock">
+            <p>Tries to parse the given string into an&nbsp;action.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.ShortcutAction.activate.html">gtk_shortcut_action_activate</a></h6>
+          <div class="docblock">
+            <p>Activates the action on the <code>widget</code> with the given <code>args</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutAction.print.html">gtk_shortcut_action_print</a></h6>
+          <div class="docblock">
+            <p>Prints the given action into a string for the&nbsp;developer.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutAction.to_string.html">gtk_shortcut_action_to_string</a></h6>
+          <div class="docblock">
+            <p>Prints the given action into a human-readable&nbsp;string.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkShortcutActionClass {
+  /* no available fields */
+}</code></pre>
+      </div>
+
+      
+    </div>
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

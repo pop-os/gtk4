@@ -66,7 +66,6 @@
 #include "gtkshow.h"
 #include "gtkmain.h"
 #include "gtkscrollable.h"
-#include "gtkstylecontextprivate.h"
 #include "gtkpopover.h"
 #include "gtkrevealer.h"
 #include "gtkspinner.h"
@@ -99,19 +98,17 @@
 #endif
 
 /**
- * SECTION:gtkfilechooserwidget
- * @Short_description: A file chooser widget
- * @Title: GtkFileChooserWidget
- * @See_also: #GtkFileChooserDialog
+ * GtkFileChooserWidget:
  *
- * #GtkFileChooserWidget is a widget for choosing files.
- * It exposes the #GtkFileChooser interface, and you should
+ * `GtkFileChooserWidget` is a widget for choosing files.
+ *
+ * It exposes the [iface@Gtk.FileChooser] interface, and you should
  * use the methods of this interface to interact with the
  * widget.
  *
  * # CSS nodes
  *
- * GtkFileChooserWidget has a single CSS node with name filechooser.
+ * `GtkFileChooserWidget` has a single CSS node with name filechooser.
  */
 
 /* 150 mseconds of delay */
@@ -2837,7 +2834,6 @@ update_appearance (GtkFileChooserWidget *impl)
     {
       save_widgets_create (impl);
       gtk_places_sidebar_set_show_recent (GTK_PLACES_SIDEBAR (impl->places_sidebar), FALSE);
-      gtk_places_sidebar_set_show_trash (GTK_PLACES_SIDEBAR (impl->places_sidebar), FALSE);
 
       if (impl->select_multiple)
         {
@@ -3087,14 +3083,13 @@ cancel_all_operations (GtkFileChooserWidget *impl)
 
 /* Removes the settings signal handler.  It's safe to call multiple times */
 static void
-remove_settings_signal (GtkFileChooserWidget *impl,
-                        GdkDisplay           *display)
+remove_settings_signal (GtkFileChooserWidget *impl)
 {
   if (impl->settings_signal_id)
     {
-      GtkSettings *settings;
+      GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (impl));
+      GtkSettings *settings = gtk_settings_get_for_display (display);
 
-      settings = gtk_settings_get_for_display (display);
       g_signal_handler_disconnect (settings,
                                    impl->settings_signal_id);
       impl->settings_signal_id = 0;
@@ -3118,6 +3113,7 @@ gtk_file_chooser_widget_dispose (GObject *object)
       location_entry_disconnect (impl);
       impl->external_entry = NULL;
     }
+  remove_settings_signal (impl);
 
   g_clear_pointer (&impl->box, gtk_widget_unparent);
 
@@ -4451,7 +4447,13 @@ file_system_model_set (GtkFileSystemModel *model,
         {
           if (g_file_info_has_attribute (info, G_FILE_ATTRIBUTE_STANDARD_ICON))
             {
-              g_value_take_object (value, _gtk_file_info_get_icon (info, ICON_SIZE, gtk_widget_get_scale_factor (GTK_WIDGET (impl))));
+              int scale;
+              GtkIconTheme *icon_theme;
+
+              scale = gtk_widget_get_scale_factor (GTK_WIDGET (impl));
+              icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (impl)));
+
+              g_value_take_object (value, _gtk_file_info_get_icon (info, ICON_SIZE, scale, icon_theme));
             }
           else
             {
@@ -5441,7 +5443,10 @@ gtk_file_chooser_widget_get_files (GtkFileChooser *chooser)
       if (info.result == NULL && impl->location_entry)
         goto file_entry;
     }
-  else if (impl->location_entry && current_focus == impl->location_entry)
+  else if (impl->location_entry &&
+           current_focus &&
+           (current_focus == impl->location_entry ||
+            gtk_widget_is_ancestor (current_focus, impl->location_entry)))
     {
       gboolean is_well_formed, is_empty, is_file_part_empty, is_folder;
 
@@ -6227,7 +6232,9 @@ gtk_file_chooser_widget_should_respond (GtkFileChooserWidget *impl)
           g_assert_not_reached ();
         }
     }
-  else if ((impl->location_entry != NULL) && (current_focus == impl->location_entry))
+  else if ((impl->location_entry != NULL) &&
+           (current_focus == impl->location_entry ||
+            gtk_widget_is_ancestor (current_focus, impl->location_entry)))
     {
       GFile *file;
       gboolean is_well_formed, is_empty, is_file_part_empty;
@@ -7266,17 +7273,19 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * @widget: the object which received the signal
    * @path: a string that gets put in the text entry for the file name
    *
-   * The ::location-popup signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser show a "Location" prompt which
    * the user can use to manually type the name of the file he wishes to select.
    *
-   * The default bindings for this signal are `Control + L` with a @path string
-   * of "" (the empty string).  It is also bound to `/` with a @path string of
-   * "`/`" (a slash):  this lets you type `/` and immediately type a path name.
-   * On Unix systems, this is bound to `~` (tilde) with a @path string of "~"
-   * itself for access to home directories.
+   * The default bindings for this signal are <kbd>Control</kbd>-<kbd>L</kbd>
+   * with a @path string of "" (the empty string). It is also bound to
+   * <kbd>/</kbd> with a @path string of "`/`" (a slash):  this lets you
+   * type `/` and immediately type a path name. On Unix systems, this is
+   * bound to <kbd>~</kbd> (tilde) with a @path string of "~" itself for
+   * access to home directories.
    */
   signals[LOCATION_POPUP] =
     g_signal_new_class_handler (I_("location-popup"),
@@ -7291,13 +7300,14 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::location-popup-on-paste:
    * @widget: the object which received the signal
    *
-   * The ::location-popup-on-paste signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
    *
-   * This is used to make the file chooser show a "Location" prompt when the user
-   * pastes into a #GtkFileChooserWidget.
+   * This is a [keybinding signal](class.SignalAction.html).
    *
-   * The default binding for this signal is `Control + V`.
+   * This is used to make the file chooser show a "Location" prompt
+   * when the user pastes into a `GtkFileChooserWidget`.
+   *
+   * The default binding for this signal is <kbd>Control</kbd>-<kbd>V</kbd>.
    */
   signals[LOCATION_POPUP_ON_PASTE] =
     g_signal_new_class_handler (I_("location-popup-on-paste"),
@@ -7312,13 +7322,15 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::location-toggle-popup:
    * @widget: the object which received the signal
    *
-   * The ::location-toggle-popup signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
    *
-   * This is used to toggle the visibility of a "Location" prompt which the user
-   * can use to manually type the name of the file he wishes to select.
+   * This is a [keybinding signal](class.SignalAction.html).
    *
-   * The default binding for this signal is `Control + L`.
+   * This is used to toggle the visibility of a "Location" prompt
+   * which the user can use to manually type the name of the file
+   * he wishes to select.
+   *
+   * The default binding for this signal is <kbd>Control</kbd>-<kbd>L</kbd>.
    */
   signals[LOCATION_TOGGLE_POPUP] =
     g_signal_new_class_handler (I_("location-toggle-popup"),
@@ -7333,13 +7345,14 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::up-folder:
    * @widget: the object which received the signal
    *
-   * The ::up-folder signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
    *
-   * This is used to make the file chooser go to the parent of the current folder
-   * in the file hierarchy.
+   * This is a [keybinding signal](class.SignalAction.html).
    *
-   * The default binding for this signal is `Alt + Up`.
+   * This is used to make the file chooser go to the parent
+   * of the current folder in the file hierarchy.
+   *
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>Up</kbd>.
    */
   signals[UP_FOLDER] =
     g_signal_new_class_handler (I_("up-folder"),
@@ -7354,16 +7367,18 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::down-folder:
    * @widget: the object which received the signal
    *
-   * The ::down-folder signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
    *
-   * This is used to make the file chooser go to a child of the current folder
-   * in the file hierarchy. The subfolder that will be used is displayed in the
-   * path bar widget of the file chooser. For example, if the path bar is showing
-   * "/foo/bar/baz", with bar currently displayed, then this will cause the file
-   * chooser to switch to the "baz" subfolder.
+   * This is a [keybinding signal](class.SignalAction.html).
    *
-   * The default binding for this signal is `Alt + Down`.
+   * This is used to make the file chooser go to a child of the
+   * current folder in the file hierarchy. The subfolder that will
+   * be used is displayed in the path bar widget of the file chooser.
+   * For example, if the path bar is showing "/foo/bar/baz", with bar
+   * currently displayed, then this will cause the file chooser to
+   * switch to the "baz" subfolder.
+   *
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>Down</kbd>.
    */
   signals[DOWN_FOLDER] =
     g_signal_new_class_handler (I_("down-folder"),
@@ -7378,13 +7393,14 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::home-folder:
    * @widget: the object which received the signal
    *
-   * The ::home-folder signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser show the user's home
    * folder in the file list.
    *
-   * The default binding for this signal is `Alt + Home`.
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>Home</kbd>.
    */
   signals[HOME_FOLDER] =
     g_signal_new_class_handler (I_("home-folder"),
@@ -7399,13 +7415,14 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::desktop-folder:
    * @widget: the object which received the signal
    *
-   * The ::desktop-folder signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser show the user's Desktop
    * folder in the file list.
    *
-   * The default binding for this signal is `Alt + D`.
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>D</kbd>.
    */
   signals[DESKTOP_FOLDER] =
     g_signal_new_class_handler (I_("desktop-folder"),
@@ -7421,18 +7438,20 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * @widget: the object which received the signal
    * @bookmark_index: the number of the bookmark to switch to
    *
-   * The ::quick-bookmark signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
    *
-   * This is used to make the file chooser switch to the bookmark specified
-   * in the @bookmark_index parameter. For example, if you have three bookmarks,
-   * you can pass 0, 1, 2 to this signal to switch to each of them, respectively.
+   * This is a [keybinding signal](class.SignalAction.html).
    *
-   * The default binding for this signal is `Alt + 1`, `Alt + 2`,
-   * etc. until `Alt + 0`.  Note that in the default binding, that
-   * `Alt + 1` is actually defined to switch to the bookmark at index
-   * 0, and so on successively; `Alt + 0` is defined to switch to the
-   * bookmark at index 10.
+   * This is used to make the file chooser switch to the bookmark
+   * specified in the @bookmark_index parameter. For example, if
+   * you have three bookmarks, you can pass 0, 1, 2 to this signal
+   * to switch to each of them, respectively.
+   *
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>1</kbd>,
+   * <kbd>Alt</kbd>-<kbd>2</kbd>, etc. until <kbd>Alt</kbd>-<kbd>0</kbd>.
+   * Note that in the default binding, that <kbd>Alt</kbd>-<kbd>1</kbd> is
+   * actually defined to switch to the bookmark at index 0, and so on
+   * successively.
    */
   signals[QUICK_BOOKMARK] =
     g_signal_new_class_handler (I_("quick-bookmark"),
@@ -7447,12 +7466,13 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::show-hidden:
    * @widget: the object which received the signal
    *
-   * The ::show-hidden signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser display hidden files.
    *
-   * The default binding for this signal is `Control + H`.
+   * The default binding for this signal is <kbd>Control</kbd>-<kbd>H</kbd>.
    */
   signals[SHOW_HIDDEN] =
     g_signal_new_class_handler (I_("show-hidden"),
@@ -7467,12 +7487,13 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::search-shortcut:
    * @widget: the object which received the signal
    *
-   * The ::search-shortcut signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser show the search entry.
    *
-   * The default binding for this signal is `Alt + S`.
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>S</kbd>.
    */
   signals[SEARCH_SHORTCUT] =
     g_signal_new_class_handler (I_("search-shortcut"),
@@ -7487,12 +7508,13 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::recent-shortcut:
    * @widget: the object which received the signal
    *
-   * The ::recent-shortcut signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to make the file chooser show the Recent location.
    *
-   * The default binding for this signal is `Alt + R`.
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>R</kbd>.
    */
   signals[RECENT_SHORTCUT] =
     g_signal_new_class_handler (I_("recent-shortcut"),
@@ -7507,12 +7529,13 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
    * GtkFileChooserWidget::places-shortcut:
    * @widget: the object which received the signal
    *
-   * The ::places-shortcut signal is a [keybinding signal][GtkSignalAction]
-   * which gets emitted when the user asks for it.
+   * Emitted when the user asks for it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * This is used to move the focus to the places sidebar.
    *
-   * The default binding for this signal is `Alt + P`.
+   * The default binding for this signal is <kbd>Alt</kbd>-<kbd>P</kbd>.
    */
   signals[PLACES_SHORTCUT] =
     g_signal_new_class_handler (I_("places-shortcut"),
@@ -7700,7 +7723,13 @@ captured_key (GtkEventControllerKey *controller,
   GtkFileChooserWidget *impl = data;
   gboolean handled;
 
-  if (impl->operation_mode == OPERATION_MODE_SEARCH)
+  if (impl->operation_mode == OPERATION_MODE_SEARCH ||
+      impl->operation_mode == OPERATION_MODE_ENTER_LOCATION ||
+      (impl->operation_mode == OPERATION_MODE_BROWSE &&
+       impl->location_mode == LOCATION_MODE_FILENAME_ENTRY))
+    return GDK_EVENT_PROPAGATE;
+
+  if (keyval == GDK_KEY_slash)
     return GDK_EVENT_PROPAGATE;
 
   handled = gtk_event_controller_key_forward (controller, GTK_WIDGET (impl->search_entry));
@@ -7826,7 +7855,7 @@ display_changed_cb (GtkWidget            *wiget,
                     GParamSpec           *pspec,
                     GtkFileChooserWidget *impl)
 {
-  remove_settings_signal (impl, gtk_widget_get_display (GTK_WIDGET (impl)));
+  remove_settings_signal (impl);
   check_icon_theme (impl);
 }
 
@@ -7893,12 +7922,14 @@ gtk_file_chooser_widget_init (GtkFileChooserWidget *impl)
  * gtk_file_chooser_widget_new:
  * @action: Open or save mode for the widget
  *
- * Creates a new #GtkFileChooserWidget. This is a file chooser widget that can
- * be embedded in custom windows, and it is the same widget that is used by
- * #GtkFileChooserDialog.
+ * Creates a new `GtkFileChooserWidget`.
  *
- * Returns: a new #GtkFileChooserWidget
- **/
+ * This is a file chooser widget that can be embedded in custom
+ * windows, and it is the same widget that is used by
+ * `GtkFileChooserDialog`.
+ *
+ * Returns: a new `GtkFileChooserWidget`
+ */
 GtkWidget *
 gtk_file_chooser_widget_new (GtkFileChooserAction action)
 {

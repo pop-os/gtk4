@@ -104,24 +104,25 @@ gtk_accels_remove (GtkAccels  *accels,
 }
 
 /*< private >
- * SECTION:gtkactionmuxer
- * @short_description: Aggregate and monitor actions from multiple sources
+ * GtkActionMuxer:
  *
- * #GtkActionMuxer is #GtkActionObservable and #GtkActionObserver that
- * offers a #GActionGroup-like api and is capable of containing other
- * #GActionGroup instances. #GtkActionMuxer does not implement the
- * #GActionGroup interface because it requires excessive signal emissions
- * and has poor scalability. We use the #GtkActionObserver machinery
+ * GtkActionMuxer aggregates and monitors actions from multiple sources.
+ *
+ * `GtkActionMuxer` is `GtkActionObservable` and `GtkActionObserver` that
+ * offers a `GActionGroup`-like api and is capable of containing other
+ * `GActionGroup` instances. `GtkActionMuxer` does not implement the
+ * `GActionGroup` interface because it requires excessive signal emissions
+ * and has poor scalability. We use the `GtkActionObserver` machinery
  * instead to propagate changes between action muxer instances and
  * to other users.
  *
- * Beyond action groups, #GtkActionMuxer can incorporate actions that
+ * Beyond action groups, `GtkActionMuxer` can incorporate actions that
  * are associated with widget classes (*class actions*) and actions
  * that are associated with the parent widget, allowing for recursive
  * lookup.
  *
- * In addition to the action attributes provided by #GActionGroup,
- * #GtkActionMuxer maintains a *primary accelerator* string for
+ * In addition to the action attributes provided by `GActionGroup`,
+ * `GtkActionMuxer` maintains a *primary accelerator* string for
  * actions that can be shown in menuitems.
  *
  * The typical use is aggregating all of the actions applicable to a
@@ -133,11 +134,11 @@ gtk_accels_remove (GtkAccels  *accels,
  * application (such as “fullscreen”).
  *
  * In this case, each of these action groups could be added to a
- * #GtkActionMuxer with the prefixes “app” and “win”, respectively.
+ * `GtkActionMuxer` with the prefixes “app” and “win”, respectively.
  * This would expose the actions as “app.quit” and “win.fullscreen”
- * on the #GActionGroup-like interface presented by the #GtkActionMuxer.
+ * on the `GActionGroup`-like interface presented by the `GtkActionMuxer`.
  *
- * Activations and state change requests on the #GtkActionMuxer are
+ * Activations and state change requests on the `GtkActionMuxer` are
  * wired through to the underlying actions in the expected way.
  *
  * This class is typically only used at the site of “consumption” of
@@ -442,10 +443,9 @@ notify_observers_added (GtkActionMuxer *muxer,
       if (!action->watchers)
         continue;
 
-      if (action_muxer_query_action (muxer, action_name,
-                                     NULL, NULL, NULL, NULL, NULL,
-                                     FALSE))
-        continue;
+      for (node = action ? action->watchers : NULL; node; node = node->next)
+        gtk_action_observer_primary_accel_changed (node->data, GTK_ACTION_OBSERVABLE (muxer),
+                                                   action_name, NULL);
 
       gtk_action_observable_register_observer (GTK_ACTION_OBSERVABLE (parent), action_name, GTK_ACTION_OBSERVER (muxer));
 
@@ -966,21 +966,14 @@ gtk_action_muxer_register_observer (GtkActionObservable *observable,
 
   if (action_muxer_query_action (muxer, name,
                                  &enabled, &parameter_type,
-                                 NULL, NULL, &state, FALSE))
+                                 NULL, NULL, &state, TRUE))
     {
       gtk_action_muxer_action_added (muxer, name, parameter_type, enabled, state);
       g_clear_pointer (&state, g_variant_unref);
     }
-  else if (muxer->parent)
-    {
-      if (action_muxer_query_action (muxer->parent, name,
-                                     &enabled, &parameter_type,
-                                     NULL, NULL, &state, FALSE))
-        {
-          gtk_action_muxer_action_added (muxer, name, parameter_type, enabled, state);
-          g_clear_pointer (&state, g_variant_unref);
-        }
 
+  if (muxer->parent)
+    {
       gtk_action_observable_register_observer (GTK_ACTION_OBSERVABLE (muxer->parent),
                                                name,
                                                GTK_ACTION_OBSERVER (muxer));
@@ -1142,6 +1135,10 @@ gtk_action_muxer_observer_action_added (GtkActionObserver    *observer,
                                         gboolean              enabled,
                                         GVariant             *state)
 {
+  if (action_muxer_query_action (GTK_ACTION_MUXER (observer), action_name,
+                                 NULL, NULL, NULL, NULL, NULL, FALSE))
+    return;
+
   gtk_action_muxer_action_added (GTK_ACTION_MUXER (observer),
                                  action_name,
                                  parameter_type,
@@ -1154,6 +1151,10 @@ gtk_action_muxer_observer_action_removed (GtkActionObserver   *observer,
                                           GtkActionObservable *observable,
                                           const char          *action_name)
 {
+  if (action_muxer_query_action (GTK_ACTION_MUXER (observer), action_name,
+                                 NULL, NULL, NULL, NULL, NULL, FALSE))
+    return;
+
   gtk_action_muxer_action_removed (GTK_ACTION_MUXER (observer), action_name);
 }
 
@@ -1163,6 +1164,10 @@ gtk_action_muxer_observer_action_enabled_changed (GtkActionObserver   *observer,
                                                   const char          *action_name,
                                                   gboolean             enabled)
 {
+  if (action_muxer_query_action (GTK_ACTION_MUXER (observer), action_name,
+                                 NULL, NULL, NULL, NULL, NULL, FALSE))
+    return;
+
   gtk_action_muxer_action_enabled_changed (GTK_ACTION_MUXER (observer), action_name, enabled);
 }
 
@@ -1172,6 +1177,10 @@ gtk_action_muxer_observer_action_state_changed (GtkActionObserver   *observer,
                                                 const char          *action_name,
                                                 GVariant            *state)
 {
+  if (action_muxer_query_action (GTK_ACTION_MUXER (observer), action_name,
+                                 NULL, NULL, NULL, NULL, NULL, FALSE))
+    return;
+
   gtk_action_muxer_action_state_changed (GTK_ACTION_MUXER (observer), action_name, state);
 }
 
@@ -1222,9 +1231,9 @@ gtk_action_muxer_class_init (GObjectClass *class)
 
 /*< private >
  * gtk_action_muxer_insert:
- * @muxer: a #GtkActionMuxer
+ * @muxer: a `GtkActionMuxer`
  * @prefix: the prefix string for the action group
- * @action_group: a #GActionGroup
+ * @action_group: a `GActionGroup`
  *
  * Adds the actions in @action_group to the list of actions provided by
  * @muxer.  @prefix is prefixed to each action name, such that for each
@@ -1235,7 +1244,7 @@ gtk_action_muxer_class_init (GObjectClass *class)
  * contains an action called “`quit`”, then @muxer will
  * now contain an action called “`app.quit`”.
  *
- * If any #GtkActionObservers are registered for actions in the group,
+ * If any `GtkActionObserver`s are registered for actions in the group,
  * “action_added” notifications will be emitted, as appropriate.
  *
  * @prefix must not contain a dot ('.').
@@ -1279,12 +1288,12 @@ gtk_action_muxer_insert (GtkActionMuxer *muxer,
 
 /*< private >
  * gtk_action_muxer_remove:
- * @muxer: a #GtkActionMuxer
+ * @muxer: a `GtkActionMuxer`
  * @prefix: the prefix of the action group to remove
  *
- * Removes a #GActionGroup from the #GtkActionMuxer.
+ * Removes a `GActionGroup` from the `GtkActionMuxer`.
  *
- * If any #GtkActionObservers are registered for actions in the group,
+ * If any `GtkActionObserver`s are registered for actions in the group,
  * “action_removed” notifications will be emitted, as appropriate.
  */
 void
@@ -1318,7 +1327,7 @@ gtk_action_muxer_remove (GtkActionMuxer *muxer,
  * gtk_action_muxer_new:
  * @widget: the widget to which the muxer belongs
  *
- * Creates a new #GtkActionMuxer.
+ * Creates a new `GtkActionMuxer`.
  */
 GtkActionMuxer *
 gtk_action_muxer_new (GtkWidget *widget)
@@ -1330,7 +1339,7 @@ gtk_action_muxer_new (GtkWidget *widget)
 
 /*< private >
  * gtk_action_muxer_get_parent:
- * @muxer: a #GtkActionMuxer
+ * @muxer: a `GtkActionMuxer`
  *
  * Returns: (transfer none): the parent of @muxer, or NULL.
  */
@@ -1344,8 +1353,8 @@ gtk_action_muxer_get_parent (GtkActionMuxer *muxer)
 
 /*< private >
  * gtk_action_muxer_set_parent:
- * @muxer: a #GtkActionMuxer
- * @parent: (allow-none): the new parent #GtkActionMuxer
+ * @muxer: a `GtkActionMuxer`
+ * @parent: (nullable): the new parent `GtkActionMuxer`
  *
  * Sets the parent of @muxer to @parent.
  */

@@ -34,7 +34,6 @@
 #include "gtkintl.h"
 #include "gtkwidgetprivate.h"
 #include "gtkcssstyleprivate.h"
-#include "gtkstylepropertyprivate.h"
 #include "gtkcsscolorvalueprivate.h"
 
 #define DRAG_ICON_MAX_WIDTH 250
@@ -91,13 +90,13 @@ limit_layout_lines (PangoLayout *layout)
 
 /**
  * gtk_text_util_create_drag_icon:
- * @widget: #GtkWidget to extract the pango context
+ * @widget: `GtkWidget` to extract the pango context
  * @text: a #char to render the icon
  * @len: length of @text, or -1 for NUL-terminated text
  *
  * Creates a drag and drop icon from @text.
  *
- * Returns: (transfer full): a #GdkPaintable to use as DND icon
+ * Returns: (transfer full): a `GdkPaintable` to use as DND icon
  */
 GdkPaintable *
 gtk_text_util_create_drag_icon (GtkWidget *widget,
@@ -165,7 +164,6 @@ set_attributes_from_style (GtkWidget         *widget,
                            GtkTextAttributes *values)
 {
   GtkCssStyle *style;
-  GtkStyleContext *context;
   const GdkRGBA black = { 0, };
 
   if (!values->appearance.bg_rgba)
@@ -173,8 +171,7 @@ set_attributes_from_style (GtkWidget         *widget,
   if (!values->appearance.fg_rgba)
     values->appearance.fg_rgba = gdk_rgba_copy (&black);
 
-  context = gtk_widget_get_style_context (widget);
-  style = gtk_style_context_lookup_style (context);
+  style = gtk_css_node_get_style (gtk_widget_get_css_node (widget));
 
   *values->appearance.bg_rgba = *gtk_css_color_value_get_rgba (style->background->background_color);
   *values->appearance.fg_rgba = *gtk_css_color_value_get_rgba (style->core->color);
@@ -312,14 +309,14 @@ layout_get_char_width (PangoLayout *layout)
 
 /*
  * _gtk_text_util_get_block_cursor_location
- * @layout: a #PangoLayout
+ * @layout: a `PangoLayout`
  * @index: index at which cursor is located
  * @pos: cursor location
  * @at_line_end: whether cursor is drawn at line end, not over some
  * character
  *
  * Returns: whether cursor should actually be drawn as a rectangle.
- *     It may not be the case if character at index is invisible.
+ *   It may not be the case if character at index is invisible.
  */
 gboolean
 _gtk_text_util_get_block_cursor_location (PangoLayout    *layout,

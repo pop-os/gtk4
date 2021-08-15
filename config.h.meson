@@ -76,6 +76,9 @@
 /* Define to 1 if you have a working `mmap' system call. */
 #mesondefine HAVE_MMAP
 
+/* Define to 1 if you have a working `madvise' system call. */
+#mesondefine HAVE_MADVISE
+
 /* Define to 1 if you have the `posix_fallocate' function. */
 #mesondefine HAVE_POSIX_FALLOCATE
 
@@ -120,9 +123,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #mesondefine HAVE_UNISTD_H
-
-/* Have the XCOMPOSITE X extension */
-#mesondefine HAVE_XCOMPOSITE
 
 /* Have the Xcursor library */
 #mesondefine HAVE_XCURSOR
@@ -279,3 +279,8 @@
 
 /* Define if tracker3 is available */
 #mesondefine HAVE_TRACKER3
+
+#mesondefine HAVE_F16C
+
+/* Does the OS support GDesktopAppInfo? */
+#mesondefine HAVE_DESKTOPAPPINFO

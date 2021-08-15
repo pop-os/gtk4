@@ -28,6 +28,8 @@
 #include "gdkmacosdevice.h"
 #include "gdkmacosseat-private.h"
 
+#include "gdk-private.h"
+
 typedef struct
 {
   NSUInteger device_id;
@@ -346,7 +348,7 @@ _gdk_macos_seat_new (GdkMacosDisplay *display)
 
   init_devices (self);
 
-  return g_steal_pointer (&self);
+  return GDK_SEAT (g_steal_pointer (&self));
 }
 
 static GdkDeviceToolType
@@ -622,6 +624,5 @@ _gdk_macos_seat_get_tablet_axes_from_nsevent (GdkMacosSeat *seat,
                                   [nsevent rotation], &tablet->axes[GDK_AXIS_ROTATION]);
     }
 
-  return g_memdup (tablet->axes,
-                   sizeof (double) * GDK_AXIS_LAST);
+  return g_memdup2 (tablet->axes, sizeof (double) * GDK_AXIS_LAST);
 }

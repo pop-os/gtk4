@@ -1,0 +1,24 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: gi-docgen
+Upstream-Contact: Emmanuele Bassi <ebassi@gnome.org>
+Source: https://gitlab.gnome.org/ebassi/gi-docgen
+
+Files: gi-docgen.pc.in
+Copyright: 2021  GNOME Foundation
+License: CC0-1.0
+
+Files: gidocgen/templates/basic/*.png
+Copyright: 2021  GNOME Foundation
+License: CC0-1.0
+
+Files: gidocgen/templates/basic/RedHat*.woff
+Copyright: 2019  Red Hat Inc.
+License: OFL-1.1
+
+Files: gidocgen/templates/basic/RedHat*.woff2
+Copyright: 2019  Red Hat Inc.
+License: OFL-1.1
+
+Files: gidocgen/templates/basic/SourceCodePro*.woff
+Copyright: 2010, 2012  Adobe Systems Inc.
+License: OFL-1.1

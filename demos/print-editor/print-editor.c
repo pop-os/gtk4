@@ -4,6 +4,8 @@
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
+#include "demo_conf.h"
+
 static GtkWidget *main_window;
 static GFile *filename = NULL;
 static GtkPageSetup *page_setup = NULL;
@@ -157,7 +159,7 @@ save_file (GFile *save_filename)
 
   error = NULL;
   g_file_replace_contents (save_filename,
-                           text, -1,
+                           text, strlen (text),
                            NULL, FALSE,
                            G_FILE_CREATE_NONE,
                            NULL,
@@ -641,22 +643,26 @@ activate_about (GSimpleAction *action,
   g_strfreev (backends);
   g_free (setting);
 
-  version = g_strdup_printf ("%s\nRunning against GTK %d.%d.%d",
+  version = g_strdup_printf ("%s%s%s\nRunning against GTK %d.%d.%d",
                              PACKAGE_VERSION,
+                             g_strcmp0 (PROFILE, "devel") == 0 ? "-" : "",
+                             g_strcmp0 (PROFILE, "devel") == 0 ? VCS_TAG : "",
                              gtk_get_major_version (),
                              gtk_get_minor_version (),
                              gtk_get_micro_version ());
 
   dialog = g_object_new (GTK_TYPE_ABOUT_DIALOG,
                          "transient-for", main_window,
-                         "program-name", "GTK Print Editor",
+                         "program-name", g_strcmp0 (PROFILE, "devel") == 0
+                                         ? "GTK Print Editor (Development)"
+                                         : "GTK Print Editor",
                          "version", version,
-                         "copyright", "© 2006-2020 Red Hat, Inc",
+                         "copyright", "© 2006-2021 Red Hat, Inc",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
                          "comments", "Program to demonstrate GTK printing",
                          "authors", authors,
-                         "logo-icon-name", "org.gtk.PrintEditor4.Devel",
+                         "logo-icon-name", "org.gtk.PrintEditor4",
                          "title", "About GTK Print Editor",
                          "system-information", sysinfo->str,
                          NULL);
@@ -715,7 +721,6 @@ static const char ui_info[] =
   "        <item>"
   "          <attribute name='label'>_New</attribute>"
   "          <attribute name='action'>app.new</attribute>"
-  "          <attribute name='accel'>&lt;Primary&gt;n</attribute>"
   "        </item>"
   "        <item>"
   "          <attribute name='label'>_Open</attribute>"
@@ -724,12 +729,10 @@ static const char ui_info[] =
   "        <item>"
   "          <attribute name='label'>_Save</attribute>"
   "          <attribute name='action'>app.save</attribute>"
-  "          <attribute name='accel'>&lt;Primary&gt;s</attribute>"
   "        </item>"
   "        <item>"
   "          <attribute name='label'>Save _As...</attribute>"
   "          <attribute name='action'>app.save-as</attribute>"
-  "          <attribute name='accel'>&lt;Primary&gt;s</attribute>"
   "        </item>"
   "      </section>"
   "      <section>"
@@ -750,7 +753,6 @@ static const char ui_info[] =
   "        <item>"
   "          <attribute name='label'>_Quit</attribute>"
   "          <attribute name='action'>app.quit</attribute>"
-  "          <attribute name='accel'>&lt;Primary&gt;q</attribute>"
   "        </item>"
   "      </section>"
   "    </submenu>"
@@ -760,7 +762,6 @@ static const char ui_info[] =
   "        <item>"
   "          <attribute name='label'>_About Print Editor</attribute>"
   "          <attribute name='action'>app.about</attribute>"
-  "          <attribute name='accel'>&lt;Primary&gt;a</attribute>"
   "        </item>"
   "      </section>"
   "    </submenu>"
@@ -788,6 +789,15 @@ startup (GApplication *app)
 {
   GtkBuilder *builder;
   GMenuModel *menubar;
+  struct {
+    const char *action_and_target;
+    const char *accelerators[2];
+  } accels[] = {
+    { "app.new", { "<Control>n", NULL } },
+    { "app.quit", { "<Control>q", NULL } },
+    { "app.save", { "<Control>s", NULL } },
+    { "app.about", { "<Control>a", NULL } },
+  };
 
   builder = gtk_builder_new ();
   gtk_builder_add_from_string (builder, ui_info, -1, NULL);
@@ -795,6 +805,9 @@ startup (GApplication *app)
   menubar = (GMenuModel *)gtk_builder_get_object (builder, "menubar");
 
   gtk_application_set_menubar (GTK_APPLICATION (app), menubar);
+
+  for (int i = 0; i < G_N_ELEMENTS (accels); i++)
+    gtk_application_set_accels_for_action (GTK_APPLICATION (app), accels[i].action_and_target, accels[i].accelerators);
 
   g_object_unref (builder);
 }
@@ -807,6 +820,10 @@ activate (GApplication *app)
   GtkWidget *contents;
 
   main_window = gtk_application_window_new (GTK_APPLICATION (app));
+
+  if (g_strcmp0 (PROFILE, "devel") == 0)
+    gtk_widget_add_css_class (GTK_WIDGET (main_window), "devel");
+
   gtk_window_set_icon_name (GTK_WINDOW (main_window), "text-editor");
   gtk_window_set_default_size (GTK_WINDOW (main_window), 400, 600);
   gtk_application_window_set_show_menubar (GTK_APPLICATION_WINDOW (main_window), TRUE);

@@ -1,0 +1,93 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}{{ namespace.name }}{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  {% if CONFIG.site_url %}
+  <meta property="og:url" content="{{ CONFIG.site_url }}"/>
+  {% endif %}
+  <meta property="og:type" content="website"/>
+
+  {% if CONFIG.logo_url %}
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="{{ CONFIG.logo_url }}"/>
+  <meta property="og:image:alt" content="{{ namespace.name }}-{{ namespace.version }}"/>
+  {% endif %}
+
+  {% block meta_other %}{% endblock %}
+
+  {% if CONFIG.site_url %}
+  <meta name="twitter:url" content="{{ CONFIG.site_url }}"/>
+  {% endif %}
+  <meta name="twitter:card" content="summary"/>
+
+  {% if CONFIG.site_url %}
+  <link rel="canonical" href="{{ CONFIG.site_url }}"/>
+  {% endif %}
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  {% block style_other %}{% endblock %}
+
+  {% if CONFIG.urlmap_file %}
+  <script src="{{ CONFIG.urlmap_file }}"></script>
+  {% endif %}
+  {% if CONFIG.search_index %}
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  {% endif %}
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      {% if CONFIG.logo_url %}
+      <div class="section">
+        <img src="{{ CONFIG.logo_url }}" class="logo"/>
+      </div>
+      {% endif %}
+      {% if CONFIG.search_index %}
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      {% endif %}
+      <div class="section namespace">
+        <h3><a href="index.html">{{ namespace.name }}</a></h3>
+        <p>API Version: {{ namespace.version }}</p>
+        {% if CONFIG.version %}
+        <p>Library Version: {{ CONFIG.version }}</p>
+        {% endif %}
+      </div>
+      {% block sidebar %}
+      {% endblock %}
+    </nav>
+
+    {% block navbar %}
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    {% endblock %}
+
+    {% block content %}{% endblock %}
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    {% block footer %}{% endblock %}
+    </footer>
+  </div>
+</body>
+</html>

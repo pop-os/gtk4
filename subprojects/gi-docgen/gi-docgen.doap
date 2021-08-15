@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: CC0-1.0
+-->
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+  <name>GI-DocGen</name>
+  <shortname>gi-docgen</shortname>
+  <shortdesc>Introspection-based documentation generator</shortdesc>
+  <description>GI-DocGen is a document generator for GObject-based libraries, using the introspection data to create API references.</description>
+
+  <homepage rdf:resource="https://gnome.pages.gitlab.gnome.org/gi-docgen/"/>
+  <license rdf:resource="http://spdx.org/licenses/GPL-3.0-or-later"/>
+  <license rdf:resource="http://spdx.org/licenses/Apache-2.0"/>
+  <bug-database rdf:resource="https://gitlab.gnome.org/GNOME/gi-docgen/issues/" />
+  <repository>
+    <GitRepository>
+      <location rdf:resource="https://gitlab.gnome.org/GNOME/gi-docgen.git"/>
+      <browse rdf:resource="https://gitlab.gnome.org/GNOME/gi-docgen/"/>
+    </GitRepository>
+  </repository>
+
+  <category rdf:resource="http://api.gnome.org/doap-extensions#core"/>
+
+  <programming-language>Python</programming-language>
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Emmanuele Bassi</foaf:name>
+      <foaf:mbox rdf:resource="mailto:ebassi@gnome.org"/>
+      <gnome:userid>ebassi</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+
+  <author>
+    <foaf:Person>
+      <foaf:name>Emmanuele Bassi</foaf:name>
+      <foaf:mbox rdf:resource="mailto:ebassi@gnome.org"/>
+      <gnome:userid>ebassi</gnome:userid>
+    </foaf:Person>
+  </author>
+
+</Project>

@@ -1,4 +1,5 @@
-# GTK CSS Properties
+Title: GTK CSS Properties
+Slug: css-properties
 
 GTK supports CSS properties and shorthands as far as they can be applied
 in the context of widgets, and adds its own properties only when needed.
@@ -14,13 +15,16 @@ spec.
 The following units are supported for basic datatypes:
 
 Length
- : px, pt, em, ex, rem, pc, in, cm, mm, calc()
+: px, pt, em, ex, rem, pc, in, cm, mm, calc()
+
 Percentage
- : %, calc()
+: %, calc()
+
 Angle
- : deg | grad | turn, calc()
+: deg, grad, turn, calc()
+
 Time
- : s | ms, calc()
+: s, ms, calc()
 
 Length values with the em or ex units are resolved using the font
 size value, unless they occur in setting the font-size itself, in
@@ -32,7 +36,7 @@ not quite the same as the CSS definition of rem.
 The calc() notation adds considerable expressive power. There are limits
 on what types can be combined in such an expression (e.g. it does not make
 sense to add a number and a time). For the full details, see the
-[CSS3 VAlues and Units](https://www.w3.org/TR/css3-values/#calc-notation)
+[CSS3 Values and Units](https://www.w3.org/TR/css3-values/#calc-notation)
 spec.
 
 A common pattern among shorthand properties (called 'four sides') is one
@@ -41,13 +45,16 @@ side of an area. In this case, the specified values are interpreted as
 follows:
 
 4 values:
- : top right bottom left
+: top right bottom left
+
 3 values:
- : top horizontal bottom
+: top horizontal bottom
+
 2 values:
- : vertical horizontal
+: vertical horizontal
+
 1 value:
- : all
+: all
 
 ## Colors
 
@@ -69,12 +76,16 @@ and in some cases a number as arguments.
 
 `lighter(Color)`
  : produces a brigher variant of Color
+
 `darker(Color)`
  : produces a darker variant of Color
+
 `shade(Color, Number)`
  : changes the lightness of Color. The number ranges from 0 for black to 2 for white.
+
 `alpha(Color, Number)`
  : replaces the alpha value of color with number (between 0 and 1)
+
 `mix(Color1, Color2, Number)`
  : interpolates between the two colors
 
@@ -129,7 +140,7 @@ done with
 |:-----------|:----------|:------|
 |color       | [CSS Color Level 3](https://www.w3.org/TR/css3-color/#foreground) | |
 |opacity     | [CSS Color Level 3](https://www.w3.org/TR/css3-color/#opacity) | |
-|filter      | [CSS Filter Effect Level 1](https://drafts.fxtf.org/filters/#FilterProperty) | CSS allows drop-shadow |
+|filter      | [CSS Filter Effect Level 1](https://drafts.fxtf.org/filters/#FilterProperty) | |
 |font-family | [CSS Fonts Level 3](https://www.w3.org/TR/css3-fonts/#font-family-prop) | defaults to gtk-font-name setting |
 |font-size   | [CSS Fonts Level 3](https://www.w3.org/TR/css3-fonts/#font-size-prop) | defaults to gtk-font-name setting |
 |font-style  | [CSS Fonts Level 3](https://www.w3.org/TR/css3-fonts/#font-style-prop) | |
@@ -151,7 +162,7 @@ done with
 |caret-color|[CSS Basic User Interface Level 3](https://www.w3.org/TR/css3-ui/#caret-color) | CSS allows an auto value |
 |-gtk-secondary-caret-color|[Color](https://www.w3.org/TR/css-color-3/#valuea-def-color) | used for the secondary caret in bidirectional text |
 |letter-spacing| [CSS Text Level 3](https://www.w3.org/TR/css3-text/#letter-spacing) | |
-|text-decoration-line| [CSS Text Decoration Level 3](https://www.w3.org/TR/css-text-decor-3/#text-decoration-line-property) | CSS allows overline |
+|text-decoration-line| [CSS Text Decoration Level 3](https://www.w3.org/TR/css-text-decor-3/#text-decoration-line-property) | |
 |text-decoration-color| [CSS Text Decoration Level 3](https://www.w3.org/TR/css-text-decor-3/#text-decoration-color-property) | |
 |text-decoration-style| [CSS Text Decoration Level 3](https://www.w3.org/TR/css-text-decor-3/#text-decoration-style-property) | CSS allows dashed and dotted |
 |text-shadow| [CSS Text Decoration Level 3](https://www.w3.org/TR/css-text-decor-3/#text-shadow-property) | |
@@ -159,11 +170,12 @@ done with
 |-gtk-icon-source| [Image](https://www.w3.org/TR/css-backgrounds-3/#typedef-image), `builtin` or `none` | used for builtin icons in buttons and expanders |
 |-gtk-icon-size| [Length](https://www.w3.org/TR/css3-values/#length-value) | size used for builtin icons in buttons and expanders |
 |-gtk-icon-style| `requested`, `regular` or `symbolic` | preferred style for application-loaded icons |
-|-gtk-icon-transform| [Transform list](https://drafts.csswg.org/css-transforms-1/#typedef-transform-list) or `none` | applied to builtin and application-loaded icons |
+|-gtk-icon-transform| [Transform list](https://www.w3.org/TR/css-transforms-1/#typedef-transform-list) or `none` | applied to builtin and application-loaded icons |
 |-gtk-icon-palette| Color palette, as explained above | used to recolor symbolic icons |
 |-gtk-icon-shadow| [Shadow](https://www.w3.org/TR/css-backgrounds-3/#typedef-shadow) or `none` | applied to builtin and application-loaded icons |
 |-gtk-icon-filter| [Filter value list](https://www.w3.org/TR/filter-effects-1/#typedef-filter-value-list) or `none` | applied to builtin and application-loaded icons |
-|transform| [CSS Transforms Level 2](https://drafts.csswg.org/css-transforms-2/) | |
+|transform| [CSS Transforms Level 1](https://www.w3.org/TR/css-transforms-1/#transform-property) | |
+|transform-origin| [CSS Transforms Level 1](https://www.w3.org/TR/css-transforms-1/#transform-origin-property) | CSS allows specifying a z component|
 |min-width| [CSS Box Model Level 3](https://www.w3.org/TR/css3-box/#min-width) | CSS allows percentages |
 |min-height| [CSS Box Model Level 3](https://www.w3.org/TR/css3-box/#min-height) | CSS allows percentages |
 |margin-top| [CSS Box Model Level 3](https://www.w3.org/TR/css3-box/#margin-top) | CSS allows percentages or auto |
@@ -217,7 +229,7 @@ done with
 |background-size| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background-size) | |
 |background-position| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background-position) | |
 |background-repeat| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background-repeat) | |
-|background-image| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background-image) | not supported: urls without quotes, colors in crossfades |
+|background-image| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background-image) | not supported: urls without quotes |
 |box-shadow| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#box-shadow) | |
 |background-blend-mode| [CSS Compositing and Blending Level 1](https://www.w3.org/TR/compositing-1/#propdef-background-blend-mode) | only affects multiple backgrounds |
 |background| [CSS Backgrounds and Borders Level 3](https://www.w3.org/TR/css3-background/#background) | |

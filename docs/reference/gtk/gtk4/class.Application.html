@@ -1,0 +1,806 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Application</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Application"/>
+  <meta property="og:description" content="Reference for Gtk.Application"/>
+  <meta name="twitter:title" content="Gtk.Application"/>
+  <meta name="twitter:description" content="Reference for Gtk.Application"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Application.html#description">Application</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Application.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Application.add_window.html">add_window</a>
+  
+    <a class="method" href="method.Application.get_accels_for_action.html">get_accels_for_action</a>
+  
+    <a class="method" href="method.Application.get_actions_for_accel.html">get_actions_for_accel</a>
+  
+    <a class="method" href="method.Application.get_active_window.html">get_active_window</a>
+  
+    <a class="method" href="method.Application.get_menu_by_id.html">get_menu_by_id</a>
+  
+    <a class="method" href="method.Application.get_menubar.html">get_menubar</a>
+  
+    <a class="method" href="method.Application.get_window_by_id.html">get_window_by_id</a>
+  
+    <a class="method" href="method.Application.get_windows.html">get_windows</a>
+  
+    <a class="method" href="method.Application.inhibit.html">inhibit</a>
+  
+    <a class="method" href="method.Application.list_action_descriptions.html">list_action_descriptions</a>
+  
+    <a class="method" href="method.Application.remove_window.html">remove_window</a>
+  
+    <a class="method" href="method.Application.set_accels_for_action.html">set_accels_for_action</a>
+  
+    <a class="method" href="method.Application.set_menubar.html">set_menubar</a>
+  
+    <a class="method" href="method.Application.uninhibit.html">uninhibit</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Application.active-window.html">active-window</a>
+  
+    <a class="property" href="property.Application.menubar.html">menubar</a>
+  
+    <a class="property" href="property.Application.register-session.html">register-session</a>
+  
+    <a class="property" href="property.Application.screensaver-active.html">screensaver-active</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Application.query-end.html">query-end</a>
+  
+    <a class="signal" href="signal.Application.window-added.html">window-added</a>
+  
+    <a class="signal" href="signal.Application.window-removed.html">window-removed</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Application.window_added.html">window_added</a>
+  
+    <a class="method" href="vfunc.Application.window_removed.html">window_removed</a>
+  
+  </div>
+</div>
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>Application</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkapplication.c#L50">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.Application : Gio.Application {
+  parent_instance: GApplication
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkApplication</code> is a high-level <span class="caps">API</span> for writing&nbsp;applications.</p>
+<p>It supports many aspects of writing a <span class="caps">GTK</span> application in a convenient
+fashion, without enforcing a one-size-fits-all&nbsp;model.</p>
+<p>Currently, <code>GtkApplication</code> handles <span class="caps">GTK</span> initialization, application
+uniqueness, session management, provides some basic scriptability and
+desktop shell integration by exporting actions and menus and manages a
+list of toplevel windows whose life-cycle is automatically tied to the
+life-cycle of your&nbsp;application.</p>
+<p>While <code>GtkApplication</code> works fine with plain <a href="class.Window.html"><code>GtkWindow</code></a>s, it is
+recommended to use it together with <a href="class.ApplicationWindow.html"><code>GtkApplicationWindow</code></a>.</p>
+<h2 id="automatic-resources">Automatic resources<a class="md-anchor" href="#automatic-resources" title="Permanent link"></a></h2>
+<p><code>GtkApplication</code> will automatically load menus from the <code>GtkBuilder</code>
+resource located at &#8220;gtk/menus.ui&#8221;, relative to the application&#8217;s
+resource base path (see <code>g_application_set_resource_base_path()</code>).
+The menu with the <span class="caps">ID</span> &#8220;menubar&#8221; is taken as the application&#8217;s
+menubar. Additional menus (most interesting submenus) can be named
+and accessed via <a href="method.Application.get_menu_by_id.html">gtk_application_get_menu_by_id()</a> which allows for
+dynamic population of a part of the menu&nbsp;structure.</p>
+<p>It is also possible to provide the menubar manually using
+<a href="method.Application.set_menubar.html">gtk_application_set_menubar()</a>.</p>
+<p><code>GtkApplication</code> will also automatically setup an icon search path for
+the default icon theme by appending &#8220;icons&#8221; to the resource base
+path. This allows your application to easily store its icons as
+resources. See <a href="method.IconTheme.add_resource_path.html">gtk_icon_theme_add_resource_path()</a> for more&nbsp;information.</p>
+<p>If there is a resource located at &#8220;gtk/help-overlay.ui&#8221; which
+defines a <a href="class.ShortcutsWindow.html"><code>GtkShortcutsWindow</code></a> with <span class="caps">ID</span> &#8220;help_overlay&#8221; then
+<code>GtkApplication</code> associates an instance of this shortcuts window with
+each <a href="class.ApplicationWindow.html"><code>GtkApplicationWindow</code></a> and sets up the keyboard accelerator
+<kbd>Control</kbd>+<kbd>?</kbd> to open it. To create a menu item that
+displays the shortcuts window, associate the item with the action
+<code>win.show-help-overlay</code>.</p>
+<h2 id="a-simple-application">A simple application<a class="md-anchor" href="#a-simple-application" title="Permanent link"></a></h2>
+<p><a href="https://gitlab.gnome.org/GNOME/gtk/tree/master/examples/bp/bloatpad.c">A simple example</a>
+is available in the <span class="caps">GTK</span> source code&nbsp;repository</p>
+<p><code>GtkApplication</code> optionally registers with a session manager of the
+users session (if you set the <a href="property.Application.register-session.html"><code>GtkApplication:register-session</code></a>
+property) and offers various functionality related to the session&nbsp;life-cycle.</p>
+<p>An application can block various ways to end the session with
+the <a href="method.Application.inhibit.html">gtk_application_inhibit()</a> function. Typical use cases for
+this kind of inhibiting are long-running, uninterruptible operations,
+such as burning a <span class="caps">CD</span> or performing a disk backup. The session
+manager may not honor the inhibitor, but it can be expected to
+inform the user about the negative consequences of ending the
+session while inhibitors are&nbsp;present.</p>
+<h2 id="see-also">See Also<a class="md-anchor" href="#see-also" title="Permanent link"></a></h2>
+<p><a href="https://wiki.gnome.org/HowDoI/GtkApplication">HowDoI: Using GtkApplication</a>,
+<a href="getting_started.html#basics">Getting Started with <span class="caps">GTK</span>: Basics</a>.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.Application">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="238pt" height="260pt"
+ viewBox="0.00 0.00 237.50 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkApplication">
+<path fill="none" stroke="black" d="M165,-108C165,-108 71,-108 71,-108 65,-108 59,-102 59,-96 59,-96 59,-84 59,-84 59,-78 65,-72 71,-72 71,-72 165,-72 165,-72 171,-72 177,-78 177,-84 177,-84 177,-96 177,-96 177,-102 171,-108 165,-108"/>
+<text text-anchor="middle" x="118" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkApplication</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:title="Gio.ActionGroup">
+<polygon fill="none" stroke="black" points="112,-36 0,-36 0,0 112,0 112,-36"/>
+<text text-anchor="middle" x="56" y="-14.3" font-family="sans-serif" font-size="14.00">GActionGroup</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M102.67,-71.7C93.06,-60.85 80.73,-46.92 71.15,-36.1"/>
+</g>
+<!-- implements_1 -->
+<g id="node5" class="node">
+<title>implements_1</title>
+<g id="a_node5"><a xlink:title="Gio.ActionMap">
+<polygon fill="none" stroke="black" points="229.5,-36 130.5,-36 130.5,0 229.5,0 229.5,-36"/>
+<text text-anchor="middle" x="180" y="-14.3" font-family="sans-serif" font-size="14.00">GActionMap</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M133.33,-71.7C142.94,-60.85 155.27,-46.92 164.85,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="Gio.Application">
+<path fill="none" stroke="black" d="M158,-180C158,-180 78,-180 78,-180 72,-180 66,-174 66,-168 66,-168 66,-156 66,-156 66,-150 72,-144 78,-144 78,-144 158,-144 158,-144 164,-144 170,-150 170,-156 170,-156 170,-168 170,-168 170,-174 164,-180 158,-180"/>
+<text text-anchor="middle" x="118" y="-158.3" font-family="Times-Roman" font-size="14.00">GApplication</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M118,-143.7C118,-132.85 118,-118.92 118,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M142,-252C142,-252 94,-252 94,-252 88,-252 82,-246 82,-240 82,-240 82,-228 82,-228 82,-222 88,-216 94,-216 94,-216 142,-216 142,-216 148,-216 154,-222 154,-228 154,-228 154,-240 154,-240 154,-246 148,-252 142,-252"/>
+<text text-anchor="middle" x="118" y="-230.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M118,-215.7C118,-204.85 118,-190.92 118,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GApplication</a></li>
+          
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface">GActionGroup</a></li>
+          
+        
+          
+          <li class="interface">GActionMap</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Application.new.html">gtk_application_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new <code>GtkApplication</code> instance.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Application.add_window.html">gtk_application_add_window</a></h6>
+          <div class="docblock">
+            <p>Adds a window to <code>application</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_accels_for_action.html">gtk_application_get_accels_for_action</a></h6>
+          <div class="docblock">
+            <p>Gets the accelerators that are currently associated with
+the given&nbsp;action.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_actions_for_accel.html">gtk_application_get_actions_for_accel</a></h6>
+          <div class="docblock">
+            <p>Returns the list of actions (possibly empty) that <code>accel</code> maps&nbsp;to.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_active_window.html">gtk_application_get_active_window</a></h6>
+          <div class="docblock">
+            <p>Gets the “active” window for the&nbsp;application.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_menu_by_id.html">gtk_application_get_menu_by_id</a></h6>
+          <div class="docblock">
+            <p>Gets a menu from automatically loaded&nbsp;resources.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_menubar.html">gtk_application_get_menubar</a></h6>
+          <div class="docblock">
+            <p>Returns the menu model that has been set with&nbsp;gtk_application_set_menubar().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_window_by_id.html">gtk_application_get_window_by_id</a></h6>
+          <div class="docblock">
+            <p>Returns the <code>GtkApplicationWindow</code> with the given <span class="caps">ID</span>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.get_windows.html">gtk_application_get_windows</a></h6>
+          <div class="docblock">
+            <p>Gets a list of the <code>GtkWindow</code> instances associated with <code>application</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.inhibit.html">gtk_application_inhibit</a></h6>
+          <div class="docblock">
+            <p>Inform the session manager that certain types of actions should be&nbsp;inhibited.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.list_action_descriptions.html">gtk_application_list_action_descriptions</a></h6>
+          <div class="docblock">
+            <p>Lists the detailed action names which have associated&nbsp;accelerators.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.remove_window.html">gtk_application_remove_window</a></h6>
+          <div class="docblock">
+            <p>Remove a window from <code>application</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.set_accels_for_action.html">gtk_application_set_accels_for_action</a></h6>
+          <div class="docblock">
+            <p>Sets zero or more keyboard accelerators that will trigger the
+given&nbsp;action.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.set_menubar.html">gtk_application_set_menubar</a></h6>
+          <div class="docblock">
+            <p>Sets or unsets the menubar for windows of <code>application</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Application.uninhibit.html">gtk_application_uninhibit</a></h6>
+          <div class="docblock">
+            <p>Removes an inhibitor that has been previously&nbsp;established.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Application.active-window.html">Gtk.Application:active-window</a></h6>
+
+          <div class="docblock">
+            <p>The currently focused window of the&nbsp;application.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.menubar.html">Gtk.Application:menubar</a></h6>
+
+          <div class="docblock">
+            <p>The <code>GMenuModel</code> to be used for the application&#8217;s menu&nbsp;bar.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.register-session.html">Gtk.Application:register-session</a></h6>
+
+          <div class="docblock">
+            <p>Set this property to <code>TRUE</code> to register with the session&nbsp;manager.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Application.screensaver-active.html">Gtk.Application:screensaver-active</a></h6>
+
+          <div class="docblock">
+            <p>This property is <code>TRUE</code> if <span class="caps">GTK</span> believes that the screensaver is
+currently&nbsp;active.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Application.query-end.html">Gtk.Application::query-end</a></h6>
+          <div class="docblock">
+            <p>Emitted when the session manager is about to end the&nbsp;session.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Application.window-added.html">Gtk.Application::window-added</a></h6>
+          <div class="docblock">
+            <p>Emitted when a <code>GtkWindow</code> is added to <code>application</code> through&nbsp;gtk_application_add_window().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Application.window-removed.html">Gtk.Application::window-removed</a></h6>
+          <div class="docblock">
+            <p>Emitted when a <code>GtkWindow</code> is removed from <code>application</code>.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkApplicationClass {
+  GApplicationClass parent_class;
+  void (* window_added) (
+    GtkApplication* application,
+    GtkWindow* window
+  );
+  void (* window_removed) (
+    GtkApplication* application,
+    GtkWindow* window
+  );
+  
+}</code></pre>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <table class="members">
+        
+        <tr>
+          <td style="vertical-align:top"><code>parent_class</code></td>
+          <td style="vertical-align:top"><pre><code>GApplicationClass</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top"><p>The parent&nbsp;class.</p></td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>window_added</code></td>
+          <td style="vertical-align:top"><pre><code>void (* window_added) (
+    GtkApplication* application,
+    GtkWindow* window
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>window_removed</code></td>
+          <td style="vertical-align:top"><pre><code>void (* window_removed) (
+    GtkApplication* application,
+    GtkWindow* window
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-window_added"><a href="vfunc.Application.window_added.html">Gtk.ApplicationClass.window_added</a></h6>
+
+        <div class="docblock">
+          No description available.
+        </div>
+
+          
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-window_removed"><a href="vfunc.Application.window_removed.html">Gtk.ApplicationClass.window_removed</a></h6>
+
+        <div class="docblock">
+          No description available.
+        </div>
+
+          
+      </div>
+      
+      </div>
+    </div>
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

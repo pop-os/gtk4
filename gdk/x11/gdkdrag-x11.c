@@ -47,9 +47,6 @@
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/shape.h>
-#ifdef HAVE_XCOMPOSITE
-#include <X11/extensions/Xcomposite.h>
-#endif
 
 #include <string.h>
 
@@ -67,7 +64,7 @@ typedef enum {
  * @GDK_DRAG_PROTO_ROOTWIN: An extension to the Xdnd protocol for
  *  unclaimed root window drops.
  *
- * Used in #GdkDrag to indicate the protocol according to
+ * Used in `GdkDrag` to indicate the protocol according to
  * which DND is done.
  */
 typedef enum
@@ -518,9 +515,6 @@ gdk_surface_cache_new (GdkDisplay *display)
   Window xroot_window = GDK_DISPLAY_XROOTWIN (display);
   GdkChildInfoX11 *children;
   guint nchildren, i;
-#ifdef HAVE_XCOMPOSITE
-  Window cow;
-#endif
 
   GdkSurfaceCache *result = g_new (GdkSurfaceCache, 1);
 
@@ -570,25 +564,6 @@ gdk_surface_cache_new (GdkDisplay *display)
     }
 
   g_free (children);
-
-#ifdef HAVE_XCOMPOSITE
-  /*
-   * Add the composite overlay window to the cache, as this can be a reasonable
-   * Xdnd proxy as well.
-   * This is only done when the screen is composited in order to avoid mapping
-   * the COW. We assume that the CM is using the COW (which is true for pretty
-   * much any CM currently in use).
-   */
-  if (gdk_display_is_composited (display))
-    {
-      cow = XCompositeGetOverlayWindow (xdisplay, xroot_window);
-      gdk_surface_cache_add (result, cow, 0, 0,
-			    WidthOfScreen (GDK_X11_SCREEN (screen)->xscreen),
-			    HeightOfScreen (GDK_X11_SCREEN (screen)->xscreen),
-			    TRUE);
-      XCompositeReleaseOverlayWindow (xdisplay, xroot_window);
-    }
-#endif
 
   return result;
 }

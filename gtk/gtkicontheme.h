@@ -47,7 +47,7 @@ typedef struct _GtkIconTheme      GtkIconTheme;
  * @GTK_ICON_LOOKUP_PRELOAD: Starts loading the texture in the background
  *   so it is ready when later needed.
  *
- * Used to specify options for gtk_icon_theme_lookup_icon()
+ * Used to specify options for gtk_icon_theme_lookup_icon().
  */
 typedef enum
 {
@@ -59,7 +59,7 @@ typedef enum
 /**
  * GTK_ICON_THEME_ERROR:
  *
- * The #GQuark used for #GtkIconThemeError errors.
+ * The `GQuark` used for `GtkIconThemeError` errors.
  */
 #define GTK_ICON_THEME_ERROR gtk_icon_theme_error_quark ()
 
@@ -68,7 +68,7 @@ typedef enum
  * @GTK_ICON_THEME_NOT_FOUND: The icon specified does not exist in the theme
  * @GTK_ICON_THEME_FAILED: An unspecified error occurred.
  *
- * Error codes for GtkIconTheme operations.
+ * Error codes for `GtkIconTheme` operations.
  **/
 typedef enum {
   GTK_ICON_THEME_NOT_FOUND,
@@ -116,6 +116,9 @@ char *           gtk_icon_theme_get_theme_name       (GtkIconTheme              
 GDK_AVAILABLE_IN_ALL
 gboolean         gtk_icon_theme_has_icon             (GtkIconTheme                *self,
                                                       const char                  *icon_name);
+GDK_AVAILABLE_IN_4_2
+gboolean         gtk_icon_theme_has_gicon            (GtkIconTheme                *self,
+                                                      GIcon                       *gicon);
 GDK_AVAILABLE_IN_ALL
 int              *gtk_icon_theme_get_icon_sizes      (GtkIconTheme                *self,
                                                       const char                  *icon_name);

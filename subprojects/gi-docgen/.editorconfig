@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2020 GNOME Foundation
+#
+# SPDX-License-Identifier: CC0-1.0
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+charset = utf-8
+
+[*.py]
+max_line_length = 120
+balanced_wrapping = true
+not_skip = __init__.py
+
+# Use 2 spaces for the HTML files
+[*.html]
+indent_size = 2
+
+[*.json]
+indent_size = 2
+
+# Minified JavaScript files shouldn't be changed
+[**.min.js]
+indent_style = ignore
+insert_final_newline = ignore
+
+[docs/**.txt]
+max_line_length = 79
+
+[*.md]
+max_line_length = 79

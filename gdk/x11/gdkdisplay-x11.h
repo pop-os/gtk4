@@ -42,7 +42,6 @@ struct _GdkX11Display
   GdkDisplay parent_instance;
   Display *xdisplay;
   GdkX11Screen *screen;
-  GList *screens;
   GList *toplevels;
   GdkX11DeviceManagerXI2 *device_manager;
 
@@ -70,8 +69,6 @@ struct _GdkX11Display
 
   gboolean have_xfixes;
   int xfixes_event_base;
-
-  gboolean have_xcomposite;
 
   gboolean have_randr12;
   gboolean have_randr13;
@@ -126,18 +123,30 @@ struct _GdkX11Display
 
   int wm_moveresize_button;
 
+#ifdef HAVE_XDAMAGE
+  int damage_event_base;
+  int damage_error_base;
+  guint have_damage;
+#endif
+
+  /* If GL is not supported, store the error here */
+  GError *gl_error;
+
   /* GLX information */
+  /* GLXFBConfig */ gpointer glx_config;
   int glx_version;
-  int glx_error_base;
-  int glx_event_base;
+
+  /* EGL information */
+  /* We use gpointer here so we don't have to pull in EGL headers (which glx doesn't like) */
+  /* EGLDisplay */ gpointer egl_display;
+  /* EGLConfig */ gpointer egl_config;
+  int egl_version;
 
   /* Translation between X server time and system-local monotonic time */
   gint64 server_time_query_time;
   gint64 server_time_offset;
 
   guint server_time_is_monotonic_time : 1;
-
-  guint have_glx : 1;
 
   /* GLX extensions we check */
   guint has_glx_swap_interval : 1;
@@ -151,11 +160,10 @@ struct _GdkX11Display
   guint has_glx_create_es2_context : 1;
   guint has_async_glx_swap_buffers : 1;
 
-#ifdef HAVE_XDAMAGE
-  int damage_event_base;
-  int damage_error_base;
-  guint have_damage;
-#endif
+  /* EGL extensions we check */
+  guint has_egl_khr_create_context : 1;
+  guint has_egl_buffer_age : 1;
+  guint has_egl_swap_buffers_with_damage : 1;
 };
 
 struct _GdkX11DisplayClass
@@ -166,8 +174,6 @@ struct _GdkX11DisplayClass
                                                                  const XEvent           *event);
 };
 
-GdkX11Screen *  _gdk_x11_display_screen_for_xrootwin            (GdkDisplay             *display,
-                                                                 Window                  xrootwin);
 void            _gdk_x11_display_error_event                    (GdkDisplay             *display,
                                                                  XErrorEvent            *error);
 gsize           gdk_x11_display_get_max_request_size            (GdkDisplay             *display);

@@ -16,9 +16,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: gtk gtk-4.0\n"
+"Project-Id-Version: gtk\n"
 "Report-Msgid-Bugs-To: https://gitlab.gnome.org/GNOME/gtk/-/issues/\n"
-"POT-Creation-Date: 2021-01-25 18:51+0000\n"
+"POT-Creation-Date: 2021-01-26 15:13+0000\n"
 "PO-Revision-Date: 2021-01-26 16:20+0100\n"
 "Last-Translator: Marek Černocký <marek@manet.cz>\n"
 "Language-Team: čeština <gnome-cs-list@gnome.org>\n"
@@ -298,12 +298,12 @@ msgstr "KlávesniceJasSnížit"
 #: gdk/keyname-table.h:6885
 msgctxt "keyboard label"
 msgid "AudioMute"
-msgstr "ZvukZtlumit"
+msgstr "ZvukVypnout"
 
 #: gdk/keyname-table.h:6886
 msgctxt "keyboard label"
 msgid "AudioMicMute"
-msgstr "MikrofonZtlumit"
+msgstr "MikrofonVypnout"
 
 #: gdk/keyname-table.h:6887
 msgctxt "keyboard label"
@@ -2017,7 +2017,7 @@ msgstr "Soubor s tímto názvem již existuje"
 #: gtk/gtkmountoperation.c:608 gtk/gtkpagesetupunixdialog.c:283
 #: gtk/gtkprintbackend.c:643 gtk/gtkprinteroptionwidget.c:713
 #: gtk/gtkprintunixdialog.c:626 gtk/gtkprintunixdialog.c:782
-#: gtk/gtkwindow.c:5950 gtk/inspector/css-editor.c:248
+#: gtk/gtkwindow.c:5959 gtk/inspector/css-editor.c:248
 #: gtk/inspector/recorder.c:1241 gtk/ui/gtkappchooserdialog.ui:45
 #: gtk/ui/gtkassistant.ui:52 gtk/ui/gtkcolorchooserdialog.ui:33
 #: gtk/ui/gtkfontchooserdialog.ui:24
@@ -2503,7 +2503,7 @@ msgid "%d:%02d"
 msgstr "%d∶%02d"
 
 #: gtk/gtkmessagedialog.c:157 gtk/gtkmessagedialog.c:175
-#: gtk/gtkprintbackend.c:644 gtk/gtkwindow.c:5951
+#: gtk/gtkprintbackend.c:644 gtk/gtkwindow.c:5960
 msgid "_OK"
 msgstr "_Budiž"
 
@@ -3360,12 +3360,12 @@ msgstr "Výsledky hledání"
 msgid "Search Shortcuts"
 msgstr "hledat zkratku"
 
-#: gtk/gtkshortcutswindow.c:969 gtk/ui/gtkemojichooser.ui:346
+#: gtk/gtkshortcutswindow.c:969 gtk/ui/gtkemojichooser.ui:348
 #: gtk/ui/gtkfilechooserwidget.ui:296
 msgid "No Results Found"
 msgstr "Nebyly nalezeny žádné výsledky"
 
-#: gtk/gtkshortcutswindow.c:975 gtk/ui/gtkemojichooser.ui:359
+#: gtk/gtkshortcutswindow.c:975 gtk/ui/gtkemojichooser.ui:361
 #: gtk/ui/gtkfilechooserwidget.ui:309 gtk/ui/gtkplacesview.ui:230
 msgid "Try a different search"
 msgstr "Zkuste zadat jiný termín k vyhledání"
@@ -3392,7 +3392,7 @@ msgstr "Rozbalit"
 
 #: gtk/gtkvolumebutton.c:229
 msgid "Muted"
-msgstr "Ztlumeno"
+msgstr "Vypnutý zvuk"
 
 #: gtk/gtkvolumebutton.c:233
 msgid "Full Volume"
@@ -3409,12 +3409,12 @@ msgctxt "volume percentage"
 msgid "%d %%"
 msgstr "%d %%"
 
-#: gtk/gtkwindow.c:5938
+#: gtk/gtkwindow.c:5947
 #, c-format
 msgid "Do you want to use GTK Inspector?"
 msgstr "Chcete použít Inspectora GTK?"
 
-#: gtk/gtkwindow.c:5940
+#: gtk/gtkwindow.c:5949
 #, c-format
 msgid ""
 "GTK Inspector is an interactive debugger that lets you explore and modify "
@@ -3425,7 +3425,7 @@ msgstr ""
 "změnit vnitřní strukturu jakékoliv aplikace GTK. Použití tohoto programu "
 "může vést k přerušení běhu nebo pádu aplikace."
 
-#: gtk/gtkwindow.c:5945
+#: gtk/gtkwindow.c:5954
 msgid "Don’t show this message again"
 msgstr "Tuto zprávu znovu nezobrazovat"
 
@@ -3474,11 +3474,11 @@ msgstr "Atribut"
 msgid "Value"
 msgstr "Hodnota"
 
-#: gtk/inspector/action-editor.c:316
+#: gtk/inspector/action-editor.c:123
 msgid "Activate"
 msgstr "Aktivovat"
 
-#: gtk/inspector/action-editor.c:335
+#: gtk/inspector/action-editor.c:135
 msgid "Set State"
 msgstr "Nastavený stav"
 
@@ -3495,25 +3495,30 @@ msgstr "Typ parametru"
 msgid "State"
 msgstr "Stav"
 
-#: gtk/inspector/controllers.c:144
+#: gtk/inspector/controllers.c:126
 msgctxt "event phase"
 msgid "None"
 msgstr "Nic"
 
-#: gtk/inspector/controllers.c:145
+#: gtk/inspector/controllers.c:129
 msgctxt "event phase"
 msgid "Capture"
 msgstr "Zachytit"
 
-#: gtk/inspector/controllers.c:146
+#: gtk/inspector/controllers.c:132
 msgctxt "event phase"
 msgid "Bubble"
 msgstr "Bublina"
 
-#: gtk/inspector/controllers.c:147
+#: gtk/inspector/controllers.c:135
 msgctxt "event phase"
 msgid "Target"
 msgstr "Cíl"
+
+#: gtk/inspector/controllers.c:156
+msgctxt "propagation limit"
+msgid "Native"
+msgstr "Přirozené"
 
 #: gtk/inspector/css-editor.c:129
 msgid "You can type here any CSS rule recognized by GTK."
@@ -6966,52 +6971,52 @@ msgstr "(žádný)"
 msgid "Search…"
 msgstr "hledat…"
 
-#: gtk/ui/gtkemojichooser.ui:69 gtk/ui/gtkemojichooser.ui:236
+#: gtk/ui/gtkemojichooser.ui:69 gtk/ui/gtkemojichooser.ui:238
 msgctxt "emoji category"
 msgid "Smileys & People"
 msgstr "Smajlíci a lidé"
 
-#: gtk/ui/gtkemojichooser.ui:94 gtk/ui/gtkemojichooser.ui:245
+#: gtk/ui/gtkemojichooser.ui:94 gtk/ui/gtkemojichooser.ui:247
 msgctxt "emoji category"
 msgid "Body & Clothing"
 msgstr "Tělo a oblečení"
 
-#: gtk/ui/gtkemojichooser.ui:119 gtk/ui/gtkemojichooser.ui:254
+#: gtk/ui/gtkemojichooser.ui:119 gtk/ui/gtkemojichooser.ui:256
 msgctxt "emoji category"
 msgid "Animals & Nature"
 msgstr "Zvířata a příroda"
 
-#: gtk/ui/gtkemojichooser.ui:133 gtk/ui/gtkemojichooser.ui:263
+#: gtk/ui/gtkemojichooser.ui:133 gtk/ui/gtkemojichooser.ui:265
 msgctxt "emoji category"
 msgid "Food & Drink"
 msgstr "Jídlo a pití"
 
-#: gtk/ui/gtkemojichooser.ui:147 gtk/ui/gtkemojichooser.ui:272
+#: gtk/ui/gtkemojichooser.ui:147 gtk/ui/gtkemojichooser.ui:274
 msgctxt "emoji category"
 msgid "Travel & Places"
 msgstr "Cestování a místa"
 
-#: gtk/ui/gtkemojichooser.ui:161 gtk/ui/gtkemojichooser.ui:281
+#: gtk/ui/gtkemojichooser.ui:161 gtk/ui/gtkemojichooser.ui:283
 msgctxt "emoji category"
 msgid "Activities"
 msgstr "Činnosti"
 
-#: gtk/ui/gtkemojichooser.ui:175 gtk/ui/gtkemojichooser.ui:290
+#: gtk/ui/gtkemojichooser.ui:175 gtk/ui/gtkemojichooser.ui:292
 msgctxt "emoji category"
 msgid "Objects"
 msgstr "Objekty"
 
-#: gtk/ui/gtkemojichooser.ui:189 gtk/ui/gtkemojichooser.ui:299
+#: gtk/ui/gtkemojichooser.ui:189 gtk/ui/gtkemojichooser.ui:301
 msgctxt "emoji category"
 msgid "Symbols"
 msgstr "Symboly"
 
-#: gtk/ui/gtkemojichooser.ui:203 gtk/ui/gtkemojichooser.ui:308
+#: gtk/ui/gtkemojichooser.ui:203 gtk/ui/gtkemojichooser.ui:310
 msgctxt "emoji category"
 msgid "Flags"
 msgstr "Vlajky"
 
-#: gtk/ui/gtkemojichooser.ui:227
+#: gtk/ui/gtkemojichooser.ui:229
 msgctxt "emoji category"
 msgid "Recent"
 msgstr "Naposledy použité"
@@ -7928,22 +7933,3 @@ msgstr "Žádný profil není k dispozici"
 #: modules/printbackends/gtkprintercups.c:298
 msgid "Unspecified profile"
 msgstr "Neurčený profil"
-
-msgid "Other…"
-msgstr "Jiné…"
-
-#, fuzzy
-#~ msgid "Unable to create a GL pixel format"
-#~ msgstr "Nelze vytvořit kontext GL"
-
-#, fuzzy
-#~ msgid "Select a File"
-#~ msgstr "Vyberte soubor"
-
-#, fuzzy
-#~ msgid "C_redits"
-#~ msgstr "Zásluhy"
-
-#, fuzzy
-#~ msgid "_License"
-#~ msgstr "Licence"

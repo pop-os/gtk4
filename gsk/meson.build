@@ -1,23 +1,46 @@
 gsk_private_gl_shaders = [
-  'resources/glsl/preamble.glsl',
-  'resources/glsl/preamble.fs.glsl',
-  'resources/glsl/preamble.vs.glsl',
-  'resources/glsl/border.glsl',
-  'resources/glsl/blit.glsl',
-  'resources/glsl/coloring.glsl',
-  'resources/glsl/color.glsl',
-  'resources/glsl/linear_gradient.glsl',
-  'resources/glsl/radial_gradient.glsl',
-  'resources/glsl/conic_gradient.glsl',
-  'resources/glsl/color_matrix.glsl',
-  'resources/glsl/blur.glsl',
-  'resources/glsl/inset_shadow.glsl',
-  'resources/glsl/outset_shadow.glsl',
-  'resources/glsl/unblurred_outset_shadow.glsl',
-  'resources/glsl/cross_fade.glsl',
-  'resources/glsl/blend.glsl',
-  'resources/glsl/repeat.glsl',
-  'resources/glsl/custom.glsl',
+  'gl/resources/preamble.glsl',
+  'gl/resources/preamble.fs.glsl',
+  'gl/resources/preamble.vs.glsl',
+  'gl/resources/border.glsl',
+  'gl/resources/blit.glsl',
+  'gl/resources/coloring.glsl',
+  'gl/resources/color.glsl',
+  'gl/resources/linear_gradient.glsl',
+  'gl/resources/radial_gradient.glsl',
+  'gl/resources/conic_gradient.glsl',
+  'gl/resources/color_matrix.glsl',
+  'gl/resources/blur.glsl',
+  'gl/resources/inset_shadow.glsl',
+  'gl/resources/outset_shadow.glsl',
+  'gl/resources/unblurred_outset_shadow.glsl',
+  'gl/resources/cross_fade.glsl',
+  'gl/resources/blend.glsl',
+  'gl/resources/repeat.glsl',
+  'gl/resources/custom.glsl',
+]
+
+gsk_private_ngl_shaders = [
+  'ngl/resources/preamble.glsl',
+  'ngl/resources/preamble.fs.glsl',
+  'ngl/resources/preamble.vs.glsl',
+  'ngl/resources/border.glsl',
+  'ngl/resources/blit.glsl',
+  'ngl/resources/coloring.glsl',
+  'ngl/resources/color.glsl',
+  'ngl/resources/linear_gradient.glsl',
+  'ngl/resources/radial_gradient.glsl',
+  'ngl/resources/conic_gradient.glsl',
+  'ngl/resources/color_matrix.glsl',
+  'ngl/resources/blur.glsl',
+  'ngl/resources/inset_shadow.glsl',
+  'ngl/resources/outset_shadow.glsl',
+  'ngl/resources/unblurred_outset_shadow.glsl',
+  'ngl/resources/cross_fade.glsl',
+  'ngl/resources/blend.glsl',
+  'ngl/resources/repeat.glsl',
+  'ngl/resources/custom.glsl',
+  'ngl/resources/filled_border.glsl',
 ]
 
 gsk_public_sources = files([
@@ -31,6 +54,7 @@ gsk_public_sources = files([
   'gskroundedrect.c',
   'gsktransform.c',
   'gl/gskglrenderer.c',
+  'ngl/gsknglrenderer.c',
 ])
 
 gsk_private_sources = files([
@@ -48,6 +72,24 @@ gsk_private_sources = files([
   'gl/gskgliconcache.c',
   'gl/opbuffer.c',
   'gl/stb_rect_pack.c',
+  'ngl/gsknglattachmentstate.c',
+  'ngl/gsknglbuffer.c',
+  'ngl/gsknglcommandqueue.c',
+  'ngl/gsknglcompiler.c',
+  'ngl/gskngldriver.c',
+  'ngl/gsknglglyphlibrary.c',
+  'ngl/gskngliconlibrary.c',
+  'ngl/gsknglprogram.c',
+  'ngl/gsknglrenderjob.c',
+  'ngl/gsknglshadowlibrary.c',
+  'ngl/gskngltexturelibrary.c',
+  'ngl/gskngluniformstate.c',
+  'ngl/gskngltexturepool.c',
+  'ngl/fp16.c',
+])
+
+gsk_f16c_sources = files([
+  'ngl/fp16i.c',
 ])
 
 gsk_public_headers = files([
@@ -64,7 +106,8 @@ gsk_public_headers = files([
 install_headers(gsk_public_headers, 'gsk.h', subdir: 'gtk-4.0/gsk')
 
 gsk_public_gl_headers = files([
-  'gl/gskglrenderer.h'
+  'gl/gskglrenderer.h',
+  'ngl/gsknglrenderer.h',
 ])
 install_headers(gsk_public_gl_headers, subdir: 'gtk-4.0/gsk/gl')
 gsk_public_headers += gsk_public_gl_headers
@@ -120,7 +163,7 @@ if have_vulkan
     'vulkan/gskvulkanshader.c',
   ])
 
-  subdir('resources/vulkan')
+  subdir('vulkan/resources')
 endif # have_vulkan
 
 if get_variable('broadway_enabled')
@@ -135,6 +178,7 @@ gsk_resources_xml = configure_file(output: 'gsk.resources.xml',
     find_program('gen-gsk-gresources-xml.py'),
     '@OUTPUT@',
     gsk_private_gl_shaders,
+    gsk_private_ngl_shaders,
     gsk_private_vulkan_compiled_shaders,
     gsk_private_vulkan_shaders
   ],
@@ -169,6 +213,17 @@ gsk_deps = [
   libgdk_dep,
 ]
 
+libgsk_f16c = static_library('gsk_f16c',
+  sources: gsk_f16c_sources,
+  dependencies: gsk_deps,
+  include_directories: [ confinc, ],
+  c_args: [
+    '-DGTK_COMPILATION',
+    '-DG_LOG_DOMAIN="Gsk"',
+    '-DG_LOG_STRUCTURED=1',
+  ] + common_cflags + f16c_cflags,
+)
+
 libgsk = static_library('gsk',
   sources: [
     gsk_public_sources,
@@ -183,7 +238,7 @@ libgsk = static_library('gsk',
     '-DG_LOG_DOMAIN="Gsk"',
     '-DG_LOG_STRUCTURED=1',
   ] + common_cflags,
-  link_with: libgdk,
+  link_with: [ libgdk, libgsk_f16c]
 )
 
 # We don't have link_with: to internal static libs here on purpose, just
@@ -191,5 +246,5 @@ libgsk = static_library('gsk',
 # "public" libgtk_dep used by internal executables.
 libgsk_dep = declare_dependency(include_directories: [ confinc, ],
   sources: [ gskenum_h, ],
-  dependencies: libgdk_dep,
+  dependencies: [libgdk_dep, cairo_csi_dep],
 )

@@ -275,6 +275,7 @@ save_image (cairo_surface_t *surface,
 {
   GError *error = NULL;
   char *filename;
+  int ret;
   
   filename = get_output_file (test_name, extension, &error);
   if (filename == NULL)
@@ -285,7 +286,8 @@ save_image (cairo_surface_t *surface,
     }
 
   g_test_message ("Storing test result image at %s", filename);
-  g_assert (cairo_surface_write_to_png (surface, filename) == CAIRO_STATUS_SUCCESS);
+  ret = cairo_surface_write_to_png (surface, filename);
+  g_assert_true (ret == CAIRO_STATUS_SUCCESS);
 
   g_free (filename);
 }
@@ -322,12 +324,16 @@ test_ui_file (GFile *file)
   if (diff_image)
     {
       save_image (diff_image, ui_file, ".diff.png");
+      cairo_surface_destroy (diff_image);
       g_test_fail ();
     }
 
   remove_extra_css (provider);
 
   g_free (ui_file);
+
+  cairo_surface_destroy (ui_image);
+  cairo_surface_destroy (reference_image);
 }
 
 static int
@@ -447,6 +453,37 @@ log_writer (GLogLevelFlags   log_level,
   return g_log_writer_standard_streams (log_level, fields, n_fields, user_data);
 }
 
+static void
+enforce_default_settings (void)
+{
+  GtkSettings *settings;
+  GObjectClass *klass;
+  GParamSpec **pspecs;
+  guint n_pspecs;
+  int i;
+
+  settings = gtk_settings_get_default ();
+
+  klass = g_type_class_ref (G_OBJECT_TYPE (settings));
+
+  pspecs = g_object_class_list_properties (klass, &n_pspecs);
+  for (i = 0; i < n_pspecs; i++)
+    {
+      GParamSpec *pspec = pspecs[i];
+      const GValue *value;
+
+      if ((pspec->flags & G_PARAM_WRITABLE) == 0)
+        continue;
+
+      value = g_param_spec_get_default_value (pspec);
+      g_object_set_property (G_OBJECT (settings), pspec->name, value);
+    }
+
+  g_free (pspecs);
+
+  g_type_class_unref (klass);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -496,6 +533,8 @@ main (int argc, char **argv)
    * "file" property of GtkImage as a relative path in builder files.
    */
   chdir (basedir);
+
+  enforce_default_settings ();
 
   g_log_set_writer_func (log_writer, NULL, NULL);
 

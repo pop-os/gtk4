@@ -69,10 +69,6 @@
 
 #include <X11/extensions/shape.h>
 
-#ifdef HAVE_XCOMPOSITE
-#include <X11/extensions/Xcomposite.h>
-#endif
-
 #ifdef HAVE_RANDR
 #include <X11/extensions/Xrandr.h>
 #endif
@@ -1339,34 +1335,83 @@ set_sm_client_id (GdkDisplay  *display,
                      gdk_x11_get_xatom_by_name_for_display (display, "SM_CLIENT_ID"));
 }
 
-void
-gdk_display_setup_window_visual (GdkDisplay *display,
-                                 int         depth,
-                                 Visual     *visual,
-                                 Colormap    colormap,
-                                 gboolean    rgba)
+static void
+gdk_x11_display_query_default_visual (GdkX11Display  *self,
+                                      Visual        **out_visual,
+                                      int            *out_depth)
 {
-  GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
+  XVisualInfo template, *visinfo;
+  int n_visuals;
+  Display *dpy;
 
-  display_x11->window_depth = depth;
-  display_x11->window_visual = visual;
-  display_x11->window_colormap = colormap;
+  dpy = gdk_x11_display_get_xdisplay (GDK_DISPLAY (self));
 
-  gdk_display_set_rgba (display, rgba);
+  template.screen = self->screen->screen_num;
+  template.depth = 32;
+  template.red_mask  = 0xff0000;
+  template.green_mask = 0x00ff00;
+  template.blue_mask = 0x0000ff;
+
+  visinfo = XGetVisualInfo (dpy,
+                            VisualScreenMask | VisualDepthMask
+                            | VisualRedMaskMask | VisualGreenMaskMask | VisualBlueMaskMask,
+                            &template,
+                            &n_visuals);
+  if (visinfo != NULL)
+    {
+      *out_visual = visinfo[0].visual;
+      *out_depth = visinfo[0].depth;
+      XFree (visinfo);
+      return;
+    }
+
+  *out_visual = DefaultVisual (dpy, self->screen->screen_num);
+  *out_depth = DefaultDepth (dpy, self->screen->screen_num);
+}
+
+static void
+gdk_x11_display_init_leader_surface (GdkX11Display *self)
+{
+  GdkDisplay *display = GDK_DISPLAY (self);
+  Display *xdisplay = gdk_x11_display_get_xdisplay (display);
+
+  self->window_colormap = XCreateColormap (xdisplay,
+                                           DefaultRootWindow (xdisplay),
+                                           self->window_visual,
+                                           AllocNone);
+  gdk_display_set_rgba (display, self->window_depth == 32);
+
+  /* We need to initialize events after we have the screen
+   * structures in places
+   */
+  _gdk_x11_xsettings_init (GDK_X11_SCREEN (self->screen));
+
+  self->device_manager = _gdk_x11_device_manager_new (display);
+
+  gdk_event_init (display);
+
+  self->leader_gdk_surface =
+      _gdk_x11_display_create_surface (display,
+                                       GDK_SURFACE_TEMP,
+                                       NULL,
+                                       -100, -100, 1, 1);
+
+  (_gdk_x11_surface_get_toplevel (self->leader_gdk_surface))->is_leader = TRUE;
+  self->leader_window = GDK_SURFACE_XID (self->leader_gdk_surface);
+  self->leader_window_title_set = FALSE;
 }
 
 /**
  * gdk_x11_display_open:
- * @display_name: (allow-none): name of the X display.
- *     See the XOpenDisplay() for details.
+ * @display_name: (nullable): name of the X display.
+ *   See the XOpenDisplay() for details.
  *
  * Tries to open a new display to the X server given by
  * @display_name. If opening the display fails, %NULL is
  * returned.
  *
- * Returns: (nullable) (transfer full): The new display or
- *     %NULL on error.
- **/
+ * Returns: (nullable) (transfer full): The new display
+ */
 GdkDisplay *
 gdk_x11_display_open (const char *display_name)
 {
@@ -1421,28 +1466,20 @@ gdk_x11_display_open (const char *display_name)
 #endif
 
   /* initialize the display's screens */ 
-  display_x11->screen = _gdk_x11_screen_new (display, DefaultScreen (display_x11->xdisplay), TRUE);
+  display_x11->screen = _gdk_x11_screen_new (display, DefaultScreen (display_x11->xdisplay));
 
-  /* We need to initialize events after we have the screen
-   * structures in places
+  /* If GL is available we want to pick better default/rgba visuals,
+   * as we care about GLX details such as alpha/depth/stencil depth,
+   * stereo and double buffering
+   *
+   * Note that this also sets up the leader surface while creating the inital
+   * GL context.
    */
-  _gdk_x11_xsettings_init (GDK_X11_SCREEN (display_x11->screen));
-
-  display_x11->device_manager = _gdk_x11_device_manager_new (display);
-
-  gdk_event_init (display);
-
-  display_x11->leader_gdk_surface =
-      _gdk_x11_display_create_surface (display,
-                                       GDK_SURFACE_TEMP,
-                                       NULL,
-                                       -100, -100, 1, 1);
-
-  (_gdk_x11_surface_get_toplevel (display_x11->leader_gdk_surface))->is_leader = TRUE;
-
-  display_x11->leader_window = GDK_SURFACE_XID (display_x11->leader_gdk_surface);
-
-  display_x11->leader_window_title_set = FALSE;
+  if (!gdk_display_prepare_gl (display, NULL))
+    {
+      gdk_x11_display_query_default_visual (display_x11, &display_x11->window_visual, &display_x11->window_depth);
+      gdk_x11_display_init_leader_surface (display_x11);
+    }
 
 #ifdef HAVE_XFIXES
   if (XFixesQueryExtension (display_x11->xdisplay, 
@@ -1454,24 +1491,6 @@ gdk_x11_display_open (const char *display_name)
   else
 #endif
     display_x11->have_xfixes = FALSE;
-
-#ifdef HAVE_XCOMPOSITE
-  if (XCompositeQueryExtension (display_x11->xdisplay,
-				&ignore, &ignore))
-    {
-      int major, minor;
-
-      XCompositeQueryVersion (display_x11->xdisplay, &major, &minor);
-
-      /* Prior to Composite version 0.4, composited windows clipped their
-       * parents, so you had to use IncludeInferiors to draw to the parent
-       * This isn't useful for our purposes, so require 0.4
-       */
-      display_x11->have_xcomposite = major > 0 || (major == 0 && minor >= 4);
-    }
-  else
-#endif
-    display_x11->have_xcomposite = FALSE;
 
   display_x11->have_shapes = FALSE;
   display_x11->have_input_shapes = FALSE;
@@ -1625,7 +1644,7 @@ gdk_x11_display_open (const char *display_name)
 
 /**
  * gdk_x11_display_set_program_class:
- * @display: a #GdkDisplay
+ * @display: a `GdkDisplay`
  * @program_class: a string
  *
  * Sets the program class.
@@ -1795,6 +1814,9 @@ _gdk_x11_display_update_grab_info_ungrab (GdkDisplay *display,
 static void
 gdk_x11_display_beep (GdkDisplay *display)
 {
+  if (!GDK_X11_DISPLAY (display)->trusted_client)
+    return;
+
 #ifdef HAVE_XKB
   XkbBell (GDK_DISPLAY_XDISPLAY (display), None, 0, None);
 #else
@@ -1823,7 +1845,7 @@ gdk_x11_display_has_pending (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_default_group:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
  * Returns the default group leader surface for all toplevel surfaces
  * on @display. This surface is implicitly created by GDK.
@@ -1842,10 +1864,10 @@ gdk_x11_display_get_default_group (GdkDisplay *display)
 
 /**
  * gdk_x11_display_grab:
- * @display: (type GdkX11Display): a #GdkDisplay 
- * 
- * Call XGrabServer() on @display. 
- * To ungrab the display again, use gdk_x11_display_ungrab(). 
+ * @display: (type GdkX11Display): a `GdkDisplay`
+ *
+ * Call XGrabServer() on @display.
+ * To ungrab the display again, use gdk_x11_display_ungrab().
  *
  * gdk_x11_display_grab()/gdk_x11_display_ungrab() calls can be nested.
  **/
@@ -1865,10 +1887,10 @@ gdk_x11_display_grab (GdkDisplay *display)
 
 /**
  * gdk_x11_display_ungrab:
- * @display: (type GdkX11Display): a #GdkDisplay
- * 
- * Ungrab @display after it has been grabbed with 
- * gdk_x11_display_grab(). 
+ * @display: (type GdkX11Display): a `GdkDisplay`
+ *
+ * Ungrab @display after it has been grabbed with
+ * gdk_x11_display_grab().
  **/
 void
 gdk_x11_display_ungrab (GdkDisplay *display)
@@ -1926,7 +1948,6 @@ gdk_x11_display_finalize (GObject *object)
 
   /* Free all GdkX11Screens */
   g_object_unref (display_x11->screen);
-  g_list_free_full (display_x11->screens, g_object_unref);
 
   g_list_store_remove_all (display_x11->monitors);
   g_object_unref (display_x11->monitors);
@@ -1937,6 +1958,8 @@ gdk_x11_display_finalize (GObject *object)
   g_hash_table_destroy (display_x11->xid_ht);
 
   XCloseDisplay (display_x11->xdisplay);
+
+  g_clear_error (&display_x11->gl_error);
 
   /* error traps */
   while (display_x11->error_traps != NULL)
@@ -1961,10 +1984,10 @@ gdk_x11_display_finalize (GObject *object)
 /**
  * gdk_x11_lookup_xdisplay:
  * @xdisplay: a pointer to an X Display
- * 
- * Find the #GdkDisplay corresponding to @xdisplay, if any exists.
- * 
- * Returns: (transfer none) (type GdkX11Display): the #GdkDisplay, if found, otherwise %NULL.
+ *
+ * Find the `GdkDisplay` corresponding to @xdisplay, if any exists.
+*
+ * Returns: (transfer none) (type GdkX11Display): the `GdkDisplay`, if found, otherwise %NULL.
  **/
 GdkDisplay *
 gdk_x11_lookup_xdisplay (Display *xdisplay)
@@ -1992,57 +2015,10 @@ gdk_x11_lookup_xdisplay (Display *xdisplay)
 }
 
 /**
- * _gdk_x11_display_screen_for_xrootwin:
- * @display: a #GdkDisplay
- * @xrootwin: window ID for one of the screen’s of the display.
- * 
- * Given the root window ID of one of the screen’s of a #GdkDisplay,
- * finds the screen.
- * 
- * Returns: (transfer none): the #GdkX11Screen corresponding to
- *     @xrootwin, or %NULL.
- **/
-GdkX11Screen *
-_gdk_x11_display_screen_for_xrootwin (GdkDisplay *display,
-				      Window      xrootwin)
-{
-  GdkX11Screen *screen;
-  XWindowAttributes attrs;
-  gboolean result;
-  GdkX11Display *display_x11;
-  GList *l;
-
-  screen = GDK_X11_DISPLAY (display)->screen;
-
-  if (GDK_SCREEN_XROOTWIN (screen) == xrootwin)
-    return screen;
-
-  display_x11 = GDK_X11_DISPLAY (display);
-
-  for (l = display_x11->screens; l; l = l->next)
-    {
-      screen = l->data;
-      if (GDK_SCREEN_XROOTWIN (screen) == xrootwin)
-        return screen;
-    }
-
-  gdk_x11_display_error_trap_push (display);
-  result = XGetWindowAttributes (display_x11->xdisplay, xrootwin, &attrs);
-  if (gdk_x11_display_error_trap_pop (display) || !result)
-    return NULL;
-
-  screen = _gdk_x11_screen_new (display, XScreenNumberOfScreen (attrs.screen), FALSE);
-
-  display_x11->screens = g_list_prepend (display_x11->screens, screen);
-
-  return screen;
-}
-
-/**
  * gdk_x11_display_get_xdisplay:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
- * Returns the X display of a #GdkDisplay.
+ * Returns the X display of a `GdkDisplay`.
  *
  * Returns: (transfer none): an X display
  */
@@ -2056,9 +2032,9 @@ gdk_x11_display_get_xdisplay (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_xscreen:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
- * Returns the X Screen used by #GdkDisplay.
+ * Returns the X Screen used by `GdkDisplay`.
  *
  * Returns: (transfer none): an X Screen
  */
@@ -2072,9 +2048,9 @@ gdk_x11_display_get_xscreen (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_xrootwindow:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
- * Returns the root X window used by #GdkDisplay.
+ * Returns the root X window used by `GdkDisplay`.
  *
  * Returns: an X Window
  */
@@ -2189,7 +2165,7 @@ broadcast_xmessage (GdkDisplay *display,
 
 /**
  * gdk_x11_display_broadcast_startup_message:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  * @message_type: startup notification message type ("new", "change",
  * or "remove")
  * @...: a list of key/value pairs (as strings), terminated by a
@@ -2303,14 +2279,14 @@ gdk_x11_display_request_selection_notification (GdkDisplay *display,
 
 /**
  * gdk_x11_display_get_user_time:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
- * Returns the timestamp of the last user interaction on 
+ * Returns the timestamp of the last user interaction on
  * @display. The timestamp is taken from events caused
- * by user interaction such as key presses or pointer 
+ * by user interaction such as key presses or pointer
  * movements. See gdk_x11_surface_set_user_time().
  *
- * Returns: the timestamp of the last user interaction 
+ * Returns: the timestamp of the last user interaction
  */
 guint32
 gdk_x11_display_get_user_time (GdkDisplay *display)
@@ -2320,7 +2296,7 @@ gdk_x11_display_get_user_time (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_startup_notification_id:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
  * Gets the startup notification ID for a display.
  * 
@@ -2334,7 +2310,7 @@ gdk_x11_display_get_startup_notification_id (GdkDisplay *display)
 
 /**
  * gdk_x11_display_set_startup_notification_id:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  * @startup_id: the startup notification ID (must be valid utf8)
  *
  * Sets the startup notification ID for a display.
@@ -2526,7 +2502,7 @@ delete_outdated_error_traps (GdkX11Display *display_x11)
 
 /**
  * gdk_x11_display_error_trap_push:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
  * Begins a range of X requests on @display for which X error events
  * will be ignored. Unignored errors (when no trap is pushed) will abort
@@ -2757,11 +2733,11 @@ gdk_x11_display_get_max_request_size (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_screen:
- * @display: (type GdkX11Display): a #GdkX11Display
+ * @display: (type GdkX11Display): a `GdkX11Display`
  *
- * Retrieves the #GdkX11Screen of the @display.
+ * Retrieves the `GdkX11Screen` of the @display.
  *
- * Returns: (transfer none): the #GdkX11Screen
+ * Returns: (transfer none): the `GdkX11Screen`
  */
 GdkX11Screen *
 gdk_x11_display_get_screen (GdkDisplay *display)
@@ -2829,7 +2805,7 @@ gdk_x11_display_get_monitors (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_primary_monitor:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  *
  * Gets the primary monitor for the display.
  *
@@ -2842,7 +2818,7 @@ gdk_x11_display_get_monitors (GdkDisplay *display)
  * (usually the first) may be returned.
  *
  * Returns: (transfer none): the primary monitor, or any monitor if no
- *     primary monitor is configured by the user
+ *   primary monitor is configured by the user
  */
 GdkMonitor *
 gdk_x11_display_get_primary_monitor (GdkDisplay *display)
@@ -2909,6 +2885,60 @@ gdk_boolean_handled_accumulator (GSignalInvocationHint *ihint,
   return continue_emission;
 }
 
+static gboolean
+gdk_x11_display_init_gl_backend (GdkX11Display  *self,
+                                 Visual        **out_visual,
+                                 int            *out_depth,
+                                 GError        **error)
+{
+  GdkDisplay *display G_GNUC_UNUSED = GDK_DISPLAY (self);
+
+  if (GDK_DISPLAY_DEBUG_CHECK (display, GL_EGL))
+    return gdk_x11_display_init_egl (self, TRUE, out_visual, out_depth, error);
+  if (GDK_DISPLAY_DEBUG_CHECK (display, GL_GLX))
+    return gdk_x11_display_init_glx (self, out_visual, out_depth, error);
+
+  /* No env vars set, do the regular GL initialization.
+   * 
+   * We try EGL first, but are very picky about what we accept.
+   * If that fails, we try to go with GLX instead.
+   * And if that also fails, we try EGL again, but this time accept anything.
+   *
+   * The idea here is that EGL is the preferred method going forward, but GLX is
+   * the tried and tested method that we know works. So if we detect issues with
+   * EGL, we want to avoid using it in favor of GLX.
+   */
+
+  if (gdk_x11_display_init_egl (self, FALSE, out_visual, out_depth, error))
+    return TRUE;
+  g_clear_error (error);
+
+  if (gdk_x11_display_init_glx (self, out_visual, out_depth, error))
+    return TRUE;
+  g_clear_error (error);
+
+  return gdk_x11_display_init_egl (self, TRUE, out_visual, out_depth, error);
+}
+
+static GdkGLContext *
+gdk_x11_display_init_gl (GdkDisplay  *display,
+                         GError     **error)
+{
+  GdkX11Display *self = GDK_X11_DISPLAY (display);
+
+  if (!gdk_x11_display_init_gl_backend (self, &self->window_visual, &self->window_depth, error))
+    return FALSE;
+
+  gdk_x11_display_init_leader_surface (self);
+
+  if (self->egl_display)
+    return g_object_new (GDK_TYPE_X11_GL_CONTEXT_EGL, "surface", self->leader_gdk_surface, NULL);
+  else if (self->glx_config != NULL)
+    return g_object_new (GDK_TYPE_X11_GL_CONTEXT_GLX, "surface", self->leader_gdk_surface, NULL);
+  else
+    g_return_val_if_reached (NULL);
+}
+
 static void
 gdk_x11_display_class_init (GdkX11DisplayClass * class)
 {
@@ -2939,7 +2969,7 @@ gdk_x11_display_class_init (GdkX11DisplayClass * class)
   display_class->create_surface = _gdk_x11_display_create_surface;
   display_class->get_keymap = gdk_x11_display_get_keymap;
 
-  display_class->make_gl_context_current = gdk_x11_display_make_gl_context_current;
+  display_class->init_gl = gdk_x11_display_init_gl;
 
   display_class->get_default_seat = gdk_x11_display_get_default_seat;
 
@@ -2963,7 +2993,7 @@ gdk_x11_display_class_init (GdkX11DisplayClass * class)
    * that GDK expects to translate, you may break GDK and/or GTK+ in
    * interesting ways. You have been warned.
    *
-   * If you want this signal handler to queue a #GdkEvent, you can use
+   * If you want this signal handler to queue a `GdkEvent`, you can use
    * gdk_display_put_event().
    *
    * If you are interested in X GenericEvents, bear in mind that

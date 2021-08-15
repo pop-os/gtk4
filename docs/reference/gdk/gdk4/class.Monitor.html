@@ -1,0 +1,592 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gdk.Monitor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gdk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gdk.Monitor"/>
+  <meta property="og:description" content="Reference for Gdk.Monitor"/>
+  <meta name="twitter:title" content="Gdk.Monitor"/>
+  <meta name="twitter:description" content="Reference for Gdk.Monitor"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gdk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Monitor.html#description">Monitor</a>
+  </div>
+</div>
+
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Monitor.get_connector.html">get_connector</a>
+  
+    <a class="method" href="method.Monitor.get_display.html">get_display</a>
+  
+    <a class="method" href="method.Monitor.get_geometry.html">get_geometry</a>
+  
+    <a class="method" href="method.Monitor.get_height_mm.html">get_height_mm</a>
+  
+    <a class="method" href="method.Monitor.get_manufacturer.html">get_manufacturer</a>
+  
+    <a class="method" href="method.Monitor.get_model.html">get_model</a>
+  
+    <a class="method" href="method.Monitor.get_refresh_rate.html">get_refresh_rate</a>
+  
+    <a class="method" href="method.Monitor.get_scale_factor.html">get_scale_factor</a>
+  
+    <a class="method" href="method.Monitor.get_subpixel_layout.html">get_subpixel_layout</a>
+  
+    <a class="method" href="method.Monitor.get_width_mm.html">get_width_mm</a>
+  
+    <a class="method" href="method.Monitor.is_valid.html">is_valid</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Monitor.connector.html">connector</a>
+  
+    <a class="property" href="property.Monitor.display.html">display</a>
+  
+    <a class="property" href="property.Monitor.geometry.html">geometry</a>
+  
+    <a class="property" href="property.Monitor.height-mm.html">height-mm</a>
+  
+    <a class="property" href="property.Monitor.manufacturer.html">manufacturer</a>
+  
+    <a class="property" href="property.Monitor.model.html">model</a>
+  
+    <a class="property" href="property.Monitor.refresh-rate.html">refresh-rate</a>
+  
+    <a class="property" href="property.Monitor.scale-factor.html">scale-factor</a>
+  
+    <a class="property" href="property.Monitor.subpixel-layout.html">subpixel-layout</a>
+  
+    <a class="property" href="property.Monitor.valid.html">valid</a>
+  
+    <a class="property" href="property.Monitor.width-mm.html">width-mm</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Monitor.invalidate.html">invalidate</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gdk</a><span class="sep" role="presentation"></span>Monitor</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkmonitor.c#L28">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gdk.Monitor : GObject.Object {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GdkMonitor</code> objects represent the individual outputs that are
+associated with a <code>GdkDisplay</code>.</p>
+<p><code>GdkDisplay</code> keeps a <code>GListModel</code> to enumerate and monitor
+monitors with <a href="method.Display.get_monitors.html">gdk_display_get_monitors()</a>. You can use
+<a href="method.Display.get_monitor_at_surface.html">gdk_display_get_monitor_at_surface()</a> to find a particular&nbsp;monitor.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gdk.Monitor">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="105pt" height="116pt"
+ viewBox="0.00 0.00 105.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GdkMonitor">
+<path fill="none" stroke="black" d="M85,-36C85,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 85,0 85,0 91,0 97,-6 97,-12 97,-12 97,-24 97,-24 97,-30 91,-36 85,-36"/>
+<text text-anchor="middle" x="48.5" y="-14.3" font-family="Times-Roman" font-size="14.00">GdkMonitor</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M72.5,-108C72.5,-108 24.5,-108 24.5,-108 18.5,-108 12.5,-102 12.5,-96 12.5,-96 12.5,-84 12.5,-84 12.5,-78 18.5,-72 24.5,-72 24.5,-72 72.5,-72 72.5,-72 78.5,-72 84.5,-78 84.5,-84 84.5,-84 84.5,-96 84.5,-96 84.5,-102 78.5,-108 72.5,-108"/>
+<text text-anchor="middle" x="48.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M48.5,-71.7C48.5,-60.85 48.5,-46.92 48.5,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_connector.html">gdk_monitor_get_connector</a></h6>
+          <div class="docblock">
+            <p>Gets the name of the monitor&#8217;s connector, if&nbsp;available.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_display.html">gdk_monitor_get_display</a></h6>
+          <div class="docblock">
+            <p>Gets the display that this monitor belongs&nbsp;to.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_geometry.html">gdk_monitor_get_geometry</a></h6>
+          <div class="docblock">
+            <p>Retrieves the size and position of the monitor within the
+display coordinate&nbsp;space.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_height_mm.html">gdk_monitor_get_height_mm</a></h6>
+          <div class="docblock">
+            <p>Gets the height in millimeters of the&nbsp;monitor.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_manufacturer.html">gdk_monitor_get_manufacturer</a></h6>
+          <div class="docblock">
+            <p>Gets the name or <span class="caps">PNP</span> <span class="caps">ID</span> of the monitor&#8217;s&nbsp;manufacturer.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_model.html">gdk_monitor_get_model</a></h6>
+          <div class="docblock">
+            <p>Gets the string identifying the monitor model, if&nbsp;available.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_refresh_rate.html">gdk_monitor_get_refresh_rate</a></h6>
+          <div class="docblock">
+            <p>Gets the refresh rate of the monitor, if&nbsp;available.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_scale_factor.html">gdk_monitor_get_scale_factor</a></h6>
+          <div class="docblock">
+            <p>Gets the internal scale factor that maps from monitor coordinates
+to device&nbsp;pixels.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_subpixel_layout.html">gdk_monitor_get_subpixel_layout</a></h6>
+          <div class="docblock">
+            <p>Gets information about the layout of red, green and blue
+primaries for&nbsp;pixels.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.get_width_mm.html">gdk_monitor_get_width_mm</a></h6>
+          <div class="docblock">
+            <p>Gets the width in millimeters of the&nbsp;monitor.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Monitor.is_valid.html">gdk_monitor_is_valid</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if the <code>monitor</code> object corresponds to a
+physical&nbsp;monitor.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Monitor.connector.html">Gdk.Monitor:connector</a></h6>
+
+          <div class="docblock">
+            <p>The connector&nbsp;name.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.display.html">Gdk.Monitor:display</a></h6>
+
+          <div class="docblock">
+            <p>The <code>GdkDisplay</code> of the&nbsp;monitor.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.geometry.html">Gdk.Monitor:geometry</a></h6>
+
+          <div class="docblock">
+            <p>The geometry of the&nbsp;monitor.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.height-mm.html">Gdk.Monitor:height-mm</a></h6>
+
+          <div class="docblock">
+            <p>The height of the monitor, in&nbsp;millimeters.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.manufacturer.html">Gdk.Monitor:manufacturer</a></h6>
+
+          <div class="docblock">
+            <p>The manufacturer&nbsp;name.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.model.html">Gdk.Monitor:model</a></h6>
+
+          <div class="docblock">
+            <p>The model&nbsp;name.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.refresh-rate.html">Gdk.Monitor:refresh-rate</a></h6>
+
+          <div class="docblock">
+            <p>The refresh rate, in&nbsp;milli-Hertz.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.scale-factor.html">Gdk.Monitor:scale-factor</a></h6>
+
+          <div class="docblock">
+            <p>The scale&nbsp;factor.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.subpixel-layout.html">Gdk.Monitor:subpixel-layout</a></h6>
+
+          <div class="docblock">
+            <p>The subpixel&nbsp;layout.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.valid.html">Gdk.Monitor:valid</a></h6>
+
+          <div class="docblock">
+            <p>Whether the object is still&nbsp;valid.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Monitor.width-mm.html">Gdk.Monitor:width-mm</a></h6>
+
+          <div class="docblock">
+            <p>The width of the monitor, in&nbsp;millimeters.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Monitor.invalidate.html">Gdk.Monitor::invalidate</a></h6>
+          <div class="docblock">
+            <p>Emitted when the output represented by <code>monitor</code> gets&nbsp;disconnected.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GdkMonitorClass {
+  /* no available fields */
+}</code></pre>
+      </div>
+
+      
+    </div>
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

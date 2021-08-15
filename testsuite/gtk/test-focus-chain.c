@@ -21,6 +21,7 @@
 #include <string.h>
 #include <glib/gstdio.h>
 #include <gtk/gtk.h>
+#include "testsuite/testutils.h"
 
 #ifdef G_OS_WIN32
 # include <io.h>
@@ -37,54 +38,6 @@ struct {
   { GTK_DIR_LEFT, "left" },
   { GTK_DIR_RIGHT, "right" }
 };
-
-static char *
-diff_with_file (const char  *file1,
-                char        *text,
-                gssize       len,
-                GError     **error)
-{
-  const char *command[] = { "diff", "-u", file1, NULL, NULL };
-  char *diff, *tmpfile;
-  int fd;
-
-  diff = NULL;
-
-  if (len < 0)
-    len = strlen (text);
-  
-  /* write the text buffer to a temporary file */
-  fd = g_file_open_tmp (NULL, &tmpfile, error);
-  if (fd < 0)
-    return NULL;
-
-  if (write (fd, text, len) != (int) len)
-    {
-      close (fd);
-      g_set_error (error,
-                   G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                   "Could not write data to temporary file '%s'", tmpfile);
-      goto done;
-    }
-  close (fd);
-  command[3] = tmpfile;
-
-  /* run diff command */
-  g_spawn_sync (NULL, 
-                (char **) command,
-                NULL,
-                G_SPAWN_SEARCH_PATH,
-                NULL, NULL,
-	        &diff,
-                NULL, NULL,
-                error);
-
-done:
-  g_unlink (tmpfile);
-  g_free (tmpfile);
-
-  return diff;
-}
 
 static void
 check_focus_states (GtkWidget *focus_widget)
@@ -248,7 +201,7 @@ load_ui_file (GFile *ui_file,
   builder = gtk_builder_new_from_file (ui_path);
   window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
 
-  g_assert (window != NULL);
+  g_assert_nonnull (window);
 
   gtk_widget_show (window);
 
@@ -282,7 +235,7 @@ load_ui_file (GFile *ui_file,
       goto out;
     }
 
-  g_assert (ref_file != NULL);
+  g_assert_nonnull (ref_file);
 
   ref_path = g_file_get_path (ref_file);
 
@@ -336,7 +289,7 @@ main (int argc, char **argv)
 
   if (arg_generate)
     {
-      g_assert (argc == 2);
+      g_assert_cmpint (argc, ==, 2);
 
       ui_file = g_file_new_for_commandline_arg (argv[1]);
 
@@ -346,7 +299,7 @@ main (int argc, char **argv)
     }
   else
     {
-      g_assert (argc == 3);
+      g_assert_cmpint (argc, ==, 3);
 
       ui_file = g_file_new_for_commandline_arg (argv[1]);
       ref_file = g_file_new_for_commandline_arg (argv[2]);

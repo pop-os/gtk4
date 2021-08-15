@@ -24,6 +24,7 @@
 #include "gtkbinlayout.h"
 #include "gtkbox.h"
 #include "gtkbuildable.h"
+#include "gtkdragsourceprivate.h"
 #include "gtkgestureclick.h"
 #include "gtkgesturedrag.h"
 #include "gtkgestureprivate.h"
@@ -37,22 +38,20 @@
 
 
 /**
- * SECTION:gtkwindowhandle
- * @Short_description: A titlebar area widget
- * @Title: GtkWindowHandle
- * @See_also: #GtkWindow, #GtkHeaderBar
+ * GtkWindowHandle:
  *
- * GtkWindowHandle is a titlebar area widget. When added into a window, it can
- * be dragged to move the window, and handles right click, double click and
- * middle click as expected of a titlebar.
+ * `GtkWindowHandle` is a titlebar area widget.
+ *
+ * When added into a window, it can be dragged to move the window, and handles
+ * right click, double click and middle click as expected of a titlebar.
  *
  * # CSS nodes
  *
- * #GtkWindowHandle has a single CSS node with the name `windowhandle`.
+ * `GtkWindowHandle` has a single CSS node with the name `windowhandle`.
  *
  * # Accessibility
  *
- * GtkWindowHandle uses the %GTK_ACCESSIBLE_ROLE_GROUP role.
+ * `GtkWindowHandle` uses the %GTK_ACCESSIBLE_ROLE_GROUP role.
  */
 
 struct _GtkWindowHandle {
@@ -60,7 +59,6 @@ struct _GtkWindowHandle {
 
   GtkGesture *click_gesture;
   GtkGesture *drag_gesture;
-  GtkGesture *bubble_drag_gesture;
 
   GtkWidget *child;
   GtkWidget *fallback_menu;
@@ -389,46 +387,13 @@ drag_gesture_update_cb (GtkGestureDrag  *gesture,
                         double           offset_y,
                         GtkWindowHandle *self)
 {
-  int double_click_distance;
-  GtkSettings *settings;
-
-  settings = gtk_widget_get_settings (GTK_WIDGET (self));
-  g_object_get (settings,
-                "gtk-double-click-distance", &double_click_distance,
-                NULL);
-
-  if (ABS (offset_x) > double_click_distance ||
-      ABS (offset_y) > double_click_distance)
+  if (gtk_drag_check_threshold_double (GTK_WIDGET (self), 0, 0, offset_x, offset_y))
     {
-      GdkEventSequence *sequence;
       double start_x, start_y;
       double native_x, native_y;
       double window_x, window_y;
       GtkNative *native;
       GdkSurface *surface;
-
-      sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
-
-      if (gtk_event_controller_get_propagation_phase (GTK_EVENT_CONTROLLER (gesture)) == GTK_PHASE_CAPTURE)
-        {
-          GtkWidget *event_widget = gtk_gesture_get_last_target (GTK_GESTURE (gesture), sequence);
-
-          /* Check whether the target widget should be left alone at handling
-           * the sequence, this is better done late to give room for gestures
-           * there to go denied.
-           *
-           * Besides claiming gestures, we must bail out too if there's gestures
-           * in the "none" state at this point, as those are still handling events
-           * and can potentially go claimed, and we don't want to stop the target
-           * widget from doing anything.
-           */
-          if (event_widget != GTK_WIDGET (self) &&
-              gtk_widget_consumes_motion (event_widget, GTK_WIDGET (self), sequence))
-            {
-              gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_DENIED);
-              return;
-            }
-        }
 
       gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
@@ -456,19 +421,6 @@ drag_gesture_update_cb (GtkGestureDrag  *gesture,
       gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
       gtk_event_controller_reset (GTK_EVENT_CONTROLLER (self->click_gesture));
     }
-}
-
-static GtkGesture *
-create_drag_gesture (GtkWindowHandle *self)
-{
-  GtkGesture *gesture;
-
-  gesture = gtk_gesture_drag_new ();
-  g_signal_connect (gesture, "drag-update",
-                    G_CALLBACK (drag_gesture_update_cb), self);
-  gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (gesture));
-
-  return gesture;
 }
 
 static void
@@ -543,6 +495,11 @@ gtk_window_handle_class_init (GtkWindowHandleClass *klass)
 
   widget_class->unrealize = gtk_window_handle_unrealize;
 
+  /**
+   * GtkWindowHandle:child: (attributes org.gtk.Property.get=gtk_window_handle_get_child org.gtk.Property.set=gtk_window_handle_set_child)
+   *
+   * The child widget.
+   */
   props[PROP_CHILD] =
       g_param_spec_object ("child",
                            P_("Child"),
@@ -562,19 +519,14 @@ gtk_window_handle_init (GtkWindowHandle *self)
 {
   self->click_gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (self->click_gesture), 0);
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (self->click_gesture),
-                                              GTK_PHASE_BUBBLE);
   g_signal_connect (self->click_gesture, "pressed",
                     G_CALLBACK (click_gesture_pressed_cb), self);
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->click_gesture));
 
-  self->drag_gesture = create_drag_gesture (self);
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (self->drag_gesture),
-                                              GTK_PHASE_CAPTURE);
-
-  self->bubble_drag_gesture = create_drag_gesture (self);
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (self->bubble_drag_gesture),
-                                              GTK_PHASE_BUBBLE);
+  self->drag_gesture = gtk_gesture_drag_new ();
+  g_signal_connect (self->drag_gesture, "drag-update",
+                    G_CALLBACK (drag_gesture_update_cb), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->drag_gesture));
 }
 
 static GtkBuildableIface *parent_buildable_iface;
@@ -602,10 +554,10 @@ gtk_window_handle_buildable_iface_init (GtkBuildableIface *iface)
 /**
  * gtk_window_handle_new:
  *
- * Creates a new #GtkWindowHandle.
+ * Creates a new `GtkWindowHandle`.
  *
- * Returns: a new #GtkWindowHandle.
- **/
+ * Returns: a new `GtkWindowHandle`.
+ */
 GtkWidget *
 gtk_window_handle_new (void)
 {
@@ -613,8 +565,8 @@ gtk_window_handle_new (void)
 }
 
 /**
- * gtk_window_handle_get_child:
- * @self: a #GtkWindowHandle
+ * gtk_window_handle_get_child: (attributes org.gtk.Method.get_property=child)
+ * @self: a `GtkWindowHandle`
  *
  * Gets the child widget of @self.
  *
@@ -629,9 +581,9 @@ gtk_window_handle_get_child (GtkWindowHandle *self)
 }
 
 /**
- * gtk_window_handle_set_child:
- * @self: a #GtkWindowHandle
- * @child: (allow-none): the child widget
+ * gtk_window_handle_set_child: (attributes org.gtk.Method.set_property=child)
+ * @self: a `GtkWindowHandle`
+ * @child: (nullable): the child widget
  *
  * Sets the child widget of @self.
  */

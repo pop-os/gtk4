@@ -140,6 +140,8 @@ uint32_t _gdk_wayland_seat_get_implicit_grab_serial(GdkSeat  *seat,
                                                     GdkEvent *event);
 uint32_t _gdk_wayland_seat_get_last_implicit_grab_serial (GdkWaylandSeat     *seat,
                                                           GdkEventSequence **sequence);
+GdkSurface * gdk_wayland_device_get_focus (GdkDevice *device);
+
 struct wl_data_device * gdk_wayland_device_get_data_device (GdkDevice *gdk_device);
 void gdk_wayland_device_set_selection (GdkDevice             *gdk_device,
                                        struct wl_data_source *source);
@@ -179,11 +181,6 @@ cairo_surface_t * _gdk_wayland_display_create_shm_surface (GdkWaylandDisplay *di
                                                            guint              scale);
 struct wl_buffer *_gdk_wayland_shm_surface_get_wl_buffer (cairo_surface_t *surface);
 gboolean _gdk_wayland_is_shm_surface (cairo_surface_t *surface);
-
-EGLSurface gdk_wayland_surface_get_egl_surface (GdkSurface *surface,
-                                               EGLConfig config);
-EGLSurface gdk_wayland_surface_get_dummy_egl_surface (GdkSurface *surface,
-                                                     EGLConfig config);
 
 struct gtk_surface1 * gdk_wayland_surface_get_gtk_surface (GdkSurface *surface);
 

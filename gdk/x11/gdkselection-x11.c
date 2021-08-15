@@ -34,16 +34,16 @@
 
 /**
  * gdk_x11_display_text_property_to_text_list:
- * @display: (type GdkX11Display): The #GdkDisplay where the encoding is defined
+ * @display: (type GdkX11Display): The `GdkDisplay` where the encoding is defined
  * @encoding: a string representing the encoding. The most
- *    common values for this are "STRING", or "COMPOUND_TEXT".
- *    This is value used as the type for the property
+ *   common values for this are "STRING", or "COMPOUND_TEXT".
+ *   This is value used as the type for the property
  * @format: the format of the property
  * @text: The text data
  * @length: The number of items to transform
  * @list: location to store an  array of strings in
- *    the encoding of the current locale. This array should be
- *    freed using gdk_x11_free_text_list().
+ *   the encoding of the current locale. This array should be
+ *   freed using gdk_x11_free_text_list().
  *
  * Convert a text string from the encoding as it is stored
  * in a property into an array of strings in the encoding of
@@ -51,7 +51,7 @@
  * nul-separated elements of the original text string.)
  *
  * Returns: the number of strings stored in list, or 0,
- *     if the conversion failed
+ *   if the conversion failed
  */
 int
 gdk_x11_display_text_property_to_text_list (GdkDisplay   *display,
@@ -271,13 +271,13 @@ _gdk_x11_display_text_property_to_utf8_list (GdkDisplay    *display,
 
 /**
  * gdk_x11_display_string_to_compound_text:
- * @display: (type GdkX11Display): the #GdkDisplay where the encoding is defined
+ * @display: (type GdkX11Display): the `GdkDisplay` where the encoding is defined
  * @str: a nul-terminated string
  * @encoding: (out) (transfer none): location to store the encoding
- *     (to be used as the type for the property)
+ *   (to be used as the type for the property)
  * @format: (out): location to store the format of the property
  * @ctext: (out) (array length=length): location to store newly
- *     allocated data for the property
+ *   allocated data for the property
  * @length: the length of @ctext, in bytes
  *
  * Convert a string from the encoding of the current
@@ -326,18 +326,16 @@ gdk_x11_display_string_to_compound_text (GdkDisplay  *display,
 
 /**
  * gdk_x11_display_utf8_to_compound_text:
- * @display: (type GdkX11Display): a #GdkDisplay
+ * @display: (type GdkX11Display): a `GdkDisplay`
  * @str: a UTF-8 string
  * @encoding: (out) (transfer none): location to store resulting encoding
  * @format: (out): location to store format of the result
  * @ctext: (out) (array length=length): location to store the data of the result
- * @length: location to store the length of the data
- *     stored in @ctext
+ * @length: location to store the length of the data stored in @ctext
  *
  * Converts from UTF-8 to compound text.
  *
- * Returns: %TRUE if the conversion succeeded,
- *     otherwise %FALSE
+ * Returns: %TRUE if the conversion succeeded, otherwise %FALSE
  */
 gboolean
 gdk_x11_display_utf8_to_compound_text (GdkDisplay  *display,

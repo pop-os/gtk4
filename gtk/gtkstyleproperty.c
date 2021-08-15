@@ -124,11 +124,11 @@ _gtk_style_property_init (GtkStyleProperty *property)
  * parsing fails, %FALSE will be returned and @value will be
  * left uninitialized.
  *
- * Only if @property is a #GtkCssShorthandProperty, the @value will
- * always be a #GtkCssValue whose values can be queried with
+ * Only if @property is a `GtkCssShorthandProperty`, the @value will
+ * always be a `GtkCssValue` whose values can be queried with
  * _gtk_css_array_value_get_nth().
  *
- * Returns: (nullable): %NULL on failure or the parsed #GtkCssValue
+ * Returns: (nullable): %NULL on failure or the parsed `GtkCssValue`
  **/
 GtkCssValue *
 _gtk_style_property_parse_value (GtkStyleProperty *property,
@@ -166,9 +166,8 @@ _gtk_style_property_init_properties (void)
  * Looks up the CSS property with the given @name. If no such
  * property exists, %NULL is returned.
  *
- * Returns: (nullable) (transfer none): The property or %NULL if no
- *     property with the given name exists.
- **/
+ * Returns: (nullable) (transfer none): The property
+ */
 GtkStyleProperty *
 _gtk_style_property_lookup (const char *name)
 {

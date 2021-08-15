@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2021 GNOME Foundation
+#
+# SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+
+[metadata]
+name = "Basic"
+author_name = "Emmanuele Bassi"
+author_email = "ebassi@gnome.org"
+copyright_year = "2021"
+license = "Apache-2.0 OR GPL-3.0-or-later"
+
+[templates]
+class = "class.html"
+interface = "interface.html"
+content = "content.html"
+property = "property.html"
+signal = "signal.html"
+vfunc = "vfunc.html"
+method = "method.html"
+type_func = "type_func.html"
+class_method = "class_method.html"
+namespace = "namespace.html"
+error = "enum.html"
+flags = "enum.html"
+enum = "enum.html"
+constant = "constant.html"
+record = "struct.html"
+union = "struct.html"
+alias = "struct.html"
+function = "function.html"
+ctor = "ctor.html"
+
+[css]
+style = "style.css"
+
+[extra_files]
+files = [
+  "fonts.css",
+  "fzy.js",
+  "go-up-symbolic.png",
+  "main.js",
+  "pygment.css",
+  "search.js",
+  "RedHatDisplay-Black.woff",
+  "RedHatDisplay-Black.woff2",
+  "RedHatDisplay-BlackItalic.woff",
+  "RedHatDisplay-BlackItalic.woff2",
+  "RedHatDisplay-Bold.woff",
+  "RedHatDisplay-Bold.woff2",
+  "RedHatDisplay-BoldItalic.woff",
+  "RedHatDisplay-BoldItalic.woff2",
+  "RedHatDisplay-Italic.woff",
+  "RedHatDisplay-Italic.woff2",
+  "RedHatDisplay-Medium.woff",
+  "RedHatDisplay-Medium.woff2",
+  "RedHatDisplay-MediumItalic.woff",
+  "RedHatDisplay-MediumItalic.woff2",
+  "RedHatDisplay-Regular.woff",
+  "RedHatDisplay-Regular.woff2",
+  "RedHatText-Bold.woff",
+  "RedHatText-Bold.woff2",
+  "RedHatText-BoldItalic.woff",
+  "RedHatText-BoldItalic.woff2",
+  "RedHatText-Italic.woff",
+  "RedHatText-Italic.woff2",
+  "RedHatText-Medium.woff",
+  "RedHatText-Medium.woff2",
+  "RedHatText-MediumItalic.woff",
+  "RedHatText-MediumItalic.woff2",
+  "RedHatText-Regular.woff",
+  "RedHatText-Regular.woff2",
+  "SourceCodePro-It.ttf.woff",
+  "SourceCodePro-Regular.ttf.woff",
+  "SourceCodePro-Semibold.ttf.woff",
+]

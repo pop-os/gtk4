@@ -91,9 +91,6 @@ gdk_x11_screen_dispose (GObject *object)
 
   _gdk_x11_xsettings_finish (x11_screen);
 
-  for (i = 0; i < x11_screen->nvisuals; i++)
-    g_object_run_dispose (G_OBJECT (x11_screen->visuals[i]));
-
   G_OBJECT_CLASS (gdk_x11_screen_parent_class)->dispose (object);
 
   x11_screen->xdisplay = NULL;
@@ -106,12 +103,6 @@ static void
 gdk_x11_screen_finalize (GObject *object)
 {
   GdkX11Screen *x11_screen = GDK_X11_SCREEN (object);
-  int           i;
-
-  /* Visual Part */
-  for (i = 0; i < x11_screen->nvisuals; i++)
-    g_object_unref (x11_screen->visuals[i]);
-  g_free (x11_screen->visuals);
 
   g_free (x11_screen->window_manager_name);
 
@@ -120,7 +111,7 @@ gdk_x11_screen_finalize (GObject *object)
 
 /**
  * gdk_x11_screen_get_monitor_output:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  * @monitor_num: number of the monitor, between 0 and gdk_screen_get_n_monitors (screen)
  *
  * Gets the XID of the specified output/monitor.
@@ -358,9 +349,9 @@ out:
 
 /**
  * gdk_x11_screen_get_xscreen:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  *
- * Returns the screen of a #GdkX11Screen.
+ * Returns the screen of a `GdkX11Screen`.
  *
  * Returns: (transfer none): an Xlib Screen*
  */
@@ -372,12 +363,12 @@ gdk_x11_screen_get_xscreen (GdkX11Screen *screen)
 
 /**
  * gdk_x11_screen_get_screen_number:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  *
- * Returns the index of a #GdkX11Screen.
+ * Returns the index of a `GdkX11Screen`.
  *
  * Returns: the position of @screen among the screens
- *     of its display
+ *   of its display
  */
 int
 gdk_x11_screen_get_screen_number (GdkX11Screen *screen)
@@ -866,8 +857,7 @@ init_multihead (GdkX11Screen *screen)
 
 GdkX11Screen *
 _gdk_x11_screen_new (GdkDisplay *display,
-		     int	 screen_number,
-                     gboolean    setup_display)
+		     int	 screen_number)
 {
   GdkX11Screen *x11_screen;
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
@@ -897,8 +887,6 @@ _gdk_x11_screen_new (GdkDisplay *display,
 
   init_randr_support (x11_screen);
   init_multihead (x11_screen);
-
-  _gdk_x11_screen_init_visuals (x11_screen, setup_display);
 
   return x11_screen;
 }
@@ -1176,7 +1164,7 @@ fetch_net_wm_check_window (GdkX11Screen *x11_screen)
 
 /**
  * gdk_x11_screen_supports_net_wm_hint:
- * @screen: the relevant #GdkX11Screen.
+ * @screen: the relevant `GdkX11Screen`.
  * @property_name: name of the WM property
  *
  * This function is specific to the X11 backend of GDK, and indicates
@@ -1189,7 +1177,7 @@ fetch_net_wm_check_window (GdkX11Screen *x11_screen)
  * is that your application can start up before the window manager
  * does when the user logs in, and before the window manager starts
  * gdk_x11_screen_supports_net_wm_hint() will return %FALSE for every property.
- * You can monitor the window_manager_changed signal on #GdkX11Screen to detect
+ * You can monitor the window_manager_changed signal on `GdkX11Screen` to detect
  * a window manager change.
  *
  * Returns: %TRUE if the window manager supports @property
@@ -1263,7 +1251,7 @@ gdk_x11_screen_supports_net_wm_hint (GdkX11Screen *x11_screen,
 
 /**
  * gdk_x11_screen_get_window_manager_name:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  *
  * Returns the name of the window manager for @screen.
  *
@@ -1378,7 +1366,7 @@ get_netwm_cardinal_property (GdkX11Screen *x11_screen,
 
 /**
  * gdk_x11_screen_get_number_of_desktops:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  *
  * Returns the number of workspaces for @screen when running under a
  * window manager that supports multiple workspaces, as described
@@ -1395,7 +1383,7 @@ gdk_x11_screen_get_number_of_desktops (GdkX11Screen *screen)
 
 /**
  * gdk_x11_screen_get_current_desktop:
- * @screen: a #GdkX11Screen
+ * @screen: a `GdkX11Screen`
  *
  * Returns the current workspace for @screen when running under a
  * window manager that supports multiple workspaces, as described

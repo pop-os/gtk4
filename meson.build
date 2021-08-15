@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.0.3',
+        version: '4.3.2',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -7,8 +7,8 @@ project('gtk', 'c',
           # https://github.com/mesonbuild/meson/issues/2289
           'c_std=gnu99',
         ],
-        meson_version : '>= 0.54',
-        license: 'LGPLv2.1+')
+        meson_version : '>= 0.55',
+        license: 'LGPL-2.1-or-later')
 
 glib_req           = '>= 2.66.0'
 pango_req          = '>= 1.47.0' # keep this in sync with .gitlab-ci/test-msys.sh
@@ -16,7 +16,7 @@ fribidi_req        = '>= 0.19.7'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
-wayland_proto_req  = '>= 1.20'
+wayland_proto_req  = '>= 1.21'
 wayland_req        = '>= 1.14.91'
 graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
@@ -24,7 +24,9 @@ cloudproviders_req = '>= 0.3.1'
 xkbcommon_req      = '>= 0.2.0'
 sysprof_req        = '>= 3.38.0'
 
+fs = import('fs')
 gnome = import('gnome')
+pkg_config = import('pkgconfig')
 
 add_project_arguments('-DG_LOG_USE_STRUCTURED=1', language: 'c')
 add_project_arguments('-DGLIB_DISABLE_DEPRECATION_WARNINGS', language: 'c')
@@ -65,7 +67,7 @@ if debug
     gtk_debug_cflags += '-DG_ENABLE_CONSISTENCY_CHECKS'
   endif
 elif optimization in ['2', '3', 's']
-  gtk_debug_cflags += '-DG_DISABLE_CAST_CHECKS'
+  gtk_debug_cflags += ['-DG_DISABLE_CAST_CHECKS', '-DG_DISABLE_ASSERT']
 endif
 
 add_project_arguments(gtk_debug_cflags, language: 'c')
@@ -176,6 +178,7 @@ check_headers = [
   'sys/time.h',
   'sys/types.h',
   'unistd.h',
+  'gio/gdesktopappinfo.h'
 ]
 
 foreach h : check_headers
@@ -192,12 +195,13 @@ check_functions = [
   'getpagesize',
   'getresuid',
   'lstat',
+  'memfd_create',
   'mmap',
   'posix_fallocate',
   '_lock_file',
   'flockfile',
   'mkstemp',
-  'mallinfo',
+  'mallinfo2',
   'sincos',
   'sincosf',
 ]
@@ -219,9 +223,12 @@ if cc.compiles(uint128_t_src, name : '__uint128_t available')
   cdata.set('HAVE_UINT128_T', 1)
 endif
 
-# Check for mlock
+# Check for mlock and madvise
 if cc.has_function('mlock', prefix: '#include <sys/mman.h>')
   cdata.set('HAVE_MLOCK', 1)
+endif
+if cc.has_function('madvise', prefix: '#include <sys/mman.h>')
+  cdata.set('HAVE_MADVISE', 1)
 endif
 
 # Disable deprecation checks for all libraries we depend on on stable branches.
@@ -269,7 +276,6 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Wmissing-include-dirs',
     '-Wmissing-noreturn',
     '-Wnested-externs',
-    '-Wnull-dereference',
     '-Wold-style-definition',
     '-Wpointer-arith',
     '-Wshadow',
@@ -302,6 +308,10 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
 
   if cc.get_id() == 'gcc'
     test_cflags += ['-Wcast-align'] # This warns too much on clang
+  endif
+
+  if not gtk_debug_cflags.contains('-DG_DISABLE_ASSERT')
+    test_cflags += ['-Wnull-dereference'] # Too noisy when assertions are disabled
   endif
 else
   test_cflags = []
@@ -383,27 +393,23 @@ pangocairo_dep = dependency('pangocairo', version: pango_req,
                             fallback : ['pango', 'libpangocairo_dep'])
 pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
                             fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'],
-                            default_options: ['man=false'])
+                            default_options: ['png=enabled', 'jpeg=enabled', 'builtin_loaders=png,jpeg', 'man=false'])
 epoxy_dep      = dependency('epoxy', version: epoxy_req,
                             fallback: ['libepoxy', 'libepoxy_dep'])
 harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false,
                             fallback: ['harfbuzz', 'libharfbuzz_dep'],
                             default_options: ['coretext=enabled'])
 xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled)
-if os_darwin
-  graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
-                              fallback: ['graphene', 'graphene_dep'],
-                              default_options: ['introspection=false'])
-else
-  graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
-                              fallback: ['graphene', 'graphene_dep'])
-endif
+graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
+                            fallback: ['graphene', 'graphene_dep'])
 iso_codes_dep  = dependency('iso-codes', required: false)
 
-gtk_doc_dep    = dependency('gtk-doc', version: '>=1.33',
-                            fallback: ['gtk-doc', 'dummy_dep'],
-                            default_options: ['tests=false', 'yelp_manual=false'],
-                            required: get_option('gtk_doc'))
+gidocgen_dep    = dependency('gi-docgen', version: '>= 2021.1',
+                             fallback: ['gi-docgen', 'dummy_dep'],
+                             required: get_option('gtk_doc'))
+gi_dep         = dependency('gobject-introspection-1.0', version: introspection_req,
+                            required: get_option('introspection').enabled() and
+                                      get_option('build-tests'))
 
 fontconfig_dep = [] # only used in x11 backend
 
@@ -476,9 +482,9 @@ if wayland_enabled
   endif
 
   wayland_pkgs = [
-    'wayland-client', wayland_req,
-    'wayland-protocols', wayland_proto_req,
-    'xkbcommon', xkbcommon_req,
+    'wayland-client @0@'.format(wayland_req),
+    'wayland-protocols @0@'.format(wayland_proto_req),
+    'xkbcommon @0@'.format(xkbcommon_req),
     'wayland-egl',
   ]
 endif
@@ -491,46 +497,34 @@ if x11_enabled
   xrender_dep    = dependency('xrender')
   xi_dep         = dependency('xi')
   xext_dep       = dependency('xext')
-  xcursor_dep    = dependency('xcursor', required: false)
-  xdamage_dep    = dependency('xdamage', required: false)
-  xfixes_dep     = dependency('xfixes', required: false)
-  xcomposite_dep = dependency('xcomposite', required: false)
+  xcursor_dep    = dependency('xcursor')
+  xdamage_dep    = dependency('xdamage')
+  xfixes_dep     = dependency('xfixes')
   fontconfig_dep = dependency('fontconfig')
 
-  x11_pkgs = ['fontconfig', 'x11', 'xext', 'xi', 'xrandr']
+  x11_pkgs = ['fontconfig', 'x11', 'xext', 'xi', 'xrandr', 'xcursor', 'xdamage', 'xfixes', 'xinerama']
 
-  if xcursor_dep.found()
-    x11_pkgs += ['xcursor']
-  endif
-  if xdamage_dep.found()
-    x11_pkgs += ['xdamage']
-  endif
-  if xfixes_dep.found()
-    x11_pkgs += ['xfixes']
-  endif
-  if xcomposite_dep.found()
-    x11_pkgs += ['xcomposite']
-  endif
+  cdata.set('HAVE_XCURSOR', 1)
+  cdata.set('HAVE_XDAMAGE', 1)
+  cdata.set('HAVE_XFIXES', 1)
 
-  cdata.set('HAVE_XCURSOR', xcursor_dep.found())
-  cdata.set('HAVE_XDAMAGE', xdamage_dep.found())
-  cdata.set('HAVE_XCOMPOSITE', xcomposite_dep.found())
-  cdata.set('HAVE_XFIXES', xfixes_dep.found())
-
-  if cc.has_function('XkbQueryExtension', dependencies: x11_dep,
-                     prefix : '#include <X11/XKBlib.h>')
-    cdata.set('HAVE_XKB', 1)
+  if not cc.has_function('XkbQueryExtension', dependencies: x11_dep,
+                         prefix : '#include <X11/XKBlib.h>')
+    error('X11 backend enabled, but Xkb not found.')
   endif
+  cdata.set('HAVE_XKB', 1)
 
-  if cc.has_function('XSyncQueryExtension', dependencies: xext_dep,
-                     prefix: '''#include <X11/Xlib.h>
-                                #include <X11/extensions/sync.h>''')
-    cdata.set('HAVE_XSYNC', 1)
+  if not cc.has_function('XSyncQueryExtension', dependencies: xext_dep,
+                         prefix: '''#include <X11/Xlib.h>
+                                    #include <X11/extensions/sync.h>''')
+    error('X11 backend enabled, but Xsync not found.')
   endif
+  cdata.set('HAVE_XSYNC', 1)
 
-  if cc.has_function('XGetEventData', dependencies: x11_dep)
-    cdata.set('HAVE_XGENERICEVENTS', 1)
+  if not cc.has_function('XGetEventData', dependencies: x11_dep)
+    error('X11 backend enabled, but no generic event support.')
   endif
+  cdata.set('HAVE_XGENERICEVENTS', 1)
 
   if not xi_dep.found() or not cc.has_header('X11/extensions/XInput2.h', dependencies: xi_dep)
     error('X11 backend enabled, but XInput2 not found.')
@@ -543,15 +537,16 @@ if x11_enabled
   has_scroll_class_info = cc.has_member('XIScrollClassInfo', 'number', dependencies: xi_dep,
                                         prefix: '''#include <X11/Xlib.h>
                                                    #include <X11/extensions/XInput2.h>''')
-  if has_allow_touch_events and has_scroll_class_info
-    cdata.set('XINPUT_2_2', 1)
+  if not has_allow_touch_events or not has_scroll_class_info
+    error('X11 backend enabled, but XInput2.2 not found.')
   endif
+  cdata.set('XINPUT_2_2', 1)
 
-  xinerama_dep = dependency('xinerama', required: get_option('xinerama'))
-  if xinerama_dep.found() and cc.has_header_symbol('X11/extensions/Xinerama.h', 'XineramaQueryExtension', dependencies: xinerama_dep)
-    cdata.set('HAVE_XFREE_XINERAMA', 1)
-    x11_pkgs += ['xinerama']
+  xinerama_dep = dependency('xinerama')
+  if not cc.has_header_symbol('X11/extensions/Xinerama.h', 'XineramaQueryExtension', dependencies: xinerama_dep)
+    error('X11 backend enabled, but Xinerama extension does not work.')
   endif
+  cdata.set('HAVE_XFREE_XINERAMA', 1)
 
   cdata.set('HAVE_RANDR', xrandr_dep.found())
   cdata.set('HAVE_RANDR15', xrandr15_dep.found())
@@ -691,6 +686,49 @@ if graphene_has_sse2 or graphene_has_gcc
   endif
 endif
 
+f16c_cflags = []
+if get_option('f16c').enabled()
+  f16c_prog = '''
+#if defined(__GNUC__)
+# if !defined(__amd64__) && !defined(__x86_64__)
+#   error "F16C intrinsics are only available on x86_64"
+# endif
+#endif
+#if defined(__SSE__) || defined(_MSC_VER)
+# include <immintrin.h>
+#else
+# error "No F16C intrinsics available"
+#endif
+int main () {
+  float f[4] = { 0, };
+  unsigned short h[4] = { 0, };
+  __m128 s = _mm_loadu_ps (f);
+  __m128i i = _mm_cvtps_ph (s, 0);
+  _mm_storel_epi64 ((__m128i*)h, i);
+
+#if defined (__GNUC__) || defined (__clang__)
+  __builtin_cpu_init ();
+  __builtin_cpu_supports ("f16c");
+#endif
+
+    return 0;
+}'''
+  if cc.get_id() != 'msvc'
+    test_f16c_cflags = [ '-mf16c' ]
+  else
+    test_f16c_cflags = []
+  endif
+
+  if cc.compiles(f16c_prog, args: test_f16c_cflags, name: 'F16C intrinsics')
+    cdata.set('HAVE_F16C', 1)
+    f16c_cflags = test_f16c_cflags
+  else
+    f16c_cflags = []
+  endif
+endif
+
+project_build_root = meson.current_build_dir()
+
 subdir('gtk/css')
 subdir('gdk')
 subdir('gsk')
@@ -699,6 +737,7 @@ subdir('modules')
 if get_option('demos')
   subdir('demos')
 endif
+subdir('tools')
 if get_option('build-tests')
   subdir('tests')
   subdir('testsuite')
@@ -712,84 +751,89 @@ configure_file(input: 'config.h.meson',
                output: 'config.h',
                configuration: cdata)
 
-# pkg-config files - bit of a mess all of this
-pkgconf = configuration_data()
-
-pkgconf.set('prefix', get_option('prefix'))
-pkgconf.set('exec_prefix', '${prefix}')
-pkgconf.set('libdir', '${prefix}' / get_option('libdir'))
-pkgconf.set('includedir', '${prefix}' / get_option('includedir'))
-pkgconf.set('GTK_API_VERSION', gtk_api_version)
-pkgconf.set('VERSION', meson.project_version())
-pkgconf.set('GTK_BINARY_VERSION', gtk_binary_version)
-pkgconf.set('host', '@0@-@1@'.format(host_machine.cpu_family(), host_machine.system())) # FIXME
-
 # Requires
 pango_pkgname = win32_enabled ? 'pangowin32' : 'pango'
-gdk_packages = ' '.join([ pango_pkgname, pango_req,
-                       'pangocairo', pango_req,
-                       'gdk-pixbuf-2.0', gdk_pixbuf_req ])
+gdk_packages = [
+  '@0@ @1@'.format(pango_pkgname, pango_req),
+  'pangocairo @0@'.format(pango_req),
+  'gdk-pixbuf-2.0 @0@'.format(gdk_pixbuf_req),
+]
 
 if cairo_pkg_found
-  gdk_packages += ' '.join([ ' cairo', cairo_req ])
+  gdk_packages += 'cairo @0@'.format(cairo_req)
 endif
 if cairogobj_pkg_found
-  gdk_packages += ' '.join([ ' cairo-gobject', cairo_req ])
+  gdk_packages += 'cairo-gobject @0@'.format(cairo_req)
 endif
 
 if vulkan_pkg_found
   gdk_packages += ' vulkan'
 endif
 
-pkgconf.set('GDK_PACKAGES', gdk_packages)
-pkgconf.set('GSK_PACKAGES',
-            ' '.join([ 'graphene-gobject-1.0', graphene_req ]))
-pkgconf.set('GTK_PACKAGES',
-            ' '.join([ 'gio-2.0', glib_req ]))
+gsk_packages = [ 'graphene-gobject-1.0 @0@'.format(graphene_req) ]
+gtk_packages = [ 'gio-2.0 @0@'.format(glib_req) ]
 
 gio_pkgname = os_unix ? 'gio-unix-2.0' : 'gio-2.0'
-pkgconf.set('GDK_PRIVATE_PACKAGES',
-            ' '.join([ gio_pkgname, glib_req,
-                       'epoxy', epoxy_req ] + x11_pkgs + wayland_pkgs + cairo_backends))
-pkgconf.set('GSK_PRIVATE_PACKAGES', '') # all already in GDK_PRIVATE_PACKAGES
+gdk_private_packages = [
+  '@0@ @1@'.format(gio_pkgname, glib_req),
+  'epoxy @0@'.format(epoxy_req),
+] + x11_pkgs + wayland_pkgs + cairo_backends
+gsk_private_packages = [] # all already in gdk_private_packages
 pangoft2_pkgs = (wayland_enabled or x11_enabled) ? ['pangoft2'] : []
-pkgconf.set('GTK_PRIVATE_PACKAGES', ' '.join(pangoft2_pkgs))
+gtk_private_packages = pangoft2_pkgs
 
-pkgconf.set('GDK_EXTRA_LIBS', ' '.join(pc_gdk_extra_libs))
-pkgconf.set('GSK_EXTRA_LIBS', '')
-pkgconf.set('GTK_EXTRA_LIBS', '')
+gdk_extra_libs = pc_gdk_extra_libs
+gsk_extra_libs = []
+gtk_extra_libs = []
 
-pkgconf.set('GDK_EXTRA_CFLAGS', '')
-pkgconf.set('GSK_EXTRA_CFLAGS', '')
-pkgconf.set('GTK_EXTRA_CFLAGS', '')
+gdk_extra_cflags = []
+gsk_extra_cflags = []
+gtk_extra_cflags = []
 
-pkg_install_dir = join_paths(get_option('libdir'), 'pkgconfig')
+pkgs = [ 'gtk4' ]
 
-pkgs = [ 'gtk4.pc' ]
-
-pkg_targets = ''
+pkg_targets = []
 display_backends = []
 foreach backend: [ 'broadway', 'macos', 'wayland', 'win32', 'x11', ]
   if get_variable('@0@_enabled'.format(backend))
-    pkgs += ['gtk4-@0@.pc'.format(backend)]
-    pkg_targets += ' ' + backend
+    pkgs += ['gtk4-@0@'.format(backend)]
+    pkg_targets += backend
     display_backends += [ backend ]
   endif
 endforeach
-pkgconf.set('GDK_BACKENDS', pkg_targets.strip())
+
+common_pc_variables = [
+  'targets=@0@'.format(' '.join(pkg_targets)),
+  'gtk_binary_version=@0@'.format(gtk_binary_version),
+  'gtk_host=@0@-@1@'.format(host_machine.cpu_family(), host_machine.system()), # FIXME
+]
 
 foreach pkg: pkgs
-  configure_file(input: 'gtk4.pc.in',
-                 output: pkg,
-                 configuration: pkgconf,
-                 install_dir: pkg_install_dir)
+  pkg_config.generate(
+    filebase: pkg,
+    variables: common_pc_variables,
+    name: 'GTK',
+    description: 'GTK Graphical UI Library',
+    requires: gdk_packages + gsk_packages + gtk_packages,
+    requires_private: gdk_private_packages + gsk_private_packages + gtk_private_packages,
+    libraries: ['-L${libdir}', '-lgtk-4'],
+    libraries_private: gdk_extra_libs + gsk_extra_libs + gtk_extra_libs,
+    subdirs: ['gtk-@0@'.format(gtk_api_version)],
+    extra_cflags: gdk_extra_cflags + gsk_extra_cflags + gtk_extra_cflags,
+  )
+  meson.override_dependency(pkg, libgtk_dep)
 endforeach
 
 if os_unix
-  configure_file(input: 'gtk4-unix-print.pc.in',
-                 output: 'gtk4-unix-print.pc',
-                 configuration: pkgconf,
-                 install_dir: pkg_install_dir)
+  pkg_config.generate(
+    filebase: 'gtk4-unix-print',
+    variables: common_pc_variables,
+    name: 'GTK',
+    description: 'GTK Unix print support',
+    requires: ['gtk4'] + gtk_packages,
+    libraries: [],
+    subdirs: ['gtk-@0@/unix-print'.format(gtk_api_version)],
+  )
 endif
 
 subdir('po')
@@ -798,19 +842,28 @@ subdir('po-properties')
 subdir('docs/tools')
 subdir('docs/reference')
 
-# Keep this in sync with post-install.sh expected arguments
 if not meson.is_cross_build()
-  meson.add_install_script('build-aux/meson/post-install.py',
-                           gtk_api_version,
-                           gtk_binary_version,
-                           gtk_libdir,
-                           gtk_datadir,
-                           gtk_bindir)
+  if meson.version().version_compare('>=0.57.0')
+    gnome.post_install(
+      glib_compile_schemas: true,
+      gio_querymodules: gio_module_dirs,
+      gtk_update_icon_cache: true,
+    )
+  else
+    meson.add_install_script('build-aux/meson/post-install.py',
+                             gtk_api_version,
+                             gtk_binary_version,
+                             gtk_libdir,
+                             gtk_datadir,
+                             gtk_bindir)
+  endif
 else
   message('Not executing post-install steps automatically when cross compiling')
 endif
 
-meson.add_dist_script('build-aux/meson/dist-theme.py')
+if not meson.is_subproject()
+    meson.add_dist_script('build-aux/meson/dist-data.py')
+endif
 
 if host_machine.system() != 'windows'
   # Install Valgrind suppression files (except on Windows,

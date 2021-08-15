@@ -2343,7 +2343,6 @@ gdk_event_translate (MSG *msg,
       current_root_x = (msg->pt.x + _gdk_offset_x) / impl->surface_scale;
       current_root_y = (msg->pt.y + _gdk_offset_y) / impl->surface_scale;
 
-
       if (impl->drag_move_resize_context.op != GDK_WIN32_DRAGOP_NONE)
         gdk_win32_surface_do_move_resize_drag (window, current_root_x, current_root_y);
       else if (_gdk_input_ignore_core == 0)
@@ -2484,8 +2483,6 @@ gdk_event_translate (MSG *msg,
                                     delta_x,
                                     delta_y,
                                     FALSE);
-
-      _gdk_win32_append_event (event);
 
       /* Append the discrete version too */
       direction = 0;

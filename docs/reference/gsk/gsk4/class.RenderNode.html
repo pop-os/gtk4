@@ -1,0 +1,318 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gsk.RenderNode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gsk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gsk.RenderNode"/>
+  <meta property="og:description" content="Reference for Gsk.RenderNode"/>
+  <meta name="twitter:title" content="Gsk.RenderNode"/>
+  <meta name="twitter:description" content="Reference for Gsk.RenderNode"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gsk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.RenderNode.html#description">RenderNode</a>
+  </div>
+</div>
+
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.RenderNode.draw.html">draw</a>
+  
+    <a class="method" href="method.RenderNode.get_bounds.html">get_bounds</a>
+  
+    <a class="method" href="method.RenderNode.get_node_type.html">get_node_type</a>
+  
+    <a class="method" href="method.RenderNode.ref.html">ref</a>
+  
+    <a class="method" href="method.RenderNode.serialize.html">serialize</a>
+  
+    <a class="method" href="method.RenderNode.unref.html">unref</a>
+  
+    <a class="method" href="method.RenderNode.write_to_file.html">write_to_file</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  
+    <a class="func" href="type_func.RenderNode.deserialize.html">deserialize</a>
+  
+  </div>
+</div>
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gsk</a><span class="sep" role="presentation"></span>RenderNode</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/gskrendernode.c#L19">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gsk.RenderNode : GObject.TypeInstance {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GskRenderNode</code> is the basic block in a scene graph to be
+rendered using <code>GskRenderer</code>.</p>
+<p>Each node has a parent, except the top-level node; each node may have
+children&nbsp;nodes.</p>
+<p>Each node has an associated drawing surface, which has the size of
+the rectangle set when creating&nbsp;it.</p>
+<p>Render nodes are meant to be transient; once they have been associated
+to a <a href="class.Renderer.html"><code>GskRenderer</code></a> it&#8217;s safe to release any reference you have on
+them. All <a href="class.RenderNode.html"><code>GskRenderNode</code></a>s are immutable, you can only specify their
+properties during&nbsp;construction.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.RenderNode.draw.html">gsk_render_node_draw</a></h6>
+          <div class="docblock">
+            <p>Draw the contents of <code>node</code> to the given cairo&nbsp;context.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.get_bounds.html">gsk_render_node_get_bounds</a></h6>
+          <div class="docblock">
+            <p>Retrieves the boundaries of the <code>node</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.get_node_type.html">gsk_render_node_get_node_type</a></h6>
+          <div class="docblock">
+            <p>Returns the type of the <code>node</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.ref.html">gsk_render_node_ref</a></h6>
+          <div class="docblock">
+            <p>Acquires a reference on the given <code>GskRenderNode</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.serialize.html">gsk_render_node_serialize</a></h6>
+          <div class="docblock">
+            <p>Serializes the <code>node</code> for later deserialization via
+gsk_render_node_deserialize(). No guarantees are made about the format
+used other than that the same version of <span class="caps">GTK</span> will be able to deserialize
+the result of a call to gsk_render_node_serialize() and
+gsk_render_node_deserialize() will correctly reject files it cannot open
+that were created with previous versions of <span class="caps">GTK</span>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.unref.html">gsk_render_node_unref</a></h6>
+          <div class="docblock">
+            <p>Releases a reference on the given <code>GskRenderNode</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.RenderNode.write_to_file.html">gsk_render_node_write_to_file</a></h6>
+          <div class="docblock">
+            <p>This function is equivalent to calling gsk_render_node_serialize()
+followed by&nbsp;g_file_set_contents().</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+
+      
+    </div>
+    
+
+    
+
+    
+
+    
+
+    
+
+     
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="type_func.RenderNode.deserialize.html">gsk_render_node_deserialize</a></h6>
+
+        <div class="docblock">
+          <p>Loads data previously created via&nbsp;gsk_render_node_serialize().</p>
+        </div>
+
+        
+      </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

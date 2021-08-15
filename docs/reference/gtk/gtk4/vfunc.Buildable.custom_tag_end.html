@@ -1,0 +1,278 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.Buildable.custom_tag_end</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.Buildable.custom_tag_end"/>
+  <meta property="og:description" content="Reference for Gtk.Buildable.custom_tag_end"/>
+  <meta name="twitter:title" content="Gtk.Buildable.custom_tag_end"/>
+  <meta name="twitter:description" content="Reference for Gtk.Buildable.custom_tag_end"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="iface.Buildable.html">Buildable</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Buildable.add_child.html">add_child</a>
+  
+    <a class="method" href="vfunc.Buildable.construct_child.html">construct_child</a>
+  
+    <a class="method" href="vfunc.Buildable.custom_finished.html">custom_finished</a>
+  
+    <a class="method current" href="vfunc.Buildable.custom_tag_end.html">custom_tag_end</a>
+  
+    <a class="method" href="vfunc.Buildable.custom_tag_start.html">custom_tag_start</a>
+  
+    <a class="method" href="vfunc.Buildable.get_id.html">get_id</a>
+  
+    <a class="method" href="vfunc.Buildable.get_internal_child.html">get_internal_child</a>
+  
+    <a class="method" href="vfunc.Buildable.parser_finished.html">parser_finished</a>
+  
+    <a class="method" href="vfunc.Buildable.set_buildable_property.html">set_buildable_property</a>
+  
+    <a class="method" href="vfunc.Buildable.set_id.html">set_id</a>
+  
+  </div>
+</div>
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Virtual Method</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="iface.Buildable.html">Buildable</a><span class="sep"></span>custom_tag_end</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkbuildable.h#L202">[src]</a>
+        
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">custom_tag_end</span> <span class="p">(</span>
+  <span class="n">GtkBuildable</span><span class="o">*</span> <span class="n">buildable</span><span class="p">,</span>
+  <span class="n">GtkBuilder</span><span class="o">*</span> <span class="n">builder</span><span class="p">,</span>
+  <span class="n">GObject</span><span class="o">*</span> <span class="n">child</span><span class="p">,</span>
+  <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">tagname</span><span class="p">,</span>
+  <span class="n">gpointer</span> <span class="n">data</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkbuildable.h#L191">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Called at the end of each custom element handled by
+the&nbsp;buildable.</p>
+      </div>
+
+      <div class="docblock">
+        <table>
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          
+          <tr class="arg-name">
+            <td><code>builder</code></td>
+            <td><a href="class.Builder.html"><code>GtkBuilder</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p><code>GtkBuilder</code> used to construct this&nbsp;object.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>child</code></td>
+            <td><code>GObject*</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>Child object or <code>NULL</code> for non-child&nbsp;tags.</p></td>
+          </tr>
+          
+          <tr><td>&nbsp;</td><td>The argument can be <code>NULL</code>.</td></tr>
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>tagname</code></td>
+            <td><code>const char*</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>Name of&nbsp;tag.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          <tr><td>&nbsp;</td><td>The string is a NUL terminated UTF-8 string.</td></tr>
+          
+          <tr class="arg-name">
+            <td><code>data</code></td>
+            <td><code>gpointer</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>User data that will be passed in to parser&nbsp;functions.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

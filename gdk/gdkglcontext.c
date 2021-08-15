@@ -19,68 +19,57 @@
  */
 
 /**
- * SECTION:gdkglcontext
- * @Title: GdkGLContext
- * @Short_description: OpenGL draw context
+ * GdkGLContext:
  *
- * #GdkGLContext is an object representing the platform-specific
+ * `GdkGLContext` is an object representing a platform-specific
  * OpenGL draw context.
  *
- * #GdkGLContexts are created for a #GdkSurface using
- * gdk_surface_create_gl_context(), and the context will match the
- * the characteristics of the surface.
+ * `GdkGLContext`s are created for a surface using
+ * [method@Gdk.Surface.create_gl_context], and the context will match
+ * the the characteristics of the surface.
  *
- * A #GdkGLContext is not tied to any particular normal framebuffer.
- * For instance, it cannot draw to the #GdkSurface back buffer. The GDK
+ * A `GdkGLContext` is not tied to any particular normal framebuffer.
+ * For instance, it cannot draw to the surface back buffer. The GDK
  * repaint system is in full control of the painting to that. Instead,
- * you can create render buffers or textures and use gdk_cairo_draw_from_gl()
+ * you can create render buffers or textures and use [func@cairo_draw_from_gl]
  * in the draw function of your widget to draw them. Then GDK will handle
  * the integration of your rendering with that of other widgets.
  *
- * Support for #GdkGLContext is platform-specific, context creation
+ * Support for `GdkGLContext` is platform-specific and context creation
  * can fail, returning %NULL context.
  *
- * A #GdkGLContext has to be made "current" in order to start using
+ * A `GdkGLContext` has to be made "current" in order to start using
  * it, otherwise any OpenGL call will be ignored.
  *
- * ## Creating a new OpenGL context ##
+ * ## Creating a new OpenGL context
  *
- * In order to create a new #GdkGLContext instance you need a
- * #GdkSurface, which you typically get during the realize call
- * of a widget.
+ * In order to create a new `GdkGLContext` instance you need a `GdkSurface`,
+ * which you typically get during the realize call of a widget.
  *
- * A #GdkGLContext is not realized until either gdk_gl_context_make_current(),
- * or until it is realized using gdk_gl_context_realize(). It is possible to
- * specify details of the GL context like the OpenGL version to be used, or
- * whether the GL context should have extra state validation enabled after
- * calling gdk_surface_create_gl_context() by calling gdk_gl_context_realize().
- * If the realization fails you have the option to change the settings of the
- * #GdkGLContext and try again.
+ * A `GdkGLContext` is not realized until either [method@Gdk.GLContext.make_current]
+ * or [method@Gdk.GLContext.realize] is called. It is possible to specify
+ * details of the GL context like the OpenGL version to be used, or whether
+ * the GL context should have extra state validation enabled after calling
+ * [method@Gdk.Surface.create_gl_context] by calling [method@Gdk.GLContext.realize].
+ * If the realization fails you have the option to change the settings of
+ * the `GdkGLContext` and try again.
  *
- * ## Using a GdkGLContext ##
+ * ## Using a GdkGLContext
  *
- * You will need to make the #GdkGLContext the current context
- * before issuing OpenGL calls; the system sends OpenGL commands to
- * whichever context is current. It is possible to have multiple
- * contexts, so you always need to ensure that the one which you
- * want to draw with is the current one before issuing commands:
+ * You will need to make the `GdkGLContext` the current context before issuing
+ * OpenGL calls; the system sends OpenGL commands to whichever context is current.
+ * It is possible to have multiple contexts, so you always need to ensure that
+ * the one which you want to draw with is the current one before issuing commands:
  *
- * |[<!-- language="C" -->
- *   gdk_gl_context_make_current (context);
- * ]|
+ * ```c
+ * gdk_gl_context_make_current (context);
+ * ```
  *
  * You can now perform your drawing using OpenGL commands.
  *
- * You can check which #GdkGLContext is the current one by using
- * gdk_gl_context_get_current(); you can also unset any #GdkGLContext
- * that is currently set by calling gdk_gl_context_clear_current().
- */
-
-/**
- * GdkGLContext:
- *
- * The GdkGLContext struct contains only private fields and
- * should not be accessed directly.
+ * You can check which `GdkGLContext` is the current one by using
+ * [func@Gdk.GLContext.get_current]; you can also unset any `GdkGLContext`
+ * that is currently set by calling [func@Gdk.GLContext.clear_current].
  */
 
 #include "config.h"
@@ -100,8 +89,6 @@
 #include <epoxy/gl.h>
 
 typedef struct {
-  GdkGLContext *shared_context;
-
   int major;
   int minor;
   int gl_version;
@@ -138,7 +125,28 @@ G_DEFINE_QUARK (gdk-gl-error-quark, gdk_gl_error)
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GdkGLContext, gdk_gl_context, GDK_TYPE_DRAW_CONTEXT)
 
-static GPrivate thread_current_context = G_PRIVATE_INIT (g_object_unref);
+typedef struct _MaskedContext MaskedContext;
+
+static inline MaskedContext *
+mask_context (GdkGLContext *context,
+              gboolean      surfaceless)
+{
+  return (MaskedContext *) GSIZE_TO_POINTER (GPOINTER_TO_SIZE (context) | (surfaceless ? 1 : 0));
+}
+
+static inline GdkGLContext *
+unmask_context (MaskedContext *mask)
+{
+  return GDK_GL_CONTEXT (GSIZE_TO_POINTER (GPOINTER_TO_SIZE (mask) & ~(gsize) 1));
+}
+
+static void
+unref_unmasked (gpointer data)
+{
+  g_object_unref (unmask_context (data));
+}
+
+static GPrivate thread_current_context = G_PRIVATE_INIT (unref_unmasked);
 
 static void
 gdk_gl_context_clear_old_updated_area (GdkGLContext *context)
@@ -155,16 +163,13 @@ static void
 gdk_gl_context_dispose (GObject *gobject)
 {
   GdkGLContext *context = GDK_GL_CONTEXT (gobject);
-  GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-  GdkGLContext *current;
+  MaskedContext *current;
 
   gdk_gl_context_clear_old_updated_area (context);
 
   current = g_private_get (&thread_current_context);
-  if (current == context)
+  if (unmask_context (current) == context)
     g_private_replace (&thread_current_context, NULL);
-
-  g_clear_object (&priv->shared_context);
 
   G_OBJECT_CLASS (gdk_gl_context_parent_class)->dispose (gobject);
 }
@@ -185,17 +190,10 @@ gdk_gl_context_set_property (GObject      *gobject,
                              const GValue *value,
                              GParamSpec   *pspec)
 {
-  GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private ((GdkGLContext *) gobject);
-
   switch (prop_id)
     {
     case PROP_SHARED_CONTEXT:
-      {
-        GdkGLContext *context = g_value_get_object (value);
-
-        if (context != NULL)
-          priv->shared_context = g_object_ref (context);
-      }
+      g_assert (g_value_get_object (value) == NULL);
       break;
 
     default:
@@ -209,12 +207,10 @@ gdk_gl_context_get_property (GObject    *gobject,
                              GValue     *value,
                              GParamSpec *pspec)
 {
-  GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private ((GdkGLContext *) gobject);
-
   switch (prop_id)
     {
     case PROP_SHARED_CONTEXT:
-      g_value_set_object (value, priv->shared_context);
+      g_value_set_object (value, NULL);
       break;
 
     default:
@@ -268,6 +264,12 @@ gdk_gl_context_upload_texture (GdkGLContext    *context,
       else if (data_format == GDK_MEMORY_R8G8B8) /* Pixmap non-alpha data */
         {
           gl_format = GL_RGB;
+          gl_type = GL_UNSIGNED_BYTE;
+          bpp = 3;
+        }
+      else if (data_format == GDK_MEMORY_B8G8R8)
+        {
+          gl_format = GL_BGR;
           gl_type = GL_UNSIGNED_BYTE;
           bpp = 3;
         }
@@ -338,22 +340,26 @@ gdk_gl_context_real_get_damage (GdkGLContext *context)
                                         });
 }
 
+static gboolean
+gdk_gl_context_real_is_shared (GdkGLContext *self,
+                               GdkGLContext *other)
+{
+  if (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (self)) != gdk_draw_context_get_display (GDK_DRAW_CONTEXT (other)))
+    return FALSE;
+
+  /* XXX: Should we check es or legacy here? */
+
+  return TRUE;
+}
+
 static void
 gdk_gl_context_real_begin_frame (GdkDrawContext *draw_context,
                                  cairo_region_t *region)
 {
   GdkGLContext *context = GDK_GL_CONTEXT (draw_context);
   GdkSurface *surface;
-  GdkGLContext *shared;
   cairo_region_t *damage;
   int ww, wh;
-
-  shared = gdk_gl_context_get_shared_context (context);
-  if (shared)
-    {
-      GDK_DRAW_CONTEXT_GET_CLASS (GDK_DRAW_CONTEXT (shared))->begin_frame (GDK_DRAW_CONTEXT (shared), region);
-      return;
-    }
 
   damage = GDK_GL_CONTEXT_GET_CLASS (context)->get_damage (context);
 
@@ -384,15 +390,6 @@ static void
 gdk_gl_context_real_end_frame (GdkDrawContext *draw_context,
                                cairo_region_t *painted)
 {
-  GdkGLContext *context = GDK_GL_CONTEXT (draw_context);
-  GdkGLContext *shared;
-
-  shared = gdk_gl_context_get_shared_context (context);
-  if (shared)
-    {
-      GDK_DRAW_CONTEXT_GET_CLASS (GDK_DRAW_CONTEXT (shared))->end_frame (GDK_DRAW_CONTEXT (shared), painted);
-      return;
-    }
 }
 
 static void
@@ -411,15 +408,22 @@ gdk_gl_context_class_init (GdkGLContextClass *klass)
 
   klass->realize = gdk_gl_context_real_realize;
   klass->get_damage = gdk_gl_context_real_get_damage;
+  klass->is_shared = gdk_gl_context_real_is_shared;
 
   draw_context_class->begin_frame = gdk_gl_context_real_begin_frame;
   draw_context_class->end_frame = gdk_gl_context_real_end_frame;
   draw_context_class->surface_resized = gdk_gl_context_surface_resized;
 
   /**
-   * GdkGLContext:shared-context:
+   * GdkGLContext:shared-context: (attributes org.gtk.Property.get=gdk_gl_context_get_shared_context)
    *
-   * The #GdkGLContext that this context is sharing data with, or %NULL
+   * Always %NULL
+   *
+   * As many contexts can share data now and no single shared context exists
+   * anymore, this function has been deprecated and now always returns %NULL.
+   *
+   * Deprecated: 4.4: Use [method@Gdk.GLContext.is_shared] to check if contexts
+   *   can be shared.
    */
   obj_pspecs[PROP_SHARED_CONTEXT] =
     g_param_spec_object ("shared-context",
@@ -428,7 +432,8 @@ gdk_gl_context_class_init (GdkGLContextClass *klass)
                          GDK_TYPE_GL_CONTEXT,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS);
+                         G_PARAM_STATIC_STRINGS |
+                         G_PARAM_DEPRECATED);
 
   gobject_class->set_property = gdk_gl_context_set_property;
   gobject_class->get_property = gdk_gl_context_get_property;
@@ -444,6 +449,21 @@ gdk_gl_context_init (GdkGLContext *self)
   GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (self);
 
   priv->use_es = -1;
+}
+
+/* Must have called gdk_display_prepare_gl() before */
+GdkGLContext *
+gdk_gl_context_new_for_surface (GdkSurface *surface)
+{
+  GdkDisplay *display = gdk_surface_get_display (surface);
+  GdkGLContext *shared = gdk_display_get_gl_context (display);
+
+  /* assert gdk_display_prepare_gl() had been called */
+  g_assert (shared);
+
+  return g_object_new (G_OBJECT_TYPE (shared),
+                       "surface", surface,
+                       NULL);
 }
 
 GdkGLContextPaintData *
@@ -560,14 +580,15 @@ gdk_gl_context_has_unpack_subimage (GdkGLContext *context)
 
 /**
  * gdk_gl_context_set_debug_enabled:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  * @enabled: whether to enable debugging in the context
  *
- * Sets whether the #GdkGLContext should perform extra validations and
- * run time checking. This is useful during development, but has
- * additional overhead.
+ * Sets whether the `GdkGLContext` should perform extra validations and
+ * runtime checking.
  *
- * The #GdkGLContext must not be realized or made current prior to
+ * This is useful during development, but has additional overhead.
+ *
+ * The `GdkGLContext` must not be realized or made current prior to
  * calling this function.
  */
 void
@@ -586,9 +607,11 @@ gdk_gl_context_set_debug_enabled (GdkGLContext *context,
 
 /**
  * gdk_gl_context_get_debug_enabled:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
- * Retrieves the value set using gdk_gl_context_set_debug_enabled().
+ * Retrieves whether the context is doing extra validations and runtime checking.
+ *
+ * See [method@Gdk.GLContext.set_debug_enabled].
  *
  * Returns: %TRUE if debugging is enabled
  */
@@ -604,17 +627,17 @@ gdk_gl_context_get_debug_enabled (GdkGLContext *context)
 
 /**
  * gdk_gl_context_set_forward_compatible:
- * @context: a #GdkGLContext
- * @compatible: whether the context should be forward compatible
+ * @context: a `GdkGLContext`
+ * @compatible: whether the context should be forward-compatible
  *
- * Sets whether the #GdkGLContext should be forward compatible.
+ * Sets whether the `GdkGLContext` should be forward-compatible.
  *
- * Forward compatible contexts must not support OpenGL functionality that
+ * Forward-compatible contexts must not support OpenGL functionality that
  * has been marked as deprecated in the requested version; non-forward
  * compatible contexts, on the other hand, must support both deprecated and
  * non deprecated functionality.
  *
- * The #GdkGLContext must not be realized or made current prior to calling
+ * The `GdkGLContext` must not be realized or made current prior to calling
  * this function.
  */
 void
@@ -633,11 +656,13 @@ gdk_gl_context_set_forward_compatible (GdkGLContext *context,
 
 /**
  * gdk_gl_context_get_forward_compatible:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
- * Retrieves the value set using gdk_gl_context_set_forward_compatible().
+ * Retrieves whether the context is forward-compatible.
  *
- * Returns: %TRUE if the context should be forward compatible
+ * See [method@Gdk.GLContext.set_forward_compatible].
+ *
+ * Returns: %TRUE if the context should be forward-compatible
  */
 gboolean
 gdk_gl_context_get_forward_compatible (GdkGLContext *context)
@@ -651,7 +676,7 @@ gdk_gl_context_get_forward_compatible (GdkGLContext *context)
 
 /**
  * gdk_gl_context_set_required_version:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  * @major: the major version to request
  * @minor: the minor version to request
  *
@@ -659,7 +684,7 @@ gdk_gl_context_get_forward_compatible (GdkGLContext *context)
  *
  * Setting @major and @minor to zero will use the default values.
  *
- * The #GdkGLContext must not be realized or made current prior to calling
+ * The `GdkGLContext` must not be realized or made current prior to calling
  * this function.
  */
 void
@@ -710,12 +735,13 @@ gdk_gl_context_set_required_version (GdkGLContext *context,
 
 /**
  * gdk_gl_context_get_required_version:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  * @major: (out) (nullable): return location for the major version to request
  * @minor: (out) (nullable): return location for the minor version to request
  *
- * Retrieves the major and minor version requested by calling
- * gdk_gl_context_set_required_version().
+ * Retrieves required OpenGL version.
+ *
+ * See [method@Gdk.GLContext.set_required_version].
  */
 void
 gdk_gl_context_get_required_version (GdkGLContext *context,
@@ -770,11 +796,11 @@ gdk_gl_context_get_required_version (GdkGLContext *context,
 
 /**
  * gdk_gl_context_is_legacy:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
- * Whether the #GdkGLContext is in legacy mode or not.
+ * Whether the `GdkGLContext` is in legacy mode or not.
  *
- * The #GdkGLContext must be realized before calling this function.
+ * The `GdkGLContext` must be realized before calling this function.
  *
  * When realizing a GL context, GDK will try to use the OpenGL 3.2 core
  * profile; this profile removes all the OpenGL API that was deprecated
@@ -812,13 +838,50 @@ gdk_gl_context_set_is_legacy (GdkGLContext *context,
 }
 
 /**
+ * gdk_gl_context_is_shared:
+ * @self: a `GdkGLContext`
+ * @other: the `GdkGLContext` that should be compatible with @self
+ *
+ * Checks if the two GL contexts can share resources.
+ *
+ * When they can, the texture IDs from @other can be used in @self. This
+ * is particularly useful when passing `GdkGLTexture` objects between
+ * different contexts.
+ *
+ * Contexts created for the same display with the same properties will
+ * always be compatible, even if they are created for different surfaces.
+ * For other contexts it depends on the GL backend.
+ *
+ * Both contexts must be realized for this check to succeed. If either one
+ * is not, this function will return %FALSE.
+ *
+ * Returns: %TRUE if the two GL contexts are compatible.
+ */
+gboolean
+gdk_gl_context_is_shared (GdkGLContext *self,
+                          GdkGLContext *other)
+{
+  GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (self);
+  GdkGLContextPrivate *priv_other = gdk_gl_context_get_instance_private (other);
+
+  g_return_val_if_fail (GDK_IS_GL_CONTEXT (self), FALSE);
+  g_return_val_if_fail (GDK_IS_GL_CONTEXT (other), FALSE);
+
+  if (!priv->realized || !priv_other->realized)
+    return FALSE;
+
+  return GDK_GL_CONTEXT_GET_CLASS (self)->is_shared (self, other);
+}
+
+/**
  * gdk_gl_context_set_use_es:
- * @context: a #GdkGLContext:
+ * @context: a `GdkGLContext`
  * @use_es: whether the context should use OpenGL ES instead of OpenGL,
  *   or -1 to allow auto-detection
  *
- * Requests that GDK create an OpenGL ES context instead of an OpenGL one,
- * if the platform and windowing system allows it.
+ * Requests that GDK create an OpenGL ES context instead of an OpenGL one.
+ *
+ * Not all platforms support OpenGL ES.
  *
  * The @context must not have been realized.
  *
@@ -826,9 +889,9 @@ gdk_gl_context_set_is_legacy (GdkGLContext *context,
  * underlying GL implementation is OpenGL or OpenGL ES once the @context
  * is realized.
  *
- * You should check the return value of gdk_gl_context_get_use_es() after
- * calling gdk_gl_context_realize() to decide whether to use the OpenGL or
- * OpenGL ES API, extensions, or shaders.
+ * You should check the return value of [method@Gdk.GLContext.get_use_es]
+ * after calling [method@Gdk.GLContext.realize] to decide whether to use
+ * the OpenGL or OpenGL ES API, extensions, or shaders.
  */
 void
 gdk_gl_context_set_use_es (GdkGLContext *context,
@@ -845,11 +908,11 @@ gdk_gl_context_set_use_es (GdkGLContext *context,
 
 /**
  * gdk_gl_context_get_use_es:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
  * Checks whether the @context is using an OpenGL or OpenGL ES profile.
  *
- * Returns: %TRUE if the #GdkGLContext is using an OpenGL ES profile
+ * Returns: %TRUE if the `GdkGLContext` is using an OpenGL ES profile
  */
 gboolean
 gdk_gl_context_get_use_es (GdkGLContext *context)
@@ -957,12 +1020,12 @@ gl_debug_message_callback (GLenum        source,
 
 /**
  * gdk_gl_context_realize:
- * @context: a #GdkGLContext
- * @error: return location for a #GError
+ * @context: a `GdkGLContext`
+ * @error: return location for a `GError`
  *
- * Realizes the given #GdkGLContext.
+ * Realizes the given `GdkGLContext`.
  *
- * It is safe to call this function on a realized #GdkGLContext.
+ * It is safe to call this function on a realized `GdkGLContext`.
  *
  * Returns: %TRUE if the context is realized
  */
@@ -1082,7 +1145,7 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
 
 /**
  * gdk_gl_context_make_current:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
  * Makes the @context the current one.
  */
@@ -1090,12 +1153,16 @@ void
 gdk_gl_context_make_current (GdkGLContext *context)
 {
   GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-  GdkGLContext *current;
+  MaskedContext *current, *masked_context;
+  gboolean surfaceless;
 
   g_return_if_fail (GDK_IS_GL_CONTEXT (context));
 
+  surfaceless = !gdk_draw_context_is_in_frame (GDK_DRAW_CONTEXT (context));
+  masked_context = mask_context (context, surfaceless);
+
   current = g_private_get (&thread_current_context);
-  if (current == context)
+  if (current == masked_context)
     return;
 
   /* we need to realize the GdkGLContext if it wasn't explicitly realized */
@@ -1112,20 +1179,24 @@ gdk_gl_context_make_current (GdkGLContext *context)
         }
     }
 
-  if (gdk_display_make_gl_context_current (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), context))
+  if (!GDK_GL_CONTEXT_GET_CLASS (context)->make_current (context, surfaceless))
     {
-      g_private_replace (&thread_current_context, g_object_ref (context));
-      gdk_gl_context_check_extensions (context);
+      g_warning ("gdk_gl_context_make_current() failed");
+      return;
     }
+
+  g_object_ref (context);
+  g_private_replace (&thread_current_context, masked_context);
+  gdk_gl_context_check_extensions (context);
 }
 
 /**
  * gdk_gl_context_get_display:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
- * Retrieves the #GdkDisplay the @context is created for
+ * Retrieves the display the @context is created for
  *
- * Returns: (nullable) (transfer none): a #GdkDisplay or %NULL
+ * Returns: (nullable) (transfer none): a `GdkDisplay`
  */
 GdkDisplay *
 gdk_gl_context_get_display (GdkGLContext *context)
@@ -1137,11 +1208,11 @@ gdk_gl_context_get_display (GdkGLContext *context)
 
 /**
  * gdk_gl_context_get_surface:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  *
- * Retrieves the #GdkSurface used by the @context.
+ * Retrieves the surface used by the @context.
  *
- * Returns: (nullable) (transfer none): a #GdkSurface or %NULL
+ * Returns: (nullable) (transfer none): a `GdkSurface`
  */
 GdkSurface *
 gdk_gl_context_get_surface (GdkGLContext *context)
@@ -1152,26 +1223,30 @@ gdk_gl_context_get_surface (GdkGLContext *context)
 }
 
 /**
- * gdk_gl_context_get_shared_context:
- * @context: a #GdkGLContext
+ * gdk_gl_context_get_shared_context: (attributes org.gtk.Method.get_property=shared-context)
+ * @context: a `GdkGLContext`
  *
- * Retrieves the #GdkGLContext that this @context share data with.
+ * Used to retrieves the `GdkGLContext` that this @context share data with.
  *
- * Returns: (nullable) (transfer none): a #GdkGLContext or %NULL
+ * As many contexts can share data now and no single shared context exists
+ * anymore, this function has been deprecated and now always returns %NULL.
+ *
+ * Returns: (nullable) (transfer none): %NULL
+ *
+ * Deprecated: 4.4: Use [method@Gdk.GLContext.is_shared] to check if contexts
+ *   can be shared.
  */
 GdkGLContext *
 gdk_gl_context_get_shared_context (GdkGLContext *context)
 {
-  GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-
   g_return_val_if_fail (GDK_IS_GL_CONTEXT (context), NULL);
 
-  return priv->shared_context;
+  return NULL;
 }
 
 /**
  * gdk_gl_context_get_version:
- * @context: a #GdkGLContext
+ * @context: a `GdkGLContext`
  * @major: (out): return location for the major version
  * @minor: (out): return location for the minor version
  *
@@ -1198,20 +1273,22 @@ gdk_gl_context_get_version (GdkGLContext *context,
 /**
  * gdk_gl_context_clear_current:
  *
- * Clears the current #GdkGLContext.
+ * Clears the current `GdkGLContext`.
  *
  * Any OpenGL call after this function returns will be ignored
- * until gdk_gl_context_make_current() is called.
+ * until [method@Gdk.GLContext.make_current] is called.
  */
 void
 gdk_gl_context_clear_current (void)
 {
-  GdkGLContext *current;
+  MaskedContext *current;
 
   current = g_private_get (&thread_current_context);
   if (current != NULL)
     {
-      if (gdk_display_make_gl_context_current (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (current)), NULL))
+      GdkGLContext *context = unmask_context (current);
+
+      if (GDK_GL_CONTEXT_GET_CLASS (context)->clear_current (context))
         g_private_replace (&thread_current_context, NULL);
     }
 }
@@ -1219,18 +1296,18 @@ gdk_gl_context_clear_current (void)
 /**
  * gdk_gl_context_get_current:
  *
- * Retrieves the current #GdkGLContext.
+ * Retrieves the current `GdkGLContext`.
  *
- * Returns: (nullable) (transfer none): the current #GdkGLContext, or %NULL
+ * Returns: (nullable) (transfer none): the current `GdkGLContext`
  */
 GdkGLContext *
 gdk_gl_context_get_current (void)
 {
-  GdkGLContext *current;
+  MaskedContext *current;
 
   current = g_private_get (&thread_current_context);
 
-  return current;
+  return unmask_context (current);
 }
 
 gboolean

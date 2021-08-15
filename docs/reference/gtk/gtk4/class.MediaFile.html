@@ -1,0 +1,780 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.MediaFile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.MediaFile"/>
+  <meta property="og:description" content="Reference for Gtk.MediaFile"/>
+  <meta name="twitter:title" content="Gtk.MediaFile"/>
+  <meta name="twitter:description" content="Reference for Gtk.MediaFile"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.MediaFile.html#description">MediaFile</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.MediaFile.new.html">new</a>
+  
+    <a class="ctor" href="ctor.MediaFile.new_for_file.html">new_for_file</a>
+  
+    <a class="ctor" href="ctor.MediaFile.new_for_filename.html">new_for_filename</a>
+  
+    <a class="ctor" href="ctor.MediaFile.new_for_input_stream.html">new_for_input_stream</a>
+  
+    <a class="ctor" href="ctor.MediaFile.new_for_resource.html">new_for_resource</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.MediaFile.clear.html">clear</a>
+  
+    <a class="method" href="method.MediaFile.get_file.html">get_file</a>
+  
+    <a class="method" href="method.MediaFile.get_input_stream.html">get_input_stream</a>
+  
+    <a class="method" href="method.MediaFile.set_file.html">set_file</a>
+  
+    <a class="method" href="method.MediaFile.set_filename.html">set_filename</a>
+  
+    <a class="method" href="method.MediaFile.set_input_stream.html">set_input_stream</a>
+  
+    <a class="method" href="method.MediaFile.set_resource.html">set_resource</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.MediaFile.file.html">file</a>
+  
+    <a class="property" href="property.MediaFile.input-stream.html">input-stream</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.MediaFile.close.html">close</a>
+  
+    <a class="method" href="vfunc.MediaFile.open.html">open</a>
+  
+  </div>
+</div>
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>MediaFile</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkmediafile.c#L29">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Gtk.MediaFile : Gtk.MediaStream {
+  parent_instance: GtkMediaStream
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkMediaFile</code> implements <code>GtkMediaStream</code> for&nbsp;files.</p>
+<p>This provides a simple way to play back video files with <span class="caps">GTK</span>.</p>
+<p><span class="caps">GTK</span> provides a <span class="caps">GIO</span> extension point for <code>GtkMediaFile</code> implementations
+to allow for external implementations using various media&nbsp;frameworks.</p>
+<p><span class="caps">GTK</span> itself includes implementations using GStreamer and&nbsp;ffmpeg.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.MediaFile">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="139pt" height="260pt"
+ viewBox="0.00 0.00 139.00 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkMediaFile">
+<path fill="none" stroke="black" d="M105.5,-108C105.5,-108 25.5,-108 25.5,-108 19.5,-108 13.5,-102 13.5,-96 13.5,-96 13.5,-84 13.5,-84 13.5,-78 19.5,-72 25.5,-72 25.5,-72 105.5,-72 105.5,-72 111.5,-72 117.5,-78 117.5,-84 117.5,-84 117.5,-96 117.5,-96 117.5,-102 111.5,-108 105.5,-108"/>
+<text text-anchor="middle" x="65.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkMediaFile</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:title="Gdk.Paintable">
+<polygon fill="none" stroke="black" points="119,-36 12,-36 12,0 119,0 119,-36"/>
+<text text-anchor="middle" x="65.5" y="-14.3" font-family="sans-serif" font-size="14.00">GdkPaintable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M65.5,-71.7C65.5,-60.85 65.5,-46.92 65.5,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.MediaStream.html" xlink:title="GtkMediaStream">
+<path fill="none" stroke="black" d="M119,-180C119,-180 12,-180 12,-180 6,-180 0,-174 0,-168 0,-168 0,-156 0,-156 0,-150 6,-144 12,-144 12,-144 119,-144 119,-144 125,-144 131,-150 131,-156 131,-156 131,-168 131,-168 131,-174 125,-180 119,-180"/>
+<text text-anchor="middle" x="65.5" y="-158.3" font-family="Times-Roman" font-size="14.00">GtkMediaStream</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M65.5,-143.7C65.5,-132.85 65.5,-118.92 65.5,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M89.5,-252C89.5,-252 41.5,-252 41.5,-252 35.5,-252 29.5,-246 29.5,-240 29.5,-240 29.5,-228 29.5,-228 29.5,-222 35.5,-216 41.5,-216 41.5,-216 89.5,-216 89.5,-216 95.5,-216 101.5,-222 101.5,-228 101.5,-228 101.5,-240 101.5,-240 101.5,-246 95.5,-252 89.5,-252"/>
+<text text-anchor="middle" x="65.5" y="-230.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M65.5,-215.7C65.5,-204.85 65.5,-190.92 65.5,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.MediaStream.html" title="MediaStream">GtkMediaStream</a></li>
+          
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface">GdkPaintable</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.MediaFile.new.html">gtk_media_file_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new empty media&nbsp;file.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.MediaFile.new_for_file.html">gtk_media_file_new_for_file</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new media file to play <code>file</code>.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.MediaFile.new_for_filename.html">gtk_media_file_new_for_filename</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new media file for the given&nbsp;filename.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.MediaFile.new_for_input_stream.html">gtk_media_file_new_for_input_stream</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new media file to play <code>stream</code>.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.MediaFile.new_for_resource.html">gtk_media_file_new_for_resource</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new new media file for the given&nbsp;resource.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.MediaFile.clear.html">gtk_media_file_clear</a></h6>
+          <div class="docblock">
+            <p>Resets the media file to be&nbsp;empty.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.get_file.html">gtk_media_file_get_file</a></h6>
+          <div class="docblock">
+            <p>Returns the file that <code>self</code> is currently playing&nbsp;from.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.get_input_stream.html">gtk_media_file_get_input_stream</a></h6>
+          <div class="docblock">
+            <p>Returns the stream that <code>self</code> is currently playing&nbsp;from.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.set_file.html">gtk_media_file_set_file</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>GtkMediaFile</code> to play the given&nbsp;file.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.set_filename.html">gtk_media_file_set_filename</a></h6>
+          <div class="docblock">
+            <p>Sets the `GtkMediaFile to play the given&nbsp;file.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.set_input_stream.html">gtk_media_file_set_input_stream</a></h6>
+          <div class="docblock">
+            <p>Sets the <code>GtkMediaFile</code> to play the given&nbsp;stream.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaFile.set_resource.html">gtk_media_file_set_resource</a></h6>
+          <div class="docblock">
+            <p>Sets the `GtkMediaFile to play the given&nbsp;resource.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class=" ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.MediaStream.html">GtkMediaStream</a> (34)</h5>
+
+          
+        </div>
+        
+      
+        
+      
+
+      
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.MediaFile.file.html">Gtk.MediaFile:file</a></h6>
+
+          <div class="docblock">
+            <p>The file being played back or <code>NULL</code> if not playing a&nbsp;file.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.MediaFile.input-stream.html">Gtk.MediaFile:input-stream</a></h6>
+
+          <div class="docblock">
+            <p>The stream being played back or <code>NULL</code> if not playing a&nbsp;stream.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.MediaStream.html">GtkMediaStream</a> (13)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="property.MediaStream.duration.html">Gtk.MediaStream:duration</a></h6>
+            <div class="docblock">
+              <p>The stream&#8217;s duration in microseconds or 0 if&nbsp;unknown.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.ended.html">Gtk.MediaStream:ended</a></h6>
+            <div class="docblock">
+              <p>Set when playback has&nbsp;finished.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.error.html">Gtk.MediaStream:error</a></h6>
+            <div class="docblock">
+              <p><code>NULL</code> for a properly working stream or the <code>GError</code>
+that the stream is&nbsp;in.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.has-audio.html">Gtk.MediaStream:has-audio</a></h6>
+            <div class="docblock">
+              <p>Whether the stream contains&nbsp;audio.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.has-video.html">Gtk.MediaStream:has-video</a></h6>
+            <div class="docblock">
+              <p>Whether the stream contains&nbsp;video.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.loop.html">Gtk.MediaStream:loop</a></h6>
+            <div class="docblock">
+              <p>Try to restart the media from the beginning once it&nbsp;ended.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.muted.html">Gtk.MediaStream:muted</a></h6>
+            <div class="docblock">
+              <p>Whether the audio stream should be&nbsp;muted.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.playing.html">Gtk.MediaStream:playing</a></h6>
+            <div class="docblock">
+              <p>Whether the stream is currently&nbsp;playing.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.prepared.html">Gtk.MediaStream:prepared</a></h6>
+            <div class="docblock">
+              <p>Whether the stream has finished initializing and existence of
+audio and video is&nbsp;known.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.seekable.html">Gtk.MediaStream:seekable</a></h6>
+            <div class="docblock">
+              <p>Set unless the stream is known to not support&nbsp;seeking.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.seeking.html">Gtk.MediaStream:seeking</a></h6>
+            <div class="docblock">
+              <p>Set while a seek is in&nbsp;progress.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.timestamp.html">Gtk.MediaStream:timestamp</a></h6>
+            <div class="docblock">
+              <p>The current presentation timestamp in&nbsp;microseconds.</p>
+            </div>
+            
+          
+            <h6><a href="property.MediaStream.volume.html">Gtk.MediaStream:volume</a></h6>
+            <div class="docblock">
+              <p>Volume of the audio&nbsp;stream.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+
+      
+        
+      
+
+    </div>
+    
+
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkMediaFileClass {
+  GtkMediaStreamClass parent_class;
+  void (* open) (
+    GtkMediaFile* self
+  );
+  void (* close) (
+    GtkMediaFile* self
+  );
+  void (* _gtk_reserved1) (
+void
+  );
+  void (* _gtk_reserved2) (
+void
+  );
+  void (* _gtk_reserved3) (
+void
+  );
+  void (* _gtk_reserved4) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <table class="members">
+        
+        <tr>
+          <td style="vertical-align:top"><code>parent_class</code></td>
+          <td style="vertical-align:top"><pre><code>GtkMediaStreamClass</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>open</code></td>
+          <td style="vertical-align:top"><pre><code>void (* open) (
+    GtkMediaFile* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>close</code></td>
+          <td style="vertical-align:top"><pre><code>void (* close) (
+    GtkMediaFile* self
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>_gtk_reserved1</code></td>
+          <td style="vertical-align:top"><pre><code>void (* _gtk_reserved1) (
+void
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>_gtk_reserved2</code></td>
+          <td style="vertical-align:top"><pre><code>void (* _gtk_reserved2) (
+void
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>_gtk_reserved3</code></td>
+          <td style="vertical-align:top"><pre><code>void (* _gtk_reserved3) (
+void
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        <tr>
+          <td style="vertical-align:top"><code>_gtk_reserved4</code></td>
+          <td style="vertical-align:top"><pre><code>void (* _gtk_reserved4) (
+void
+  )</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-close"><a href="vfunc.MediaFile.close.html">Gtk.MediaFileClass.close</a></h6>
+
+        <div class="docblock">
+          No description available.
+        </div>
+
+          
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-open"><a href="vfunc.MediaFile.open.html">Gtk.MediaFileClass.open</a></h6>
+
+        <div class="docblock">
+          No description available.
+        </div>
+
+          
+      </div>
+      
+      </div>
+    </div>
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

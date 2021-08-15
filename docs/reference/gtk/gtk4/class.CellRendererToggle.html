@@ -1,0 +1,662 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.CellRendererToggle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.CellRendererToggle"/>
+  <meta property="og:description" content="Reference for Gtk.CellRendererToggle"/>
+  <meta name="twitter:title" content="Gtk.CellRendererToggle"/>
+  <meta name="twitter:description" content="Reference for Gtk.CellRendererToggle"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.CellRendererToggle.html#description">CellRendererToggle</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.CellRendererToggle.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.CellRendererToggle.get_activatable.html">get_activatable</a>
+  
+    <a class="method" href="method.CellRendererToggle.get_active.html">get_active</a>
+  
+    <a class="method" href="method.CellRendererToggle.get_radio.html">get_radio</a>
+  
+    <a class="method" href="method.CellRendererToggle.set_activatable.html">set_activatable</a>
+  
+    <a class="method" href="method.CellRendererToggle.set_active.html">set_active</a>
+  
+    <a class="method" href="method.CellRendererToggle.set_radio.html">set_radio</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.CellRendererToggle.activatable.html">activatable</a>
+  
+    <a class="property" href="property.CellRendererToggle.active.html">active</a>
+  
+    <a class="property" href="property.CellRendererToggle.inconsistent.html">inconsistent</a>
+  
+    <a class="property" href="property.CellRendererToggle.radio.html">radio</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.CellRendererToggle.toggled.html">toggled</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>CellRendererToggle</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkcellrenderertoggle.c#L35">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.CellRendererToggle : Gtk.CellRenderer {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>Renders a toggle button in a&nbsp;cell</p>
+<p><code>GtkCellRendererToggle</code> renders a toggle button in a cell. The
+button is drawn as a radio or a checkbutton, depending on the
+<code>GtkCellRendererToggle:radio</code> property.
+When activated, it emits the <code>GtkCellRendererToggle::toggled</code> signal.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.CellRendererToggle">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="181pt" height="260pt"
+ viewBox="0.00 0.00 181.00 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkCellRendererToggle">
+<path fill="none" stroke="black" d="M161,-36C161,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 161,0 161,0 167,0 173,-6 173,-12 173,-12 173,-24 173,-24 173,-30 167,-36 161,-36"/>
+<text text-anchor="middle" x="86.5" y="-14.3" font-family="Times-Roman" font-size="14.00">GtkCellRendererToggle</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.CellRenderer.html" xlink:title="GtkCellRenderer">
+<path fill="none" stroke="black" d="M139,-108C139,-108 34,-108 34,-108 28,-108 22,-102 22,-96 22,-96 22,-84 22,-84 22,-78 28,-72 34,-72 34,-72 139,-72 139,-72 145,-72 151,-78 151,-84 151,-84 151,-96 151,-96 151,-102 145,-108 139,-108"/>
+<text text-anchor="middle" x="86.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkCellRenderer</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge3" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M86.5,-71.7C86.5,-60.85 86.5,-46.92 86.5,-36.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M146,-180C146,-180 27,-180 27,-180 21,-180 15,-174 15,-168 15,-168 15,-156 15,-156 15,-150 21,-144 27,-144 27,-144 146,-144 146,-144 152,-144 158,-150 158,-156 158,-156 158,-168 158,-168 158,-174 152,-180 146,-180"/>
+<text text-anchor="middle" x="86.5" y="-158.3" font-family="Times-Roman" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge2" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M86.5,-143.7C86.5,-132.85 86.5,-118.92 86.5,-108.1"/>
+</g>
+<!-- ancestor_2 -->
+<g id="node4" class="node">
+<title>ancestor_2</title>
+<g id="a_node4"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M110.5,-252C110.5,-252 62.5,-252 62.5,-252 56.5,-252 50.5,-246 50.5,-240 50.5,-240 50.5,-228 50.5,-228 50.5,-222 56.5,-216 62.5,-216 62.5,-216 110.5,-216 110.5,-216 116.5,-216 122.5,-222 122.5,-228 122.5,-228 122.5,-240 122.5,-240 122.5,-246 116.5,-252 110.5,-252"/>
+<text text-anchor="middle" x="86.5" y="-230.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_2&#45;&#45;ancestor_1 -->
+<g id="edge1" class="edge">
+<title>ancestor_2&#45;&#45;ancestor_1</title>
+<path fill="none" stroke="black" d="M86.5,-215.7C86.5,-204.85 86.5,-190.92 86.5,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.CellRenderer.html" title="CellRenderer">GtkCellRenderer</a></li>
+          
+        
+          
+          <li class="class">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.CellRendererToggle.new.html">gtk_cell_renderer_toggle_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new <code>GtkCellRendererToggle</code>. Adjust rendering
+parameters using object properties. Object properties can be set
+globally (with g_object_set()). Also, with <code>GtkTreeViewColumn</code>, you
+can bind a property to a value in a <code>GtkTreeModel</code>. For example, you
+can bind the “active” property on the cell renderer to a boolean value
+in the model, thus causing the check button to reflect the state of
+the&nbsp;model.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.get_activatable.html">gtk_cell_renderer_toggle_get_activatable</a></h6>
+          <div class="docblock">
+            <p>Returns whether the cell renderer is activatable. See&nbsp;gtk_cell_renderer_toggle_set_activatable().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.get_active.html">gtk_cell_renderer_toggle_get_active</a></h6>
+          <div class="docblock">
+            <p>Returns whether the cell renderer is active. See&nbsp;gtk_cell_renderer_toggle_set_active().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.get_radio.html">gtk_cell_renderer_toggle_get_radio</a></h6>
+          <div class="docblock">
+            <p>Returns whether we’re rendering radio toggles rather than&nbsp;checkboxes.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.set_activatable.html">gtk_cell_renderer_toggle_set_activatable</a></h6>
+          <div class="docblock">
+            <p>Makes the cell renderer&nbsp;activatable.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.set_active.html">gtk_cell_renderer_toggle_set_active</a></h6>
+          <div class="docblock">
+            <p>Activates or deactivates a cell&nbsp;renderer.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.CellRendererToggle.set_radio.html">gtk_cell_renderer_toggle_set_radio</a></h6>
+          <div class="docblock">
+            <p>If <code>radio</code> is <code>TRUE</code>, the cell renderer renders a radio toggle
+(i.e. a toggle in a group of mutually-exclusive toggles).
+If <code>FALSE</code>, it renders a check toggle (a standalone boolean option).
+This can be set globally for the cell renderer, or changed just
+before rendering each cell in the model (for <code>GtkTreeView</code>, you set
+up a per-row setting using <code>GtkTreeViewColumn</code> to associate model
+columns with cell renderer&nbsp;properties).</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class=" ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.CellRenderer.html">GtkCellRenderer</a> (27)</h5>
+
+          
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.CellRendererToggle.activatable.html">Gtk.CellRendererToggle:activatable</a></h6>
+
+          <div class="docblock">
+            No description available.
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRendererToggle.active.html">Gtk.CellRendererToggle:active</a></h6>
+
+          <div class="docblock">
+            No description available.
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRendererToggle.inconsistent.html">Gtk.CellRendererToggle:inconsistent</a></h6>
+
+          <div class="docblock">
+            No description available.
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRendererToggle.radio.html">Gtk.CellRendererToggle:radio</a></h6>
+
+          <div class="docblock">
+            No description available.
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.CellRenderer.html">GtkCellRenderer</a> (15)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="property.CellRenderer.cell-background.html">Gtk.CellRenderer:cell-background</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.cell-background-rgba.html">Gtk.CellRenderer:cell-background-rgba</a></h6>
+            <div class="docblock">
+              <p>Cell background as a <code>GdkRGBA</code>.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.cell-background-set.html">Gtk.CellRenderer:cell-background-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.editing.html">Gtk.CellRenderer:editing</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.height.html">Gtk.CellRenderer:height</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.is-expanded.html">Gtk.CellRenderer:is-expanded</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.is-expander.html">Gtk.CellRenderer:is-expander</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.mode.html">Gtk.CellRenderer:mode</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.sensitive.html">Gtk.CellRenderer:sensitive</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.visible.html">Gtk.CellRenderer:visible</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.width.html">Gtk.CellRenderer:width</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.xalign.html">Gtk.CellRenderer:xalign</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.xpad.html">Gtk.CellRenderer:xpad</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.yalign.html">Gtk.CellRenderer:yalign</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.ypad.html">Gtk.CellRenderer:ypad</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.CellRendererToggle.toggled.html">Gtk.CellRendererToggle::toggled</a></h6>
+          <div class="docblock">
+            <p>The ::toggled signal is emitted when the cell is&nbsp;toggled.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals">
+          <h5 style="display:block;">Signals inherited from <a href="class.CellRenderer.html">GtkCellRenderer</a> (2)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="signal.CellRenderer.editing-canceled.html">Gtk.CellRenderer::editing-canceled</a></h6>
+            <div class="docblock">
+              <p>This signal gets emitted when the user cancels the process of editing a
+cell.  For example, an editable cell renderer could be written to cancel
+editing when the user presses&nbsp;Escape.</p>
+            </div>
+            
+          
+            <h6><a href="signal.CellRenderer.editing-started.html">Gtk.CellRenderer::editing-started</a></h6>
+            <div class="docblock">
+              <p>This signal gets emitted when a cell starts to be edited.
+The intended use of this signal is to do special setup
+on <code>editable</code>, e.g. adding a <code>GtkEntryCompletion</code> or setting
+up additional columns in a <code>GtkComboBox</code>.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

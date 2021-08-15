@@ -1,0 +1,888 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TreeStore</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TreeStore"/>
+  <meta property="og:description" content="Reference for Gtk.TreeStore"/>
+  <meta name="twitter:title" content="Gtk.TreeStore"/>
+  <meta name="twitter:description" content="Reference for Gtk.TreeStore"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.TreeStore.html#description">TreeStore</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.TreeStore.new.html">new</a>
+  
+    <a class="ctor" href="ctor.TreeStore.newv.html">newv</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.TreeStore.append.html">append</a>
+  
+    <a class="method" href="method.TreeStore.clear.html">clear</a>
+  
+    <a class="method" href="method.TreeStore.insert.html">insert</a>
+  
+    <a class="method" href="method.TreeStore.insert_after.html">insert_after</a>
+  
+    <a class="method" href="method.TreeStore.insert_before.html">insert_before</a>
+  
+    <a class="method" href="method.TreeStore.insert_with_values.html">insert_with_values</a>
+  
+    <a class="method" href="method.TreeStore.insert_with_valuesv.html">insert_with_valuesv</a>
+  
+    <a class="method" href="method.TreeStore.is_ancestor.html">is_ancestor</a>
+  
+    <a class="method" href="method.TreeStore.iter_depth.html">iter_depth</a>
+  
+    <a class="method" href="method.TreeStore.iter_is_valid.html">iter_is_valid</a>
+  
+    <a class="method" href="method.TreeStore.move_after.html">move_after</a>
+  
+    <a class="method" href="method.TreeStore.move_before.html">move_before</a>
+  
+    <a class="method" href="method.TreeStore.prepend.html">prepend</a>
+  
+    <a class="method" href="method.TreeStore.remove.html">remove</a>
+  
+    <a class="method" href="method.TreeStore.reorder.html">reorder</a>
+  
+    <a class="method" href="method.TreeStore.set.html">set</a>
+  
+    <a class="method" href="method.TreeStore.set_column_types.html">set_column_types</a>
+  
+    <a class="method" href="method.TreeStore.set_valist.html">set_valist</a>
+  
+    <a class="method" href="method.TreeStore.set_value.html">set_value</a>
+  
+    <a class="method" href="method.TreeStore.set_valuesv.html">set_valuesv</a>
+  
+    <a class="method" href="method.TreeStore.swap.html">swap</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>TreeStore</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtktreestore.c#L31">[src]</a>
+          
+        </h4>
+
+        <pre><code>class Gtk.TreeStore : GObject.Object {
+  parent: GObject,
+  priv: GtkTreeStorePrivate*
+}</pre></code>
+
+        <div class="docblock">
+          <p>A tree-like data structure that can be used with the&nbsp;GtkTreeView</p>
+<p>The <code>GtkTreeStore</code> object is a list model for use with a <code>GtkTreeView</code>
+widget.  It implements the <code>GtkTreeModel</code> interface, and consequently,
+can use all of the methods available there.  It also implements the
+<code>GtkTreeSortable</code> interface so it can be sorted by the view.  Finally,
+it also implements the tree
+[drag and drop][gtk3-GtkTreeView-drag-and-drop]&nbsp;interfaces.</p>
+<h1 id="gtktreestore-as-gtkbuildable">GtkTreeStore as GtkBuildable<a class="md-anchor" href="#gtktreestore-as-gtkbuildable" title="Permanent link"></a></h1>
+<p>The GtkTreeStore implementation of the <code>GtkBuildable</code> interface allows
+to specify the model columns with a <columns> element that may contain
+multiple <column> elements, each specifying one model column. The “type”
+attribute specifies the data type for the&nbsp;column.</p>
+<p>An example of a <span class="caps">UI</span> Definition fragment for a tree store:&nbsp;&#8220;`</p>
+<object class="GtkTreeStore">
+  <columns>
+    <column type="gchararray"/>
+    <column type="gchararray"/>
+    <column type="gint"/>
+  </columns>
+</object>
+<p><span class="dquo">&#8220;</span>`.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.TreeStore">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="707pt" height="188pt"
+ viewBox="0.00 0.00 707.00 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkTreeStore">
+<path fill="none" stroke="black" d="M391,-108C391,-108 310,-108 310,-108 304,-108 298,-102 298,-96 298,-96 298,-84 298,-84 298,-78 304,-72 310,-72 310,-72 391,-72 391,-72 397,-72 403,-78 403,-84 403,-84 403,-96 403,-96 403,-102 397,-108 391,-108"/>
+<text text-anchor="middle" x="350.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkTreeStore</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node3" class="node link">
+<title>implements_0</title>
+<g id="a_node3"><a xlink:href="class.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="105,-36 0,-36 0,0 105,0 105,-36"/>
+<text text-anchor="middle" x="52.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge2" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M297.84,-77.91C249.91,-67.64 177.25,-51.64 114.5,-36 111.47,-35.24 108.36,-34.45 105.22,-33.64"/>
+</g>
+<!-- implements_1 -->
+<g id="node4" class="node link">
+<title>implements_1</title>
+<g id="a_node4"><a xlink:href="class.TreeDragDest.html" xlink:title="GtkTreeDragDest">
+<polygon fill="none" stroke="black" points="257.5,-36 123.5,-36 123.5,0 257.5,0 257.5,-36"/>
+<text text-anchor="middle" x="190.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkTreeDragDest</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M311.36,-71.88C286.47,-60.99 254.38,-46.95 229.51,-36.07"/>
+</g>
+<!-- implements_2 -->
+<g id="node5" class="node link">
+<title>implements_2</title>
+<g id="a_node5"><a xlink:href="class.TreeDragSource.html" xlink:title="GtkTreeDragSource">
+<polygon fill="none" stroke="black" points="425.5,-36 275.5,-36 275.5,0 425.5,0 425.5,-36"/>
+<text text-anchor="middle" x="350.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkTreeDragSource</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_2 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_2</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M350.5,-71.7C350.5,-60.85 350.5,-46.92 350.5,-36.1"/>
+</g>
+<!-- implements_3 -->
+<g id="node6" class="node link">
+<title>implements_3</title>
+<g id="a_node6"><a xlink:href="class.TreeModel.html" xlink:title="GtkTreeModel">
+<polygon fill="none" stroke="black" points="553.5,-36 443.5,-36 443.5,0 553.5,0 553.5,-36"/>
+<text text-anchor="middle" x="498.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkTreeModel</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_3 -->
+<g id="edge5" class="edge">
+<title>this&#45;&#45;implements_3</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M386.7,-71.88C409.72,-60.99 439.42,-46.95 462.41,-36.07"/>
+</g>
+<!-- implements_4 -->
+<g id="node7" class="node link">
+<title>implements_4</title>
+<g id="a_node7"><a xlink:href="class.TreeSortable.html" xlink:title="GtkTreeSortable">
+<polygon fill="none" stroke="black" points="699,-36 572,-36 572,0 699,0 699,-36"/>
+<text text-anchor="middle" x="635.5" y="-14.3" font-family="sans-serif" font-size="14.00">GtkTreeSortable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_4 -->
+<g id="edge6" class="edge">
+<title>this&#45;&#45;implements_4</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M403.11,-76.08C450.79,-64.37 521.19,-47.08 571.99,-34.6"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M374.5,-180C374.5,-180 326.5,-180 326.5,-180 320.5,-180 314.5,-174 314.5,-168 314.5,-168 314.5,-156 314.5,-156 314.5,-150 320.5,-144 326.5,-144 326.5,-144 374.5,-144 374.5,-144 380.5,-144 386.5,-150 386.5,-156 386.5,-156 386.5,-168 386.5,-168 386.5,-174 380.5,-180 374.5,-180"/>
+<text text-anchor="middle" x="350.5" y="-158.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M350.5,-143.7C350.5,-132.85 350.5,-118.92 350.5,-108.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.TreeDragDest.html" title="TreeDragDest">GtkTreeDragDest</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.TreeDragSource.html" title="TreeDragSource">GtkTreeDragSource</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.TreeModel.html" title="TreeModel">GtkTreeModel</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.TreeSortable.html" title="TreeSortable">GtkTreeSortable</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.TreeStore.new.html">gtk_tree_store_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new tree store as with <code>n_columns</code> columns each of the types passed
+in.  Note that only types derived from standard GObject fundamental types
+are&nbsp;supported.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.TreeStore.newv.html">gtk_tree_store_newv</a></h6>
+
+          <div class="docblock">
+            <p>Non vararg creation function.  Used primarily by language&nbsp;bindings.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.TreeStore.append.html">gtk_tree_store_append</a></h6>
+          <div class="docblock">
+            <p>Appends a new row to <code>tree_store</code>.  If <code>parent</code> is non-<code>NULL</code>, then it will append the
+new row after the last child of <code>parent</code>, otherwise it will append a row to
+the top level.  <code>iter</code> will be changed to point to this new row.  The row will
+be empty after this function is called.  To fill in values, you need to call
+gtk_tree_store_set() or&nbsp;gtk_tree_store_set_value().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.clear.html">gtk_tree_store_clear</a></h6>
+          <div class="docblock">
+            <p>Removes all rows from <code>tree_store</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.insert.html">gtk_tree_store_insert</a></h6>
+          <div class="docblock">
+            <p>Creates a new row at <code>position</code>.  If parent is non-<code>NULL</code>, then the row will be
+made a child of <code>parent</code>.  Otherwise, the row will be created at the toplevel.
+If <code>position</code> is -1 or is larger than the number of rows at that level, then
+the new row will be inserted to the end of the list.  <code>iter</code> will be changed
+to point to this new row.  The row will be empty after this function is
+called.  To fill in values, you need to call gtk_tree_store_set() or&nbsp;gtk_tree_store_set_value().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.insert_after.html">gtk_tree_store_insert_after</a></h6>
+          <div class="docblock">
+            <p>Inserts a new row after <code>sibling</code>.  If <code>sibling</code> is <code>NULL</code>, then the row will be
+prepended to <code>parent</code> ’s children.  If <code>parent</code> and <code>sibling</code> are <code>NULL</code>, then
+the row will be prepended to the toplevel.  If both <code>sibling</code> and <code>parent</code> are
+set, then <code>parent</code> must be the parent of <code>sibling</code>.  When <code>sibling</code> is set,
+<code>parent</code> is&nbsp;optional.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.insert_before.html">gtk_tree_store_insert_before</a></h6>
+          <div class="docblock">
+            <p>Inserts a new row before <code>sibling</code>.  If <code>sibling</code> is <code>NULL</code>, then the row will
+be appended to <code>parent</code> ’s children.  If <code>parent</code> and <code>sibling</code> are <code>NULL</code>, then
+the row will be appended to the toplevel.  If both <code>sibling</code> and <code>parent</code> are
+set, then <code>parent</code> must be the parent of <code>sibling</code>.  When <code>sibling</code> is set,
+<code>parent</code> is&nbsp;optional.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.insert_with_values.html">gtk_tree_store_insert_with_values</a></h6>
+          <div class="docblock">
+            <p>Creates a new row at <code>position</code>. <code>iter</code> will be changed to point to this
+new row. If <code>position</code> is -1, or larger than the number of rows on the list, then
+the new row will be appended to the list. The row will be filled with
+the values given to this&nbsp;function.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.insert_with_valuesv.html">gtk_tree_store_insert_with_valuesv</a></h6>
+          <div class="docblock">
+            <p>A variant of gtk_tree_store_insert_with_values() which takes
+the columns and values as two arrays, instead of varargs.  This
+function is mainly intended for language&nbsp;bindings.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.is_ancestor.html">gtk_tree_store_is_ancestor</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if <code>iter</code> is an ancestor of <code>descendant</code>.  That is, <code>iter</code> is the
+parent (or grandparent or great-grandparent) of <code>descendant</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.iter_depth.html">gtk_tree_store_iter_depth</a></h6>
+          <div class="docblock">
+            <p>Returns the depth of <code>iter</code>.  This will be 0 for anything on the root level, 1
+for anything down a level,&nbsp;etc.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.iter_is_valid.html">gtk_tree_store_iter_is_valid</a></h6>
+          <div class="docblock">
+            <p>purposes.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.move_after.html">gtk_tree_store_move_after</a></h6>
+          <div class="docblock">
+            <p>Moves <code>iter</code> in <code>tree_store</code> to the position after <code>position</code>. <code>iter</code> and
+<code>position</code> should be in the same level. Note that this function only
+works with unsorted stores. If <code>position</code> is <code>NULL</code>, <code>iter</code> will be moved
+to the start of the&nbsp;level.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.move_before.html">gtk_tree_store_move_before</a></h6>
+          <div class="docblock">
+            <p>Moves <code>iter</code> in <code>tree_store</code> to the position before <code>position</code>. <code>iter</code> and
+<code>position</code> should be in the same level. Note that this function only
+works with unsorted stores. If <code>position</code> is <code>NULL</code>, <code>iter</code> will be
+moved to the end of the&nbsp;level.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.prepend.html">gtk_tree_store_prepend</a></h6>
+          <div class="docblock">
+            <p>Prepends a new row to <code>tree_store</code>.  If <code>parent</code> is non-<code>NULL</code>, then it will prepend
+the new row before the first child of <code>parent</code>, otherwise it will prepend a row
+to the top level.  <code>iter</code> will be changed to point to this new row.  The row
+will be empty after this function is called.  To fill in values, you need to
+call gtk_tree_store_set() or&nbsp;gtk_tree_store_set_value().</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.remove.html">gtk_tree_store_remove</a></h6>
+          <div class="docblock">
+            <p>Removes <code>iter</code> from <code>tree_store</code>.  After being removed, <code>iter</code> is set to the
+next valid row at that level, or invalidated if it previously pointed to the
+last&nbsp;one.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.reorder.html">gtk_tree_store_reorder</a></h6>
+          <div class="docblock">
+            <p>Reorders the children of <code>parent</code> in <code>tree_store</code> to follow the order
+indicated by <code>new_order</code>. Note that this function only works with
+unsorted&nbsp;stores.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.set.html">gtk_tree_store_set</a></h6>
+          <div class="docblock">
+            <p>Sets the value of one or more cells in the row referenced by <code>iter</code>.
+The variable argument list should contain integer column numbers,
+each column number followed by the value to be set.
+The list is terminated by a -1. For example, to set column 0 with type
+<code>G_TYPE_STRING</code> to “Foo”, you would write
+<code>gtk_tree_store_set (store, iter, 0, "Foo", -1)</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.set_column_types.html">gtk_tree_store_set_column_types</a></h6>
+          <div class="docblock">
+            <p>This function is meant primarily for <code>GObjects</code> that inherit from
+<code>GtkTreeStore</code>, and should only be used when constructing a new
+<code>GtkTreeStore</code>.  It will not function after a row has been added,
+or a method on the <code>GtkTreeModel</code> interface is&nbsp;called.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.set_valist.html">gtk_tree_store_set_valist</a></h6>
+          <div class="docblock">
+            <p>See gtk_tree_store_set(); this version takes a va_list for
+use by language&nbsp;bindings.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.set_value.html">gtk_tree_store_set_value</a></h6>
+          <div class="docblock">
+            <p>Sets the data in the cell specified by <code>iter</code> and <code>column</code>.
+The type of <code>value</code> must be convertible to the type of the&nbsp;column.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.set_valuesv.html">gtk_tree_store_set_valuesv</a></h6>
+          <div class="docblock">
+            <p>A variant of gtk_tree_store_set_valist() which takes
+the columns and values as two arrays, instead of varargs.  This
+function is mainly intended for language bindings or in case
+the number of columns to change is not known until&nbsp;run-time.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.TreeStore.swap.html">gtk_tree_store_swap</a></h6>
+          <div class="docblock">
+            <p>Swaps <code>a</code> and <code>b</code> in the same level of <code>tree_store</code>. Note that this function
+only works with unsorted&nbsp;stores.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6>
+            <div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.TreeDragDest.html">GtkTreeDragDest</a> (2)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.TreeDragDest.drag_data_received.html">gtk_tree_drag_dest_drag_data_received</a></h6>
+            <div class="docblock">
+              <p>Asks the <code>GtkTreeDragDest</code> to insert a row before the path <code>dest</code>,
+deriving the contents of the row from <code>value</code>. If <code>dest</code> is
+outside the tree so that inserting before it is impossible, <code>FALSE</code>
+will be returned. Also, <code>FALSE</code> may be returned if the new row is
+not created for some model-specific reason.  Should robustly handle
+a <code>dest</code> no longer found in the&nbsp;model!.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeDragDest.row_drop_possible.html">gtk_tree_drag_dest_row_drop_possible</a></h6>
+            <div class="docblock">
+              <p>Determines whether a drop is possible before the given <code>dest_path</code>,
+at the same depth as <code>dest_path</code>. i.e., can we drop the data in
+<code>value</code> at that location. <code>dest_path</code> does not have to
+exist; the return value will almost certainly be <code>FALSE</code> if the
+parent of <code>dest_path</code> doesn’t exist,&nbsp;though.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.TreeDragSource.html">GtkTreeDragSource</a> (3)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.TreeDragSource.drag_data_delete.html">gtk_tree_drag_source_drag_data_delete</a></h6>
+            <div class="docblock">
+              <p>Asks the <code>GtkTreeDragSource</code> to delete the row at <code>path</code>, because
+it was moved somewhere else via drag-and-drop. Returns <code>FALSE</code>
+if the deletion fails because <code>path</code> no longer exists, or for
+some model-specific reason. Should robustly handle a <code>path</code> no
+longer found in the&nbsp;model!.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeDragSource.drag_data_get.html">gtk_tree_drag_source_drag_data_get</a></h6>
+            <div class="docblock">
+              <p>Asks the <code>GtkTreeDragSource</code> to return a <code>GdkContentProvider</code> representing
+the row at <code>path</code>. Should robustly handle a <code>path</code> no
+longer found in the&nbsp;model!.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeDragSource.row_draggable.html">gtk_tree_drag_source_row_draggable</a></h6>
+            <div class="docblock">
+              <p>Asks the <code>GtkTreeDragSource</code> whether a particular row can be used as
+the source of a <span class="caps">DND</span> operation. If the source doesn’t implement
+this interface, the row is assumed&nbsp;draggable.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+        <div class=" ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.TreeModel.html">GtkTreeModel</a> (28)</h5>
+
+          
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.TreeSortable.html">GtkTreeSortable</a> (6)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.TreeSortable.get_sort_column_id.html">gtk_tree_sortable_get_sort_column_id</a></h6>
+            <div class="docblock">
+              <p>Fills in <code>sort_column_id</code> and <code>order</code> with the current sort column and the
+order. It returns <code>TRUE</code> unless the <code>sort_column_id</code> is
+<code>GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID</code> or
+<code>GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID</code>.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeSortable.has_default_sort_func.html">gtk_tree_sortable_has_default_sort_func</a></h6>
+            <div class="docblock">
+              <p>Returns <code>TRUE</code> if the model has a default sort function. This is used
+primarily by GtkTreeViewColumns in order to determine if a model can
+go back to the default state, or&nbsp;not.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeSortable.set_default_sort_func.html">gtk_tree_sortable_set_default_sort_func</a></h6>
+            <div class="docblock">
+              <p>Sets the default comparison function used when sorting to be <code>sort_func</code>.
+If the current sort column id of <code>sortable</code> is
+<code>GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID</code>, then the model will sort using
+this&nbsp;function.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeSortable.set_sort_column_id.html">gtk_tree_sortable_set_sort_column_id</a></h6>
+            <div class="docblock">
+              <p>Sets the current sort column to be <code>sort_column_id</code>. The <code>sortable</code> will
+resort itself to reflect this change, after emitting a
+<code>GtkTreeSortable::sort-column-changed</code> signal. <code>sort_column_id</code> may either be
+a regular column id, or one of the following special&nbsp;values:.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeSortable.set_sort_func.html">gtk_tree_sortable_set_sort_func</a></h6>
+            <div class="docblock">
+              <p>Sets the comparison function used when sorting to be <code>sort_func</code>. If the
+current sort column id of <code>sortable</code> is the same as <code>sort_column_id</code>, then
+the model will sort using this&nbsp;function.</p>
+            </div>
+            
+          
+            <h6><a href="method.TreeSortable.sort_column_changed.html">gtk_tree_sortable_sort_column_changed</a></h6>
+            <div class="docblock">
+              <p>Emits a <code>GtkTreeSortable::sort-column-changed</code> signal on <code>sortable</code>.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkTreeStoreClass {
+  GObjectClass parent_class;
+  
+}</code></pre>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <table class="members">
+        
+        <tr>
+          <td style="vertical-align:top"><code>parent_class</code></td>
+          <td style="vertical-align:top"><pre><code>GObjectClass</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

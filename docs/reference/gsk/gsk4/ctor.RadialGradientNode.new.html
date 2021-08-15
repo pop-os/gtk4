@@ -1,0 +1,365 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gsk.RadialGradientNode.new</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gsk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gsk.RadialGradientNode.new"/>
+  <meta property="og:description" content="Reference for Gsk.RadialGradientNode.new"/>
+  <meta name="twitter:title" content="Gsk.RadialGradientNode.new"/>
+  <meta name="twitter:description" content="Reference for Gsk.RadialGradientNode.new"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gsk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.2</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.RadialGradientNode.html">RadialGradientNode</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="method current" href="ctor.RadialGradientNode.new.html">new</a>
+  
+  </div>
+</div>
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Constructor</h3>
+    <h1><a href="index.html">Gsk</a><span class="sep"></span><a href="class.RadialGradientNode.html">RadialGradientNode</a><span class="sep"></span>new</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration" style="display:flex;">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/gskrendernode.h#L270">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">GskRenderNode</span><span class="o">*</span>
+<span class="n">gsk_radial_gradient_node_new</span> <span class="p">(</span>
+  <span class="k">const</span> <span class="n">graphene_rect_t</span><span class="o">*</span> <span class="n">bounds</span><span class="p">,</span>
+  <span class="k">const</span> <span class="n">graphene_point_t</span><span class="o">*</span> <span class="n">center</span><span class="p">,</span>
+  <span class="kt">float</span> <span class="n">hradius</span><span class="p">,</span>
+  <span class="kt">float</span> <span class="n">vradius</span><span class="p">,</span>
+  <span class="kt">float</span> <span class="n">start</span><span class="p">,</span>
+  <span class="kt">float</span> <span class="n">end</span><span class="p">,</span>
+  <span class="k">const</span> <span class="n">GskColorStop</span><span class="o">*</span> <span class="n">color_stops</span><span class="p">,</span>
+  <span class="n">gsize</span> <span class="n">n_color_stops</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description" style="display:flex;">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/gskrendernodeimpl.c#L528">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Creates a <code>GskRenderNode</code> that draws a radial&nbsp;gradient.</p>
+<p>The radial gradient
+starts around <code>center</code>. The size of the gradient is dictated by <code>hradius</code>
+in horizontal orientation and by <code>vradius</code> in vertial&nbsp;orientation.</p>
+      </div>
+
+      <div class="docblock">
+        <table>
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          
+          <tr class="arg-name">
+            <td><code>bounds</code></td>
+            <td><code>const graphene_rect_t*</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The bounds of the&nbsp;node.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>center</code></td>
+            <td><code>const graphene_point_t*</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The center of the&nbsp;gradient.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>hradius</code></td>
+            <td><code>float</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The horizontal&nbsp;radius.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>vradius</code></td>
+            <td><code>float</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The vertical&nbsp;radius.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>start</code></td>
+            <td><code>float</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>A percentage &gt;= 0 that defines the start of the gradient around <code>center</code>.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>end</code></td>
+            <td><code>float</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>A percentage &gt;= 0 that defines the end of the gradient around <code>center</code>.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>color_stops</code></td>
+            <td>An array of&nbsp;<a href="struct.ColorStop.html"><code>GskColorStop</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>A pointer to an array of
+  <code>GskColorStop</code> defining the gradient. The offsets of all color stops
+  must be increasing. The first stop&#8217;s offset must be &gt;= 0 and the last
+  stop&#8217;s offset must be &lt;=&nbsp;1.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td>The length of the array is specified in the <code>n_color_stops</code> argument.</td></tr>
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>n_color_stops</code></td>
+            <td><code>gsize</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The number of elements in <code>color_stops</code>.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="returns">
+          <tr class="arg-name">
+            <td>Returns:</td>
+            <td><a href="class.RadialGradientNode.html"><code>GskRadialGradientNode</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>A new <code>GskRenderNode</code>.</p></td>
+          </tr>
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: full">The caller of the function takes ownership of the data, and is responsible for freeing it.</td></tr>
+          
+          
+        </table>
+      </div>
+    </div>
+    
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>
