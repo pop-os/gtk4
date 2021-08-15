@@ -3,6 +3,7 @@
 /*.substvars
 /.debhelper/
 /build/
+/convert-emoji
 /debhelper-build-stamp
 /files
 /gir1.2-gtk-4.0/

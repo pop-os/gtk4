@@ -2,7 +2,7 @@ Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Simon McVittie <smcv@debian.org>, Iain Lane <laney@debian.org>, Marco Trevisan (Treviño) <marco@ubuntu.com>
+Uploaders: Simon McVittie <smcv@debian.org>, Iain Lane <laney@debian.org>
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
@@ -36,6 +36,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                libgstreamer1.0-dev (>= 1.12.3),
                libgstreamer-plugins-bad1.0-dev (>= 1.12.3),
                libharfbuzz-dev (>= 0.9),
+               libjson-glib-dev:native,
                libpango1.0-dev (>= 1.47.0),
                libpolkit-gobject-1-dev (>= 0.105) [linux-any],
                librsvg2-common <!nocheck>,
