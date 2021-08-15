@@ -1,8 +1,40 @@
 gtk4 (4.3.2+ds1-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * d/watch, d/copyright: Exclude pregenerated documentation.
+    There's a lot of it, and excluding it makes the diff to review a lot
+    smaller.
+  * d/control.in: Bump meson requirement as per meson.build
+  * d/control.in: Remove build-dependencies for Google Cloud Print.
+    The service underlying this printing backend was shut down at the end
+    of 2020, so the printing backend is no longer useful and was removed
+    upstream.
+  * Drop patches that were applied upstream
+  * d/rules: Rebuild emoji data from source files.
+    This provides a straightforward way to check that we have the correct
+    source files.
+  * Disable GStreamer for the udeb build.
+    Support for VP8 and VP9 is officially part of the GTK4 API, but it seems
+    OK to provide a reduced API in debian-installer.
+  * Label the FFmpeg media backend as experimental, and only build it when
+    targeting experimental.
+    Upstream consider it to be experimental, and recommend the GStreamer
+    backend.
+  * tests: Specify locales' charsets explicitly, fixing FTBFS with new glibc.
+    glibc 2.31-14 dropped support for all non-UTF-8 locales, so we can't
+    use /usr/share/i18n/SUPPORTED to choose a suitable charset any more.
+  * Update symbols file
+  * Leave Vulkan disabled, and remove Vulkan symbols from .symbols file.
+    This is an ABI break, but GTK4 is only in experimental so far, so that
+    seems acceptable. The Vulkan renderer is marked as experimental upstream,
+    with a note that it often causes crashes in the Inspector view; this
+    sounds like something we likely don't want yet.
+  * d/rules: Override dh_fixperms to set correct permissions on /usr/libexec.
+    Making everything executable is not quite right for installed-tests.
+  * d/copyright: Update
+  * Silence a Lintian tag for documentation-like filenames among test data
 
- -- Simon McVittie <smcv@debian.org>  Sun, 15 Aug 2021 15:59:10 +0100
+ -- Simon McVittie <smcv@debian.org>  Fri, 20 Aug 2021 11:10:48 +0100
 
 gtk4 (4.3.1+ds-2) experimental; urgency=medium
 
