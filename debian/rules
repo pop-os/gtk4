@@ -82,6 +82,7 @@ configure_flags_deb = \
 	--auto-features enabled \
 	-Dbroadway-backend=true \
 	-Dman-pages=true \
+	-Dmedia-ffmpeg=enabled \
 	-Dx11-backend=true \
 	${NULL}
 
