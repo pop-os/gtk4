@@ -251,6 +251,8 @@ Description: FFmpeg media backend for the GTK graphical user interface library
  suites.
  .
  This package contains the media module that uses FFmpeg as backend.
+ This module is considered incomplete and experimental, and using the
+ @MEDIA_GSTREAMER_PKG@ module instead is recommended.
 
 Package: @EXAMPLES_PKG@
 Build-Profiles: <!noinsttest>
