@@ -511,20 +511,9 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_touchpad_event_get_type@Base 4.0.0
  gdk_touchpad_gesture_phase_get_type@Base 4.0.0
  gdk_unicode_to_keyval@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_device@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_draw_index@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_draw_semaphore@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_image@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_image_format@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_instance@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_n_images@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_physical_device@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_queue@Base 4.0.0
- (arch=linux-any)gdk_vulkan_context_get_queue_family_index@Base 4.0.0
  gdk_vulkan_context_get_type@Base 4.0.0
  gdk_vulkan_error_get_type@Base 4.0.0
  gdk_vulkan_error_quark@Base 4.0.0
- (arch=linux-any)gdk_vulkan_strerror@Base 4.0.0
  (arch=linux-any)gdk_wayland_cairo_context_get_type@Base 4.0.0
  (arch=linux-any)gdk_wayland_device_get_node_path@Base 4.0.0
  (arch=linux-any)gdk_wayland_device_get_type@Base 4.0.0
@@ -553,7 +542,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  (arch=linux-any)gdk_wayland_toplevel_set_application_id@Base 4.0.0
  (arch=linux-any)gdk_wayland_toplevel_set_transient_for_exported@Base 4.0.0
  (arch=linux-any)gdk_wayland_toplevel_unexport_handle@Base 4.0.0
- (arch=linux-any)gdk_wayland_vulkan_context_get_type@Base 4.0.0
  gdk_x11_app_launch_context_get_type@Base 4.0.0
  gdk_x11_cairo_context_get_type@Base 4.0.0
  gdk_x11_device_get_id@Base 4.0.0
@@ -622,7 +610,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_x11_surface_set_urgency_hint@Base 4.0.0
  gdk_x11_surface_set_user_time@Base 4.0.0
  gdk_x11_surface_set_utf8_property@Base 4.0.0
- (arch=linux-any)gdk_x11_vulkan_context_get_type@Base 4.0.0
  gsk_blend_mode_get_type@Base 4.0.0
  gsk_blend_node_get_blend_mode@Base 4.0.0
  gsk_blend_node_get_bottom_child@Base 4.0.0
@@ -849,8 +836,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_transform_translate@Base 4.0.0
  gsk_transform_translate_3d@Base 4.0.0
  gsk_transform_unref@Base 4.0.0
- (arch=linux-any)gsk_vulkan_renderer_get_type@Base 4.0.0
- (arch=linux-any)gsk_vulkan_renderer_new@Base 4.0.0
  gtk_about_dialog_add_credit_section@Base 4.0.0
  gtk_about_dialog_get_artists@Base 4.0.0
  gtk_about_dialog_get_authors@Base 4.0.0
