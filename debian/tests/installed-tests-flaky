@@ -16,7 +16,7 @@ debian/tests/run-with-locales \
     --generate de_DE.UTF-8 \
     --generate en_GB.UTF-8 \
     --generate en_US.UTF-8 \
-    --generate sv_SE \
+    --generate sv_SE=ISO-8859-1 \
     -- \
 debian/tests/run-with-display $GDK_BACKEND \
 gnome-desktop-testing-runner \

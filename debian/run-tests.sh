@@ -53,7 +53,7 @@ env \
                 --generate de_DE.UTF-8 \
                 --generate en_GB.UTF-8 \
                 --generate en_US.UTF-8 \
-                --generate sv_SE \
+                --generate sv_SE=ISO-8859-1 \
                 -- \
                     meson test -C "$BUILDDIR" \
                     --print-errorlogs \
