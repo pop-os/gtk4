@@ -10,6 +10,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_axis_flags_get_type@Base 4.0.0
  gdk_axis_use_get_type@Base 4.0.0
  gdk_broadway_cairo_context_get_type@Base 4.0.0
+ gdk_broadway_display_get_surface_scale@Base 4.3.2
  gdk_broadway_display_get_type@Base 4.0.0
  gdk_broadway_display_hide_keyboard@Base 4.0.0
  gdk_broadway_display_set_surface_scale@Base 4.3.1
@@ -190,6 +191,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_display_map_keyval@Base 4.0.0
  gdk_display_notify_startup_complete@Base 4.0.0
  gdk_display_open@Base 4.0.0
+ gdk_display_prepare_gl@Base 4.3.2
  gdk_display_put_event@Base 4.0.0
  gdk_display_supports_input_shapes@Base 4.0.0
  gdk_display_sync@Base 4.0.0
@@ -293,6 +295,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_gl_context_get_use_es@Base 4.0.0
  gdk_gl_context_get_version@Base 4.0.0
  gdk_gl_context_is_legacy@Base 4.0.0
+ gdk_gl_context_is_shared@Base 4.3.2
  gdk_gl_context_make_current@Base 4.0.0
  gdk_gl_context_realize@Base 4.0.0
  gdk_gl_context_set_debug_enabled@Base 4.0.0
@@ -1673,6 +1676,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_drop_target_async_set_actions@Base 4.0.0
  gtk_drop_target_async_set_formats@Base 4.0.0
  gtk_drop_target_get_actions@Base 4.0.0
+ gtk_drop_target_get_current_drop@Base 4.3.2
  gtk_drop_target_get_drop@Base 4.0.0
  gtk_drop_target_get_formats@Base 4.0.0
  gtk_drop_target_get_gtypes@Base 4.0.0
@@ -2608,9 +2612,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_media_stream_set_muted@Base 4.0.0
  gtk_media_stream_set_playing@Base 4.0.0
  gtk_media_stream_set_volume@Base 4.0.0
+ gtk_media_stream_stream_ended@Base 4.3.2
+ gtk_media_stream_stream_prepared@Base 4.3.2
+ gtk_media_stream_stream_unprepared@Base 4.3.2
  gtk_media_stream_unprepared@Base 4.0.0
  gtk_media_stream_unrealize@Base 4.0.0
  gtk_media_stream_update@Base 4.0.0
+ gtk_menu_button_get_always_show_arrow@Base 4.3.2
  gtk_menu_button_get_direction@Base 4.0.0
  gtk_menu_button_get_has_frame@Base 4.0.0
  gtk_menu_button_get_icon_name@Base 4.0.0
@@ -2623,6 +2631,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_new@Base 4.0.0
  gtk_menu_button_popdown@Base 4.0.0
  gtk_menu_button_popup@Base 4.0.0
+ gtk_menu_button_set_always_show_arrow@Base 4.3.2
  gtk_menu_button_set_create_popup_func@Base 4.0.0
  gtk_menu_button_set_direction@Base 4.0.0
  gtk_menu_button_set_has_frame@Base 4.0.0
@@ -3815,6 +3824,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_text_child_anchor_get_type@Base 4.0.0
  gtk_text_child_anchor_get_widgets@Base 4.0.0
  gtk_text_child_anchor_new@Base 4.0.0
+ gtk_text_compute_cursor_extents@Base 4.3.2
  gtk_text_direction_get_type@Base 4.0.0
  gtk_text_extend_selection_get_type@Base 4.0.0
  gtk_text_get_activates_default@Base 4.0.0
@@ -3991,12 +4001,14 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_text_view_get_left_margin@Base 4.0.0
  gtk_text_view_get_line_at_y@Base 4.0.0
  gtk_text_view_get_line_yrange@Base 4.0.0
+ gtk_text_view_get_ltr_context@Base 4.3.2
  gtk_text_view_get_monospace@Base 4.0.0
  gtk_text_view_get_overwrite@Base 4.0.0
  gtk_text_view_get_pixels_above_lines@Base 4.0.0
  gtk_text_view_get_pixels_below_lines@Base 4.0.0
  gtk_text_view_get_pixels_inside_wrap@Base 4.0.0
  gtk_text_view_get_right_margin@Base 4.0.0
+ gtk_text_view_get_rtl_context@Base 4.3.2
  gtk_text_view_get_tabs@Base 4.0.0
  gtk_text_view_get_top_margin@Base 4.0.0
  gtk_text_view_get_type@Base 4.0.0
