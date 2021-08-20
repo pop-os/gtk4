@@ -5,6 +5,7 @@ include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 include /usr/share/dpkg/default.mk
 include /usr/share/dpkg/pkg-info.mk
 
+dh_options =
 built_binaries := $(shell dh_listpackages)
 all_binaries := $(shell sed -ne 's/^Package: *//p' < debian/control)
 
@@ -52,6 +53,17 @@ README.md := README.md$(shell find -maxdepth 1 -size +4k -name README.md -exec e
 # corresponding ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
+# Upstream consider the ffmpeg backend to be experimental, let's not
+# inflict that on suites other than experimental.
+ifeq (,$(filter-out experimental UNRELEASED,$(DEB_DISTRIBUTION)))
+$(info Enabling ffmpeg because this is an experimental or UNRELEASED build)
+media_ffmpeg = enabled
+else
+$(info Disabling ffmpeg by default)
+media_ffmpeg = disabled
+dh_options += -N$(MEDIA_FFMPEG_PKG)
+endif
+
 debian/%: debian/%.in
 	dh_testdir
 	sed \
@@ -82,7 +94,7 @@ configure_flags_deb = \
 	--auto-features enabled \
 	-Dbroadway-backend=true \
 	-Dman-pages=true \
-	-Dmedia-ffmpeg=enabled \
+	-Dmedia-ffmpeg=$(media_ffmpeg) \
 	-Dx11-backend=true \
 	${NULL}
 
@@ -138,7 +150,7 @@ configure_flags_udeb = \
 	$(NULL)
 
 %:
-	dh $@ --with gir --buildsystem=meson
+	dh $@ --with gir --buildsystem=meson $(dh_options)
 
 override_dh_clean: debian/control
 	# gross kludge to force control generation with the %.in target
