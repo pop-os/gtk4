@@ -252,6 +252,14 @@ override_dh_install:
 	dh_install -p$(UDEB_PKG) --sourcedir=debian/install/udeb
 	dh_install --remaining-packages --sourcedir=debian/install/deb
 
+# debhelper >= 13.4 makes all of /usr/libexec executable, which is not
+# quite right for installed-tests
+override_dh_fixperms:
+	dh_fixperms -Xusr/libexec/installed-tests
+ifneq ($(filter %-tests,$(binaries)),)
+	chmod --recursive --changes a+rX,u+w,og-w debian/*-tests/usr/libexec/installed-tests
+endif
+
 override_dh_missing:
 ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_missing --sourcedir=debian/install/udeb --list-missing -X.la
