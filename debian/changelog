@@ -1,4 +1,4 @@
-gtk4 (4.3.2+ds1-1) UNRELEASED; urgency=medium
+gtk4 (4.3.2+ds1-1) experimental; urgency=medium
 
   * New upstream release
   * d/watch, d/copyright: Exclude pregenerated documentation.
@@ -34,7 +34,7 @@ gtk4 (4.3.2+ds1-1) UNRELEASED; urgency=medium
   * d/copyright: Update
   * Silence a Lintian tag for documentation-like filenames among test data
 
- -- Simon McVittie <smcv@debian.org>  Fri, 20 Aug 2021 11:10:48 +0100
+ -- Simon McVittie <smcv@debian.org>  Fri, 20 Aug 2021 11:43:41 +0100
 
 gtk4 (4.3.1+ds-2) experimental; urgency=medium
 
