@@ -494,10 +494,10 @@ Copyright:
 License: Expat or unlicense
 
 Files:
- demos/gtk-demo/org.gtk.Demo4.appdata.xml
- demos/icon-browser/org.gtk.IconBrowser4.appdata.xml
+ demos/gtk-demo/org.gtk.Demo4.appdata.xml.in
+ demos/icon-browser/org.gtk.IconBrowser4.appdata.xml.in
  demos/print-editor/org.gtk.PrintEditor4.appdata.xml
- demos/widget-factory/org.gtk.WidgetFactory4.appdata.xml
+ demos/widget-factory/org.gtk.WidgetFactory4.appdata.xml.in
 Copyright: unspecified
 License: CC0-1.0
 
