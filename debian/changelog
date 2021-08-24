@@ -1,8 +1,14 @@
 gtk4 (4.4.0+ds1-1) UNRELEASED; urgency=medium
 
-  * New upstream release
+  * New upstream stable release
+  * d/control.in: Update dependencies
+  * d/copyright: Update
+  * d/watch: Only watch for stable releases.
+    If we want GTK 4.4.x to move to unstable any time soon, we should
+    avoid packaging GTK 4.5.x when it becomes available.
+  * d/tests: Fix variable reference in dh_fixperms override
 
- -- Simon McVittie <smcv@debian.org>  Tue, 24 Aug 2021 09:16:29 +0100
+ -- Simon McVittie <smcv@debian.org>  Tue, 24 Aug 2021 10:03:58 +0100
 
 gtk4 (4.3.2+ds1-1) experimental; urgency=medium
 
