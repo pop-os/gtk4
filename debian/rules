@@ -268,7 +268,7 @@ override_dh_install:
 # quite right for installed-tests
 override_dh_fixperms:
 	dh_fixperms -Xusr/libexec/installed-tests
-ifneq ($(filter %-tests,$(binaries)),)
+ifneq ($(filter %-tests,$(built_binaries)),)
 	chmod --recursive --changes a+rX,u+w,og-w debian/*-tests/usr/libexec/installed-tests
 endif
 
