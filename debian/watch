@@ -1,4 +1,4 @@
 version=4
 opts="repack,dversionmangle=s/[~+](?:dfsg|ds)[0-9]*//g,repacksuffix=+ds1" \
-https://download.gnome.org/sources/gtk/(\d[\d\.]+)/ \
+https://download.gnome.org/sources/gtk/(\d[\d\.]+[02468])/ \
 	gtk-@ANY_VERSION@\.tar\.xz
