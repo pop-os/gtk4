@@ -43,6 +43,7 @@
 #include "gdkmonitorprivate.h"
 #include "gdkwin32surface.h"
 #include "gdkwin32cursor.h"
+#include "gdkinput-winpointer.h"
 #include "gdkglcontext-win32.h"
 #include "gdkdisplay-win32.h"
 #include "gdkdevice-win32.h"
@@ -204,7 +205,6 @@ gdk_surface_win32_finalize (GObject *object)
     }
 
   _gdk_win32_surface_unregister_dnd (GDK_SURFACE (surface));
-  g_clear_object (&surface->drop);
 
   g_assert (surface->transient_owner == NULL);
   g_assert (surface->transient_children == NULL);
@@ -645,6 +645,9 @@ _gdk_win32_display_create_surface (GdkDisplay     *display,
       g_object_unref (impl);
       return NULL;
     }
+
+  if (display_win32->tablet_input_api == GDK_WIN32_TABLET_INPUT_API_WINPOINTER)
+    gdk_winpointer_initialize_surface (surface);
 
   _gdk_win32_surface_enable_transparency (surface);
   _gdk_win32_surface_register_dnd (surface);

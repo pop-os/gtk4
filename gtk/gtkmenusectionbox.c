@@ -34,6 +34,7 @@
 #include "gtkbuiltiniconprivate.h"
 #include "gtkgizmoprivate.h"
 #include "gtkbinlayout.h"
+#include "gtkprivate.h"
 
 typedef GtkBoxClass GtkMenuSectionBoxClass;
 
@@ -175,7 +176,7 @@ gtk_menu_section_box_schedule_separator_sync (GtkMenuSectionBox *box)
       box->separator_sync_idle = g_idle_add_full (G_PRIORITY_HIGH_IDLE, /* before resize... */
                                                   gtk_menu_section_box_handle_sync_separators,
                                                   box, NULL);
-      g_source_set_name_by_id (box->separator_sync_idle, "[gtk] menu section box handle sync separators");
+      gdk_source_set_static_name_by_id (box->separator_sync_idle, "[gtk] menu section box handle sync separators");
     }
 }
 
@@ -308,6 +309,25 @@ submenu_hidden (GtkPopoverMenu     *popover,
     gtk_menu_tracker_item_request_submenu_shown (item, FALSE);
 }
 
+/* We're using the gizmo as an easy single child container, not as
+ * a custom widget to draw some visual indicators (like markers).
+ * As such its default focus functions blocks focus through the children,
+ * so we need to handle it correctly here so that custom widgets inside
+ * menus can be focused.
+ */
+static gboolean
+custom_widget_focus (GtkGizmo        *gizmo,
+                     GtkDirectionType direction)
+{
+  return gtk_widget_focus_child (GTK_WIDGET (gizmo), direction);
+}
+
+static gboolean
+custom_widget_grab_focus (GtkGizmo *gizmo)
+{
+  return gtk_widget_grab_focus_child (GTK_WIDGET (gizmo));
+}
+
 static void
 gtk_menu_section_box_insert_func (GtkMenuTrackerItem *item,
                                   int                 position,
@@ -368,7 +388,7 @@ gtk_menu_section_box_insert_func (GtkMenuTrackerItem *item,
     {
       const char *id = gtk_menu_tracker_item_get_custom (item);
 
-      widget = gtk_gizmo_new ("widget", NULL, NULL, NULL, NULL, NULL, NULL);
+      widget = gtk_gizmo_new ("widget", NULL, NULL, NULL, NULL, custom_widget_focus, custom_widget_grab_focus);
       gtk_widget_set_layout_manager (widget, gtk_bin_layout_new ());
 
       if (g_hash_table_lookup (box->custom_slots, id))

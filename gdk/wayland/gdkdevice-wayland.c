@@ -460,6 +460,7 @@ gdk_wayland_device_update_surface_cursor (GdkDevice *device)
           pointer->cursor_timeout_id == 0)
         {
           guint id;
+          GSource *source;
 
           gdk_wayland_pointer_stop_cursor_animation (pointer);
 
@@ -467,7 +468,8 @@ gdk_wayland_device_update_surface_cursor (GdkDevice *device)
           id = g_timeout_add (next_image_delay,
                               (GSourceFunc) gdk_wayland_device_update_surface_cursor,
                               device);
-          g_source_set_name_by_id (id, "[gtk] gdk_wayland_device_update_surface_cursor");
+          source = g_main_context_find_source_by_id (NULL, id);
+          g_source_set_static_name (source, "[gtk] gdk_wayland_device_update_surface_cursor");
           pointer->cursor_timeout_id = id;
         }
       else
@@ -2218,7 +2220,7 @@ deliver_key_event (GdkWaylandSeat *seat,
   timeout = (seat->repeat_deadline - now) / 1000L;
 
   seat->repeat_timer = g_timeout_add (timeout, keyboard_repeat, seat);
-  g_source_set_name_by_id (seat->repeat_timer, "[gtk] keyboard_repeat");
+  gdk_source_set_static_name_by_id (seat->repeat_timer, "[gtk] keyboard_repeat");
 }
 
 static void
@@ -2633,6 +2635,23 @@ touch_handle_cancel (void            *data,
 }
 
 static void
+touch_handle_shape (void            *data,
+                    struct wl_touch *touch,
+                    int32_t         id,
+                    wl_fixed_t      major,
+                    wl_fixed_t      minor)
+{
+}
+
+static void
+touch_handle_orientation (void            *data,
+                          struct wl_touch *touch,
+                          int32_t         id,
+                          wl_fixed_t      orientation)
+{
+}
+
+static void
 emit_gesture_swipe_event (GdkWaylandSeat          *seat,
                           GdkTouchpadGesturePhase  phase,
                           guint32                  _time,
@@ -3019,7 +3038,9 @@ static const struct wl_touch_listener touch_listener = {
   touch_handle_up,
   touch_handle_motion,
   touch_handle_frame,
-  touch_handle_cancel
+  touch_handle_cancel,
+  touch_handle_shape,
+  touch_handle_orientation,
 };
 
 static const struct zwp_pointer_gesture_swipe_v1_listener gesture_swipe_listener = {

@@ -867,7 +867,7 @@ gtk_text_class_init (GtkTextClass *class)
    *
    * Which IM (input method) module should be used for this self.
    *
-   * See [class@Gtk.IMContext].
+   * See [class@Gtk.IMMulticontext].
    *
    * Setting this to a non-%NULL value overrides the system-wide
    * IM module setting. See the [property@Gtk.Settings:gtk-im-module]
@@ -3636,7 +3636,7 @@ buffer_inserted_text (GtkEntryBuffer *buffer,
           password_hint->source_id = g_timeout_add (password_hint_timeout,
                                                     (GSourceFunc)gtk_text_remove_password_hint,
                                                     self);
-          g_source_set_name_by_id (password_hint->source_id, "[gtk] gtk_text_remove_password_hint");
+          gdk_source_set_static_name_by_id (password_hint->source_id, "[gtk] gtk_text_remove_password_hint");
         }
     }
 }
@@ -5049,39 +5049,40 @@ gtk_text_move_visually (GtkText *self,
   int index;
   PangoLayout *layout = gtk_text_ensure_layout (self, FALSE);
   const char *text;
+  gboolean split_cursor;
+  gboolean strong;
 
   text = pango_layout_get_text (layout);
-  
+
   index = g_utf8_offset_to_pointer (text, start) - text;
+
+
+  g_object_get (gtk_widget_get_settings (GTK_WIDGET (self)),
+                "gtk-split-cursor", &split_cursor,
+                NULL);
+
+  if (split_cursor)
+    strong = TRUE;
+  else
+    {
+      GdkDisplay *display;
+      GdkSeat *seat;
+      GdkDevice *keyboard = NULL;
+      PangoDirection direction = PANGO_DIRECTION_LTR;
+
+      display = gtk_widget_get_display (GTK_WIDGET (self));
+      seat = gdk_display_get_default_seat (display);
+      if (seat)
+        keyboard = gdk_seat_get_keyboard (seat);
+      if (keyboard)
+        direction = gdk_device_get_direction (keyboard);
+
+      strong = direction == priv->resolved_dir;
+    }
 
   while (count != 0)
     {
       int new_index, new_trailing;
-      gboolean split_cursor;
-      gboolean strong;
-
-      g_object_get (gtk_widget_get_settings (GTK_WIDGET (self)),
-                    "gtk-split-cursor", &split_cursor,
-                    NULL);
-
-      if (split_cursor)
-        strong = TRUE;
-      else
-        {
-          GdkDisplay *display;
-          GdkSeat *seat;
-          GdkDevice *keyboard = NULL;
-          PangoDirection direction = PANGO_DIRECTION_LTR;
-
-          display = gtk_widget_get_display (GTK_WIDGET (self));
-          seat = gdk_display_get_default_seat (display);
-          if (seat)
-            keyboard = gdk_seat_get_keyboard (seat);
-          if (keyboard)
-            direction = gdk_device_get_direction (keyboard);
-
-          strong = direction == priv->resolved_dir;
-        }
 
       if (count > 0)
         {
@@ -5098,11 +5099,11 @@ gtk_text_move_visually (GtkText *self,
         index = 0;
       else if (new_index != G_MAXINT)
         index = new_index;
-      
+
       while (new_trailing--)
         index = g_utf8_next_char (text + index) - text;
     }
-  
+
   return g_utf8_pointer_to_offset (text, text + index);
 }
 
@@ -6285,7 +6286,7 @@ gtk_text_selection_bubble_popup_set (GtkText *self)
 
   priv->selection_bubble_timeout_id =
     g_timeout_add (50, gtk_text_selection_bubble_popup_show, self);
-  g_source_set_name_by_id (priv->selection_bubble_timeout_id, "[gtk] gtk_text_selection_bubble_popup_cb");
+  gdk_source_set_static_name_by_id (priv->selection_bubble_timeout_id, "[gtk] gtk_text_selection_bubble_popup_cb");
 }
 
 static void
