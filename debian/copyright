@@ -360,7 +360,7 @@ Copyright:
  2016-2020 The CRoaring authors
  2004-2020 The GNOME Foundation
  2007-2010 The GNOME Project
- 1997-2019 The GTK Team
+ 1997-2021 The GTK Team
  1986-1998 The Open Group
  1992-1994 The Regents of the University of California.
  2005-2010 Theppitak Karoonboonyanan
@@ -404,7 +404,7 @@ Copyright:
  2005 Арангел Ангов
  2017-2019 Руслан Ижбулатов (LRN)
  2000 辛立仁
-License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0 and CC0-1.0
+License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0 and CC0-1.0 and ZPL-2.1
 
 License: LGPL-2+
  This library is free software; you can redistribute it and/or modify it
@@ -997,3 +997,24 @@ License: CC-BY-SA-3.0
      this trademark restriction does not form part of the License.
  .
      Creative Commons may be contacted at https://creativecommons.org/.
+
+License: ZPL-2.1
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+    1. Redistributions in source code must retain the accompanying copyright
+       notice, this list of conditions, and the following disclaimer.
+    2. Redistributions in binary form must reproduce the accompanying
+       copyright notice, this list of conditions, and the following disclaimer
+       in the documentation and/or other materials provided with the
+       distribution.
+    3. Names of the copyright holders must not be used to endorse or promote
+       products derived from this software without prior written permission
+       from the copyright holders.
+    4. The right to distribute this software or to use it for any purpose does
+       not give you the right to use Servicemarks (sm) or Trademarks (tm) of
+       the copyright holders.  Use of them is covered by separate agreement
+       with the copyright holders.
+    5. If any files are modified, you must cause the modified files to carry
+       prominent notices stating that you changed the files and the date of
+       any change.
