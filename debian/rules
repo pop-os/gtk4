@@ -46,8 +46,8 @@ export TESTS_PKG := gtk-$(APIVER)-tests
 
 # files larger than 4k in size will be compressed by dh_compress
 # so append a .gz suffix to avoid dangling symlinks
-NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
-README.md := README.md$(shell find -maxdepth 1 -size +4k -name README.md -exec echo ".gz" \;)
+export NEWS_MAYBE_GZ := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
+export README_MD_MAYBE_GZ := README.md$(shell find -maxdepth 1 -size +4k -name README.md -exec echo ".gz" \;)
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
 # corresponding ".in" file; pass the list of packages in $(1)
