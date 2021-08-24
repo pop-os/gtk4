@@ -1,2 +1,2 @@
-usr/share/doc/${env:COMMON_PKG}/${env:NEWS_MAYBE_GZ} usr/share/doc/${env:BIN_PKG}/${env:NEWS_MAYBE_GZ}
+usr/share/doc/${env:COMMON_PKG}/NEWS.gz usr/share/doc/${env:BIN_PKG}/NEWS.gz
 usr/share/doc/${env:COMMON_PKG}/${env:README_MD_MAYBE_GZ} usr/share/doc/${env:BIN_PKG}/${env:README_MD_MAYBE_GZ}
