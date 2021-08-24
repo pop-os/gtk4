@@ -82,6 +82,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_content_formats_match_mime_type@Base 4.0.0
  gdk_content_formats_new@Base 4.0.0
  gdk_content_formats_new_for_gtype@Base 4.0.0
+ gdk_content_formats_parse@Base 4.4.0
  gdk_content_formats_print@Base 4.0.0
  gdk_content_formats_ref@Base 4.0.0
  gdk_content_formats_to_string@Base 4.0.0
@@ -463,6 +464,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_texture_new_from_file@Base 4.0.0
  gdk_texture_new_from_resource@Base 4.0.0
  gdk_texture_save_to_png@Base 4.0.0
+ gdk_titlebar_gesture_get_type@Base 4.4.0
  gdk_toplevel_begin_move@Base 4.0.0
  gdk_toplevel_begin_resize@Base 4.0.0
  gdk_toplevel_focus@Base 4.0.0
@@ -501,6 +503,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_toplevel_size_set_size@Base 4.0.0
  gdk_toplevel_state_get_type@Base 4.0.0
  gdk_toplevel_supports_edge_constraints@Base 4.0.0
+ gdk_toplevel_titlebar_gesture@Base 4.4.0
  gdk_touch_event_get_emulating_pointer@Base 4.0.0
  gdk_touch_event_get_type@Base 4.0.0
  gdk_touchpad_event_get_deltas@Base 4.0.0
