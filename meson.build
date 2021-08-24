@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.3.2',
+        version: '4.4.0',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -17,7 +17,7 @@ cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
 wayland_proto_req  = '>= 1.21'
-wayland_req        = '>= 1.14.91'
+wayland_req        = '>= 1.16.91'
 graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
 cloudproviders_req = '>= 0.3.1'
@@ -396,7 +396,7 @@ pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
                             default_options: ['png=enabled', 'jpeg=enabled', 'builtin_loaders=png,jpeg', 'man=false'])
 epoxy_dep      = dependency('epoxy', version: epoxy_req,
                             fallback: ['libepoxy', 'libepoxy_dep'])
-harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false,
+harfbuzz_dep   = dependency('harfbuzz', version: '>= 2.1.0', required: false,
                             fallback: ['harfbuzz', 'libharfbuzz_dep'],
                             default_options: ['coretext=enabled'])
 xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled)

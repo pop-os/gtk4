@@ -40,14 +40,20 @@
  *
  * `GtkIMContextSimple` is an input method supporting table-based input methods.
  *
- * `GtkIMContextSimple` has a built-in table of compose sequences that is
- * derived from the X11 Compose files.
+ * ## Compose sequences
  *
- * `GtkIMContextSimple` reads additional compose sequences from the first of the
+ * `GtkIMContextSimple` reads compose sequences from the first of the
  * following files that is found: ~/.config/gtk-4.0/Compose, ~/.XCompose,
  * /usr/share/X11/locale/$locale/Compose (for locales that have a nontrivial
  * Compose file). The syntax of these files is described in the Compose(5)
  * manual page.
+ *
+ * If none of these files is found, `GtkIMContextSimple` uses a built-in table
+ * of compose sequences that is derived from the X11 Compose files.
+ *
+ * Note that compose sequences typically start with the Compose_key, which is
+ * often not available as a dedicated key on keyboards. Keyboard layouts may
+ * map this keysym to other keys, such as the right Control key.
  *
  * ## Unicode characters
  *
@@ -60,11 +66,20 @@
  *     Ctrl-Shift-u 1 2 3 Enter
  *
  * yields U+0123 LATIN SMALL LETTER G WITH CEDILLA, i.e. ģ.
+ *
+ * ## Dead keys
+ *
+ * `GtkIMContextSimple` supports dead keys. For example, typing
+ *
+ *     dead_acute a
+ *
+ *  yields U+00E! LATIN SMALL LETTER_A WITH ACUTE, i.e. á. Note that this
+ *  depends on the keyboard layout including dead keys.
  */
 
 struct _GtkIMContextSimplePrivate
 {
-  guint16       *compose_buffer;
+  guint         *compose_buffer;
   int            compose_buffer_len;
   GString       *tentative_match;
   int            tentative_match_len;
@@ -74,22 +89,36 @@ struct _GtkIMContextSimplePrivate
   guint          modifiers_dropped : 1;
 };
 
-/* From the values below, the value 30 means the number of different first keysyms
- * that exist in the Compose file (from Xorg). When running compose-parse.py without
- * parameters, you get the count that you can put here. Needed when updating the
- * gtkimcontextsimpleseqs.h header file (contains the compose sequences).
- */
-const GtkComposeTableCompact gtk_compose_table_compact = {
-  gtk_compose_seqs_compact,
-  5,
-  30,
-  6
+#include "gtk/compose/gtkcomposedata.h"
+
+GtkComposeTable builtin_compose_table = {
+  NULL,
+  NULL,
+  MAX_SEQ_LEN,
+  N_INDEX_SIZE,
+  DATA_SIZE,
+  N_CHARS,
+  0
 };
+
+static void
+init_builtin_table (void)
+{
+  GBytes *bytes;
+
+  bytes = g_resources_lookup_data ("/org/gtk/libgtk/compose/sequences", 0, NULL);
+  builtin_compose_table.data = (guint16 *) g_bytes_get_data (bytes, NULL);
+  g_bytes_unref (bytes);
+
+  bytes = g_resources_lookup_data ("/org/gtk/libgtk/compose/chars", 0, NULL);
+  builtin_compose_table.char_data = (char *) g_bytes_get_data (bytes, NULL);
+  g_bytes_unref (bytes);
+}
 
 G_LOCK_DEFINE_STATIC (global_tables);
 static GSList *global_tables;
 
-static const guint16 gtk_compose_ignore[] = {
+static const guint gtk_compose_ignore[] = {
   0, /* Yes, XKB will send us key press events with NoSymbol :( */
   GDK_KEY_Overlay1_Enable,
   GDK_KEY_Overlay2_Enable,
@@ -146,6 +175,7 @@ gtk_im_context_simple_class_init (GtkIMContextSimpleClass *class)
   im_context_class->get_preedit_string = gtk_im_context_simple_get_preedit_string;
   gobject_class->finalize = gtk_im_context_simple_finalize;
 
+  init_builtin_table ();
   init_compose_table_async (NULL, NULL, NULL);
 }
 
@@ -163,6 +193,75 @@ get_x11_compose_file_dir (void)
   return compose_file_dir;
 }
 
+static int
+gtk_compose_table_find (gconstpointer data1,
+                        gconstpointer data2)
+{
+  const GtkComposeTable *compose_table = (const GtkComposeTable *) data1;
+  guint32 hash = (guint32) GPOINTER_TO_INT (data2);
+  return compose_table->id != hash;
+}
+
+static gboolean
+add_compose_table_from_file (const char *compose_file)
+{
+  guint hash;
+  gboolean ret = FALSE;
+
+  G_LOCK (global_tables);
+
+  hash = g_str_hash (compose_file);
+  if (!g_slist_find_custom (global_tables, GINT_TO_POINTER (hash), gtk_compose_table_find))
+    {
+      GtkComposeTable *table;
+
+      table = gtk_compose_table_new_with_file (compose_file);
+
+      if (table)
+        {
+          ret = TRUE;
+          global_tables = g_slist_prepend (global_tables, table);
+        }
+    }
+
+  G_UNLOCK (global_tables);
+
+  return ret;
+}
+
+static void
+add_builtin_compose_table (void)
+{
+  G_LOCK (global_tables);
+
+  global_tables = g_slist_prepend (global_tables, &builtin_compose_table);
+
+  G_UNLOCK (global_tables);
+}
+
+static void
+add_compose_table_from_data (guint16 *data,
+                             int      max_seq_len,
+                             int      n_seqs)
+{
+  guint hash;
+
+  G_LOCK (global_tables);
+
+  hash = gtk_compose_table_data_hash (data, max_seq_len, n_seqs);
+  if (!g_slist_find_custom (global_tables, GINT_TO_POINTER (hash), gtk_compose_table_find))
+    {
+      GtkComposeTable *table;
+
+      table = gtk_compose_table_new_with_data (data, max_seq_len, n_seqs);
+
+      if (table)
+        global_tables = g_slist_prepend (global_tables, table);
+    }
+
+  G_UNLOCK (global_tables);
+}
+
 static void
 gtk_im_context_simple_init_compose_table (void)
 {
@@ -171,6 +270,7 @@ gtk_im_context_simple_init_compose_table (void)
   const char *locale;
   char **langs = NULL;
   char **lang = NULL;
+  gboolean added;
   const char * const sys_langs[] = { "el_gr", "fi_fi", "pt_br", NULL };
   const char * const *sys_lang = NULL;
   char *x11_compose_file_dir = get_x11_compose_file_dir ();
@@ -178,12 +278,10 @@ gtk_im_context_simple_init_compose_table (void)
   path = g_build_filename (g_get_user_config_dir (), "gtk-4.0", "Compose", NULL);
   if (g_file_test (path, G_FILE_TEST_EXISTS))
     {
-      G_LOCK (global_tables);
-      global_tables = gtk_compose_table_list_add_file (global_tables, path);
-      G_UNLOCK (global_tables);
-
+      added = add_compose_table_from_file (path);
       g_free (path);
-      return;
+      if (added)
+        return;
     }
   g_clear_pointer (&path, g_free);
 
@@ -194,11 +292,10 @@ gtk_im_context_simple_init_compose_table (void)
   path = g_build_filename (home, ".XCompose", NULL);
   if (g_file_test (path, G_FILE_TEST_EXISTS))
     {
-      G_LOCK (global_tables);
-      global_tables = gtk_compose_table_list_add_file (global_tables, path);
-      G_UNLOCK (global_tables);
+      added = add_compose_table_from_file (path);
       g_free (path);
-      return;
+      if (added)
+        return;
     }
   g_clear_pointer (&path, g_free);
 
@@ -241,11 +338,13 @@ gtk_im_context_simple_init_compose_table (void)
 
   if (path != NULL)
     {
-      G_LOCK (global_tables);
-      global_tables = gtk_compose_table_list_add_file (global_tables, path);
-      G_UNLOCK (global_tables);
+      added = add_compose_table_from_file (path);
+      g_free (path);
     }
-  g_clear_pointer (&path, g_free);
+  if (added)
+    return;
+
+  add_builtin_compose_table ();
 }
 
 static void
@@ -284,8 +383,8 @@ gtk_im_context_simple_init (GtkIMContextSimple *context_simple)
 
   priv = context_simple->priv = gtk_im_context_simple_get_instance_private (context_simple);
 
-  priv->compose_buffer_len = gtk_compose_table_compact.max_seq_len + 1;
-  priv->compose_buffer = g_new0 (guint16, priv->compose_buffer_len);
+  priv->compose_buffer_len = builtin_compose_table.max_seq_len + 1;
+  priv->compose_buffer = g_new0 (guint, priv->compose_buffer_len);
   priv->tentative_match = g_string_new ("");
   priv->tentative_match_len = 0;
 }
@@ -445,18 +544,22 @@ is_dead_key (guint keysym)
   return GDK_KEY_dead_grave <= keysym && keysym <= GDK_KEY_dead_greek;
 }
 
-static gunichar
-dead_key_to_unicode (guint     keysym,
-                     gboolean *need_space)
+static void
+append_dead_key (GString *string,
+                 guint    keysym)
 {
   /* Sadly, not all the dead keysyms have spacing mark equivalents
-   * in Unicode. For those that don't, we use space + the non-spacing
-   * mark as an approximation
+   * in Unicode. For those that don't, we use NBSP + the non-spacing
+   * mark as an approximation.
    */
   switch (keysym)
     {
-#define CASE(keysym, unicode, sp) \
-    case GDK_KEY_dead_##keysym: *need_space = sp; return unicode;
+#define CASE(keysym, unicode, sp)                \
+    case GDK_KEY_dead_##keysym:                  \
+      if (sp)                                    \
+        g_string_append_unichar (string, 0xA0);  \
+      g_string_append_unichar (string, unicode); \
+      break;
 
     CASE (grave, 0x60, 0);
     CASE (acute, 0xb4, 0);
@@ -507,8 +610,7 @@ dead_key_to_unicode (guint     keysym,
     CASE (capital_schwa, 0x1dea, 1);
 #undef CASE
     default:
-      *need_space = FALSE;
-      return gdk_keyval_to_unicode (keysym);
+      g_string_append_unichar (string, gdk_keyval_to_unicode (keysym));
     }
 }
 
@@ -523,7 +625,7 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
   guint keyval;
 
   context = GTK_IM_CONTEXT (context_simple);
-  
+
   priv->in_compose_sequence = FALSE;
 
   /* No compose sequences found, check first if we have a partial
@@ -533,12 +635,12 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
     {
       int len = priv->tentative_match_len;
       int i;
-      guint16 *compose_buffer;
+      guint *compose_buffer;
       char *str;
 
-      compose_buffer = alloca (sizeof (guint16) * priv->compose_buffer_len);
+      compose_buffer = alloca (sizeof (guint) * priv->compose_buffer_len);
 
-      memcpy (compose_buffer, priv->compose_buffer, sizeof (guint16) * priv->compose_buffer_len);
+      memcpy (compose_buffer, priv->compose_buffer, sizeof (guint) * priv->compose_buffer_len);
 
       str = g_strdup (priv->tentative_match->str);
       gtk_im_context_simple_commit_string (context_simple, str);
@@ -576,7 +678,6 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
 
       if (n_compose > 1 && i >= n_compose - 1)
         {
-          gboolean need_space;
           GString *s;
 
           s = g_string_new ("");
@@ -585,15 +686,7 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
             {
               /* dead keys are never *really* dead */
               for (int j = 0; j < i; j++)
-                {
-                  ch = dead_key_to_unicode (priv->compose_buffer[j], &need_space);
-                  if (ch)
-                    {
-                      if (need_space)
-                        g_string_append_c (s, ' ');
-                      g_string_append_unichar (s, ch);
-                    }
-                }
+                append_dead_key (s, priv->compose_buffer[j]);
 
               ch = gdk_keyval_to_unicode (priv->compose_buffer[i]);
               if (ch != 0 && ch != ' ' && !g_unichar_iscntrl (ch))
@@ -603,14 +696,7 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
             }
           else
             {
-              ch = dead_key_to_unicode (priv->compose_buffer[0], &need_space);
-              if (ch)
-                {
-                  if (need_space)
-                    g_string_append_c (s, ' ');
-                  g_string_append_unichar (s, ch);
-                }
-
+              append_dead_key (s, priv->compose_buffer[0]);
               gtk_im_context_simple_commit_string (context_simple, s->str);
 
               for (i = 1; i < n_compose; i++)
@@ -722,7 +808,6 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   int i;
   gboolean compose_finish;
   gboolean compose_match;
-  gunichar output_char;
   guint keyval, state;
 
   while (priv->compose_buffer[n_compose] != 0 && n_compose < priv->compose_buffer_len)
@@ -902,16 +987,22 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   
       return TRUE;
     }
-  
+
+  if (is_escape)
+    {
+      if (priv->in_hex_sequence || priv->in_compose_sequence)
+        {
+	  gtk_im_context_simple_reset (context);
+	  return TRUE;
+        }
+
+      return FALSE;
+    }
+
   if (priv->in_hex_sequence)
     {
       if (hex_keyval && n_compose < 6)
 	priv->compose_buffer[n_compose++] = hex_keyval;
-      else if (is_escape)
-	{
-	  gtk_im_context_simple_reset (context);
-	  return TRUE;
-	}
       else if (!is_hex_end)
 	{
 	  /* non-hex character in hex sequence, or sequence too long */
@@ -924,7 +1015,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
       if (n_compose + 1 == priv->compose_buffer_len)
         {
           priv->compose_buffer_len += 1;
-          priv->compose_buffer = g_renew (guint16, priv->compose_buffer, priv->compose_buffer_len);
+          priv->compose_buffer = g_renew (guint, priv->compose_buffer, priv->compose_buffer_len);
         }
 
       priv->compose_buffer[n_compose++] = keyval;
@@ -972,6 +1063,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   else /* Then, check for compose sequences */
     {
       gboolean success = FALSE;
+      int prefix = 0;
       GString *output;
 
       output = g_string_new ("");
@@ -1010,21 +1102,29 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
               success = TRUE;
               break;
             }
+          else
+            {
+              int table_prefix;
+
+              gtk_compose_table_get_prefix ((GtkComposeTable *)tmp_list->data,
+                                            priv->compose_buffer, n_compose,
+                                            &table_prefix);
+
+              prefix = MAX (prefix, table_prefix);
+            }
 
           tmp_list = tmp_list->next;
         }
 
       G_UNLOCK (global_tables);
 
-      g_string_free (output, TRUE);
-
       if (success)
-        return TRUE;
+        {
+          g_string_free (output, TRUE);
+          return TRUE;
+        }
 
-      if (gtk_compose_table_compact_check (&gtk_compose_table_compact,
-                                           priv->compose_buffer, n_compose,
-                                           &compose_finish, &compose_match,
-                                           &output_char))
+      if (gtk_check_algorithmically (priv->compose_buffer, n_compose, output))
         {
           if (!priv->in_compose_sequence)
             {
@@ -1032,37 +1132,29 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
               g_signal_emit_by_name (context_simple, "preedit-start");
             }
 
-          if (compose_finish)
-            {
-              if (compose_match)
-                gtk_im_context_simple_commit_char (context_simple, output_char);
-            }
+          if (output->len > 0)
+            gtk_im_context_simple_commit_string (context_simple, output->str);
           else
-            {
-              if (compose_match)
-                {
-                  g_string_set_size (priv->tentative_match, 0);
-                  g_string_append_unichar (priv->tentative_match, output_char);
-                  priv->tentative_match_len = n_compose;
-                }
-              g_signal_emit_by_name (context_simple, "preedit-changed");
-            }
+            g_signal_emit_by_name (context_simple, "preedit-changed");
+
+          g_string_free (output, TRUE);
 
           return TRUE;
         }
 
-      if (gtk_check_algorithmically (priv->compose_buffer, n_compose, &output_char))
-        {
-          if (!priv->in_compose_sequence)
-            {
-              priv->in_compose_sequence = TRUE;
-              g_signal_emit_by_name (context_simple, "preedit-start");
-            }
+      g_string_free (output, TRUE);
 
-          if (output_char)
-            gtk_im_context_simple_commit_char (context_simple, output_char);
-          else
-            g_signal_emit_by_name (context_simple, "preedit-changed");
+      /* If we get here, no Compose sequence matched.
+       * Only beep if we were in a sequence before.
+       */
+      if (prefix > 0)
+        {
+          for (i = prefix; i < n_compose; i++)
+            priv->compose_buffer[i] = 0;
+
+          beep_surface (gdk_event_get_surface (event));
+
+          g_signal_emit_by_name (context_simple, "preedit-changed");
 
           return TRUE;
         }
@@ -1126,28 +1218,23 @@ gtk_im_context_simple_get_preedit_string (GtkIMContext   *context,
               if (priv->compose_buffer[i] == GDK_KEY_Multi_key)
                 {
                   /* We only show the Compose key visibly when it is the
-                   * only glyph in the preedit, or when it occurs in the
+                   * only glyph in the preedit, or when the sequence contains
+                   * multiple Compose keys, or when it occurs in the
                    * middle of the sequence. Sadly, the official character,
                    * U+2384, COMPOSITION SYMBOL, is bit too distracting, so
                    * we use U+00B7, MIDDLE DOT.
                    */
-                  if (priv->compose_buffer[1] == 0 || i > 0)
+                  if (priv->compose_buffer[1] == 0 || i > 0 ||
+                      priv->compose_buffer[i + 1] == GDK_KEY_Multi_key)
                     g_string_append (s, "·");
                 }
               else
                 {
                   gunichar ch;
-                  gboolean need_space;
 
                   if (is_dead_key (priv->compose_buffer[i]))
                     {
-                      ch = dead_key_to_unicode (priv->compose_buffer[i], &need_space);
-                      if (ch)
-                        {
-                          if (need_space)
-                            g_string_append_c (s, ' ');
-                          g_string_append_unichar (s, ch);
-                        }
+                      append_dead_key (s, priv->compose_buffer[i]);
                     }
                   else
                     {
@@ -1203,21 +1290,18 @@ gtk_im_context_simple_get_preedit_string (GtkIMContext   *context,
  * The table must be sorted in dictionary order on the
  * numeric value of the key symbol fields. (Values beyond
  * the length of the sequence should be zero.)
- **/
+ *
+ * Deprecated: 4.4: Use gtk_im_context_simple_add_compose_file()
+ */
 void
 gtk_im_context_simple_add_table (GtkIMContextSimple *context_simple,
-				 guint16            *data,
-				 int                 max_seq_len,
-				 int                 n_seqs)
+                                 guint16            *data,
+                                 int                 max_seq_len,
+                                 int                 n_seqs)
 {
   g_return_if_fail (GTK_IS_IM_CONTEXT_SIMPLE (context_simple));
 
-  G_LOCK (global_tables);
-
-  global_tables = gtk_compose_table_list_add_array (global_tables,
-                                                    data, max_seq_len, n_seqs);
-
-  G_UNLOCK (global_tables);
+  add_compose_table_from_data (data, max_seq_len, n_seqs);
 }
 
 /**
@@ -1233,9 +1317,5 @@ gtk_im_context_simple_add_compose_file (GtkIMContextSimple *context_simple,
 {
   g_return_if_fail (GTK_IS_IM_CONTEXT_SIMPLE (context_simple));
 
-  G_LOCK (global_tables);
-
-  global_tables = gtk_compose_table_list_add_file (global_tables, compose_file);
-
-  G_UNLOCK (global_tables);
+  add_compose_table_from_file (compose_file);
 }

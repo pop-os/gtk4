@@ -54,11 +54,6 @@ _gdk_win32_surfaceing_init (void)
 {
   char buf[10];
 
-  if (getenv ("GDK_IGNORE_WINTAB") != NULL)
-    _gdk_input_ignore_wintab = TRUE;
-  else if (getenv ("GDK_USE_WINTAB") != NULL)
-    _gdk_input_ignore_wintab = FALSE;
-
   if (gdk_synchronize)
     GdiSetBatchLimit (1);
 
@@ -253,7 +248,6 @@ _gdk_win32_drag_protocol_to_string (GdkDragProtocol protocol)
       CASE (NONE);
       CASE (WIN32_DROPFILES);
       CASE (OLE2);
-      CASE (LOCAL);
 #undef CASE
     default: return static_printf ("illegal_%d", protocol);
     }

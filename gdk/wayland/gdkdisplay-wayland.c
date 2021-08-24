@@ -87,7 +87,7 @@
 
 #define MIN_SYSTEM_BELL_DELAY_MS 20
 
-#define GTK_SHELL1_VERSION       4
+#define GTK_SHELL1_VERSION       5
 #define OUTPUT_VERSION_WITH_DONE 2
 #define NO_XDG_OUTPUT_DONE_SINCE_VERSION 3
 #define XDG_ACTIVATION_VERSION   1
@@ -240,7 +240,7 @@ _gdk_wayland_display_add_seat (GdkWaylandDisplay *display_wayland,
 {
   struct wl_seat *seat;
 
-  display_wayland->seat_version = MIN (version, 5);
+  display_wayland->seat_version = MIN (version, 7);
   seat = wl_registry_bind (display_wayland->wl_registry,
                            id, &wl_seat_interface,
                            display_wayland->seat_version);

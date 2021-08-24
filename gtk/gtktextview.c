@@ -763,7 +763,7 @@ gtk_text_view_drop_scroll_motion (GtkDropControllerMotion *motion,
   if (!priv->scroll_timeout)
   {
     priv->scroll_timeout = g_timeout_add (100, gtk_text_view_drop_motion_scroll_timeout, self);
-    g_source_set_name_by_id (priv->scroll_timeout, "[gtk] gtk_text_view_drop_motion_scroll_timeout");
+    gdk_source_set_static_name_by_id (priv->scroll_timeout, "[gtk] gtk_text_view_drop_motion_scroll_timeout");
   }
 }
 
@@ -1077,7 +1077,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
     *
     * Which IM (input method) module should be used for this text_view.
     *
-    * See [class@Gtk.IMContext].
+    * See [class@Gtk.IMMulticontext].
     *
     * Setting this to a non-%NULL value overrides the system-wide IM module
     * setting. See the GtkSettings [property@Gtk.Settings:gtk-im-module] property.
@@ -2944,7 +2944,7 @@ queue_update_im_spot_location (GtkTextView *text_view)
                                             do_update_im_spot_location,
                                             text_view,
                                             NULL);
-      g_source_set_name_by_id (priv->im_spot_idle, "[gtk] do_update_im_spot_location");
+      gdk_source_set_static_name_by_id (priv->im_spot_idle, "[gtk] do_update_im_spot_location");
     }
 }
 
@@ -4821,7 +4821,7 @@ gtk_text_view_invalidate (GtkTextView *text_view)
   if (!priv->first_validate_idle)
     {
       priv->first_validate_idle = g_idle_add_full (GTK_PRIORITY_RESIZE - 2, first_validate_callback, text_view, NULL);
-      g_source_set_name_by_id (priv->first_validate_idle, "[gtk] first_validate_callback");
+      gdk_source_set_static_name_by_id (priv->first_validate_idle, "[gtk] first_validate_callback");
       DV (g_print (G_STRLOC": adding first validate idle %d\n",
                    priv->first_validate_idle));
     }
@@ -4829,7 +4829,7 @@ gtk_text_view_invalidate (GtkTextView *text_view)
   if (!priv->incremental_validate_idle)
     {
       priv->incremental_validate_idle = g_idle_add_full (GTK_TEXT_VIEW_PRIORITY_VALIDATE, incremental_validate_callback, text_view, NULL);
-      g_source_set_name_by_id (priv->incremental_validate_idle, "[gtk] incremental_validate_callback");
+      gdk_source_set_static_name_by_id (priv->incremental_validate_idle, "[gtk] incremental_validate_callback");
       DV (g_print (G_STRLOC": adding incremental validate idle %d\n",
                    priv->incremental_validate_idle));
     }
@@ -7265,8 +7265,6 @@ gtk_text_view_extend_selection (GtkTextView            *text_view,
 
 	  if (gtk_text_iter_get_line (&tmp) == gtk_text_iter_get_line (end))
 	    *end = tmp;
-	  else
-	    gtk_text_iter_forward_to_line_end (end);
 	}
       break;
 
@@ -7458,7 +7456,7 @@ gtk_text_view_drag_gesture_update (GtkGestureDrag *gesture,
     g_source_remove (text_view->priv->scroll_timeout);
 
   text_view->priv->scroll_timeout = g_timeout_add (50, selection_scan_timeout, text_view);
-  g_source_set_name_by_id (text_view->priv->scroll_timeout, "[gtk] selection_scan_timeout");
+  gdk_source_set_static_name_by_id (text_view->priv->scroll_timeout, "[gtk] selection_scan_timeout");
 
   gtk_text_view_selection_bubble_popup_unset (text_view);
 
@@ -8436,7 +8434,7 @@ gtk_text_view_retrieve_surrounding_handler (GtkIMContext  *context,
   start1 = start;
   end1 = end;
 
-  gtk_text_iter_set_line_offset (&start, 0);
+  gtk_text_iter_set_line_offset (&start1, 0);
   gtk_text_iter_forward_to_line_end (&end1);
 
   pre = gtk_text_iter_get_slice (&start1, &start);
@@ -9099,7 +9097,7 @@ gtk_text_view_selection_bubble_popup_set (GtkTextView *text_view)
     g_source_remove (priv->selection_bubble_timeout_id);
 
   priv->selection_bubble_timeout_id = g_timeout_add (50, gtk_text_view_selection_bubble_popup_show, text_view);
-  g_source_set_name_by_id (priv->selection_bubble_timeout_id, "[gtk] gtk_text_view_selection_bubble_popup_cb");
+  gdk_source_set_static_name_by_id (priv->selection_bubble_timeout_id, "[gtk] gtk_text_view_selection_bubble_popup_cb");
 }
 
 /* Child GdkSurfaces */
@@ -10015,4 +10013,10 @@ gtk_text_view_get_rtl_context (GtkTextView *text_view)
   gtk_text_view_ensure_layout (text_view);
 
   return text_view->priv->layout->rtl_context;
+}
+
+GtkEventController *
+gtk_text_view_get_key_controller (GtkTextView *text_view)
+{
+  return text_view->priv->key_controller;
 }
