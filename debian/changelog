@@ -1,3 +1,11 @@
+gtk4 (4.4.0+ds1-2) experimental; urgency=medium
+
+  * Completely move .links files to debhelper syntax (Closes: #991964)
+  * Always expect NEWS to be compressed (Closes: #985418).
+    debhelper always compresses NEWS files, even if they are small.
+
+ -- Simon McVittie <smcv@debian.org>  Sat, 28 Aug 2021 15:15:44 +0100
+
 gtk4 (4.4.0+ds1-1) experimental; urgency=medium
 
   * New upstream stable release
