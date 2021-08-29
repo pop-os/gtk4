@@ -13,10 +13,6 @@ if __name__ == '__main__':
                 'debian', 'build', 'deb', 'testsuite', 'gsk', 'compare',
                 'opengl', 'x11',
             ),
-            Path(
-                'debian', 'build', 'deb', 'testsuite', 'gsk', 'compare',
-                'broadway', 'x11',
-            ),
         ):
             diff = (outputs / (node.stem + '.diff.png'))
 

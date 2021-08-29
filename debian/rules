@@ -91,7 +91,7 @@ configure_flags_common = \
 
 configure_flags_deb = \
 	--auto-features enabled \
-	-Dbroadway-backend=true \
+	-Dbroadway-backend=false \
 	-Dman-pages=true \
 	-Dmedia-ffmpeg=$(media_ffmpeg) \
 	-Dx11-backend=true \
@@ -259,6 +259,7 @@ override_dh_install:
 	rm -fv debian/install/udeb/usr/bin/gtk4-update-icon-cache
 	rm -frv debian/install/udeb/usr/share/gtk-4.0/valgrind
 	rm -frv debian/install/udeb/usr/share/metainfo
+	rm -fv debian/install/deb/usr/share/man/man1/gtk4-broadwayd.1
 	:
 	dh_install -p$(UDEB_PKG) --sourcedir=debian/install/udeb
 	dh_install --remaining-packages --sourcedir=debian/install/deb

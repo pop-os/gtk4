@@ -9,15 +9,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_app_launch_context_set_timestamp@Base 4.0.0
  gdk_axis_flags_get_type@Base 4.0.0
  gdk_axis_use_get_type@Base 4.0.0
- gdk_broadway_cairo_context_get_type@Base 4.0.0
- gdk_broadway_display_get_surface_scale@Base 4.3.2
- gdk_broadway_display_get_type@Base 4.0.0
- gdk_broadway_display_hide_keyboard@Base 4.0.0
- gdk_broadway_display_set_surface_scale@Base 4.3.1
- gdk_broadway_display_show_keyboard@Base 4.0.0
- gdk_broadway_draw_context_get_type@Base 4.0.0
- gdk_broadway_monitor_get_type@Base 4.0.0
- gdk_broadway_surface_get_type@Base 4.0.0
  gdk_button_event_get_button@Base 4.0.0
  gdk_button_event_get_type@Base 4.0.0
  gdk_cairo_context_cairo_create@Base 4.0.0
@@ -628,8 +619,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_border_node_get_type@Base 4.0.0
  gsk_border_node_get_widths@Base 4.0.0
  gsk_border_node_new@Base 4.0.0
- gsk_broadway_renderer_get_type@Base 4.0.0
- gsk_broadway_renderer_new@Base 4.0.0
  gsk_cairo_node_get_draw_context@Base 4.0.0
  gsk_cairo_node_get_surface@Base 4.0.0
  gsk_cairo_node_get_type@Base 4.0.0
