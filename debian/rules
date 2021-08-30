@@ -156,6 +156,8 @@ override_dh_clean: debian/control
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(all_binaries))
 	rm -rf debian/build debian/install
+	rm -f gtk/compose/sequences-big-endian
+	rm -f gtk/compose/sequences-little-endian
 	dh_clean
 
 # Add dependencies to generate files from the debian/*.in ones
@@ -171,6 +173,8 @@ rebuild-emoji:
 	done
 
 override_dh_auto_configure: debian/control
+	cp debian/compose/sequences-big-endian gtk/compose/sequences-big-endian
+	cp debian/compose/sequences-little-endian gtk/compose/sequences-little-endian
 	dh_auto_configure \
 		--builddirectory=debian/build/deb \
 		-- \
