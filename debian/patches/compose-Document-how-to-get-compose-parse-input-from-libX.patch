@@ -4,6 +4,7 @@ Subject: compose: Document how to get compose-parse input from libX11 source
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
 Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3902
+Applied-upstream: 4.5.0
 ---
  gtk/compose/compose-parse.c | 1 +
  1 file changed, 1 insertion(+)

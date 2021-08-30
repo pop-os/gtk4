@@ -1,3 +1,28 @@
+gtk4 (4.4.0+ds1-3) experimental; urgency=medium
+
+  * Disable Broadway (HTML) backend.
+    It isn't clear whether this is used in practice. If we disable it now,
+    enabling it later if requested will not be an ABI break, but if we
+    enable it now, we have to keep it enabled indefinitely.
+  * d/missing-sources: Add source for libX11-derived compose sequences.
+    By trial and error, the files in gtk/compose/ seem to be generated from
+    libX11 1.7.0.
+  * d/p/compose-Generate-endian-dependent-compact-Compose-data.patch,
+  * Add proposed patch to use big-endian compose data on big-endian host,
+    keeping the existing little-endian version for little-endian hosts.
+    This resolves a FTBFS caused by test failure on s390x and other
+    big-endian ports.
+  * d/p/compose-Document-how-to-get-compose-parse-input-from-libX.patch
+    Document how to reproduce the compose data. We don't do this at build
+    time, because the compose data is relatively rarely updated, and
+    during cross-compilation that would require building all of GTK for
+    both the build and host architectures.
+  * d/p/compose-Update-sequences-from-libX11-1.7.2.patch:
+    Update compose data from libX11 1.7.2.
+    This adds a few missing compose sequences.
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 30 Aug 2021 13:33:17 +0100
+
 gtk4 (4.4.0+ds1-2) experimental; urgency=medium
 
   * Completely move .links files to debhelper syntax (Closes: #991964)

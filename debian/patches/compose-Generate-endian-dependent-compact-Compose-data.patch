@@ -11,9 +11,10 @@ each build of GTK. This fixes failure of the composetable test when
 building for a big-endian architecture such as s390x and (traditional,
 big-endian) powerpc.
 
-Resolves: https://gitlab.gnome.org/GNOME/gtk/-/issues/4217
+Bug: https://gitlab.gnome.org/GNOME/gtk/-/issues/4217
 Signed-off-by: Simon McVittie <smcv@debian.org>
 Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3902
+Applied-upstream: 4.5.0
 ---
  gtk/compose/compose-parse.c   | 30 +++++++++++++++++++++++++-----
  gtk/gen-gtk-gresources-xml.py |  9 +++++----

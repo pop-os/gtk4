@@ -8,6 +8,7 @@ breve. Previously, only a capital U was accepted for E, G, I and O
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
 Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3902
+Applied-upstream: 4.5.0
 ---
  gtk/compose/gtkcomposedata.h          |  2 +-
  testsuite/gtk/compose/system.expected | 14 ++++++++++++--
