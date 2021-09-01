@@ -1,3 +1,20 @@
+gtk4 (4.4.0+ds1-4) UNRELEASED; urgency=medium
+
+  * Simplify graphene dependency.
+    The version in bullseye is sufficient for all architectures.
+  * Drop dependency from libgtk-4-common to libgtk-3-common.
+    This was put in place because they used to share GSettings schemas,
+    but that's no longer the case.
+  * Remove dependency from libgtk-4-bin to libgtk-3-bin.
+    This was because they used to share gtkbuilder.its and gtkbuilder.loc,
+    but those have been replaced by their gtk4builder counterparts, in
+    libgtk-4-dev.
+  * Remove dependency from gtk-4-examples to gtk-3-examples.
+    This was because the demos shared GSettings schemas, but they no longer
+    have the same name.
+
+ -- Simon McVittie <smcv@debian.org>  Wed, 01 Sep 2021 23:13:39 +0100
+
 gtk4 (4.4.0+ds1-3) experimental; urgency=medium
 
   * Disable Broadway (HTML) backend.
