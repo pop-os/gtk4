@@ -255,8 +255,7 @@ Package: gtk-4-examples
 Build-Profiles: <!noinsttest>
 Section: x11
 Architecture: any
-Depends: gtk-3-examples,
-         ${misc:Depends},
+Depends: ${misc:Depends},
          ${shlibs:Depends},
          libgtk-4-1 (= ${binary:Version})
 Recommends: fonts-cantarell,
