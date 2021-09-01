@@ -132,8 +132,7 @@ Package: @COMMON_PKG@
 Section: misc
 Architecture: all
 Multi-Arch: foreign
-Depends: libgtk-3-common,
-         ${misc:Depends}
+Depends: ${misc:Depends}
 Recommends: @SHARED_PKG@
 Description: common files for the GTK graphical user interface library
  GTK is a multi-platform toolkit for creating graphical user
