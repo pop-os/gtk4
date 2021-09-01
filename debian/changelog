@@ -1,5 +1,6 @@
 gtk4 (4.4.0+ds1-4) UNRELEASED; urgency=medium
 
+  [ Simon McVittie ]
   * Simplify graphene dependency.
     The version in bullseye is sufficient for all architectures.
   * Drop dependency from libgtk-4-common to libgtk-3-common.
@@ -12,6 +13,11 @@ gtk4 (4.4.0+ds1-4) UNRELEASED; urgency=medium
   * Remove dependency from gtk-4-examples to gtk-3-examples.
     This was because the demos shared GSettings schemas, but they no longer
     have the same name.
+
+  [ Jeremy Bicha ]
+  * Build-Depend on libsysprof-capture-4-dev instead of sysprof
+    in preparation for the sysprof package split (see #971243).
+    Depend on version 3.40 to avoid re-exporting its symbols in our ABI.
 
  -- Simon McVittie <smcv@debian.org>  Wed, 01 Sep 2021 23:13:39 +0100
 
