@@ -147,7 +147,6 @@ Section: misc
 Architecture: any
 Multi-Arch: foreign
 Depends: gtk-update-icon-cache,
-         libgtk-3-bin,
          ${misc:Depends},
          ${shlibs:Depends},
          @COMMON_PKG@ (>= ${source:Version}),
