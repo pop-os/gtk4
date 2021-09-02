@@ -5,3 +5,4 @@ debian/templates-Remove-html5shiv.patch
 compose-Generate-endian-dependent-compact-Compose-data.patch
 compose-Document-how-to-get-compose-parse-input-from-libX.patch
 compose-Update-sequences-from-libX11-1.7.2.patch
+reftest-compare-Treat-colour-channels-as-undefined-if-alp.patch

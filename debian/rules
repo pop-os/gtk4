@@ -230,10 +230,6 @@ skipped_suites = \
 	$(NULL)
 
 # TODO: Known failures: https://gitlab.gnome.org/GNOME/gtk/-/issues/4110
-# mips(64)el: gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
-#             gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
-#             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
-#             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
 # s390x: many (endianness?)
 ifeq (big,$(DEB_HOST_ARCH_ENDIAN))
 	skipped_suites += \
