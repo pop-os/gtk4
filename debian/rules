@@ -54,7 +54,7 @@ dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *
 
 # Upstream consider the ffmpeg backend to be experimental, let's not
 # inflict that on suites other than experimental.
-ifeq (,$(filter-out experimental UNRELEASED,$(DEB_DISTRIBUTION)))
+ifeq (,$(filter-out Debian/experimental %/UNRELEASED,$(DEB_VENDOR)/$(DEB_DISTRIBUTION)))
 $(info Enabling ffmpeg because this is an experimental or UNRELEASED build)
 media_ffmpeg = enabled
 else
