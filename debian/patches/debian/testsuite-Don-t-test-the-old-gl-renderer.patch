@@ -1,0 +1,24 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Thu, 2 Sep 2021 22:44:21 +0100
+Subject: testsuite: Don't test the old gl renderer
+
+This was removed in GTK 4.5, and two of its tests crash when run on
+mipsel.
+
+Forwarded: not-needed, upstream removed this renderer already
+---
+ testsuite/gsk/meson.build | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/testsuite/gsk/meson.build b/testsuite/gsk/meson.build
+index e6901e5..d225653 100644
+--- a/testsuite/gsk/meson.build
++++ b/testsuite/gsk/meson.build
+@@ -92,7 +92,6 @@ informative_render_tests = [
+ 
+ renderers = [
+   # name      exclude term
+-  [ 'gl', '-ngl'    ],
+   [ 'ngl', ''    ],
+   [ 'broadway',  '-3d' ],
+   [ 'cairo',  '-3d' ],
