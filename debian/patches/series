@@ -7,3 +7,4 @@ compose-Document-how-to-get-compose-parse-input-from-libX.patch
 compose-Update-sequences-from-libX11-1.7.2.patch
 reftest-compare-Treat-colour-channels-as-undefined-if-alp.patch
 debian/testsuite-Don-t-test-the-old-gl-renderer.patch
+debian/Skip-some-known-failing-tests-on-mips-family-architecture.patch

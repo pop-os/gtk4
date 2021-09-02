@@ -1,0 +1,37 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Thu, 2 Sep 2021 23:31:54 +0100
+Subject: Skip some known-failing tests on mips-family architectures
+
+Forwarded: no
+---
+ testsuite/gsk/meson.build | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/testsuite/gsk/meson.build b/testsuite/gsk/meson.build
+index d225653..683e3d4 100644
+--- a/testsuite/gsk/meson.build
++++ b/testsuite/gsk/meson.build
+@@ -73,15 +73,21 @@ compare_render_tests = [
+   'scale-up-down',
+   'shadow-in-opacity',
+   'texture-url',
+-  'repeat',
+   'repeat-no-repeat',
+-  'repeat-negative-coords',
+   'repeat-texture',
+   'transform-in-transform',
+   'transform-in-transform-in-transform',
+   'rounded-clip-in-clip-3d', # not really 3d, but cairo fails it
+ ]
+ 
++if not host_machine.cpu_family().contains('mips')
++  # https://gitlab.gnome.org/GNOME/gtk/-/issues/4228
++  compare_render_tests += [
++    'repeat',
++    'repeat-negative-coords',
++  ]
++endif
++
+ # these are too sensitive to differences in the renderers
+ # to run in ci, but still useful to keep around
+ informative_render_tests = [
