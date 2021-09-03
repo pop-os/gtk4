@@ -1,3 +1,12 @@
+gtk4 (4.4.0+ds1-5) unstable; urgency=medium
+
+  * Sort patch series in upstream-first order
+  * d/p/debian/Disable-clipboard-test.patch:
+    Add patch to disable clipboard test, which regularly times out on
+    buildds
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 03 Sep 2021 15:08:47 +0100
+
 gtk4 (4.4.0+ds1-4) unstable; urgency=medium
 
   [ Simon McVittie ]
