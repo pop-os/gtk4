@@ -18,10 +18,10 @@ Applied-upstream: 4.5.0
  1 file changed, 6 insertions(+), 1 deletion(-)
 
 diff --git a/testsuite/reftests/reftest-compare.c b/testsuite/reftests/reftest-compare.c
-index 9db00ab..ac72c61 100644
+index 5c682e1..5bccb69 100644
 --- a/testsuite/reftests/reftest-compare.c
 +++ b/testsuite/reftests/reftest-compare.c
-@@ -108,7 +108,12 @@ buffer_diff_core (const guchar *buf_a,
+@@ -104,7 +104,12 @@ buffer_diff_core (const guchar *buf_a,
            /* check if the pixels are the same */
            if (row_a[x] == row_b[x])
              continue;

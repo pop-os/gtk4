@@ -74,7 +74,7 @@ index cd15396..3ae5413 100644
        cairo_surface_destroy (diff_image);
        g_test_fail ();
 diff --git a/testsuite/reftests/reftest-compare.c b/testsuite/reftests/reftest-compare.c
-index 5c682e1..9db00ab 100644
+index 5bccb69..ac72c61 100644
 --- a/testsuite/reftests/reftest-compare.c
 +++ b/testsuite/reftests/reftest-compare.c
 @@ -83,12 +83,16 @@ buffer_diff_core (const guchar *buf_a,
@@ -95,7 +95,7 @@ index 5c682e1..9db00ab 100644
  
    for (y = 0; y < height; y++)
      {
-@@ -124,6 +128,10 @@ buffer_diff_core (const guchar *buf_a,
+@@ -129,6 +133,10 @@ buffer_diff_core (const guchar *buf_a,
                guint channel_diff;
  
                channel_diff = ABS (value_a - value_b);
@@ -106,7 +106,7 @@ index 5c682e1..9db00ab 100644
                channel_diff *= 4;  /* emphasize */
                if (channel_diff)
                  channel_diff += 128; /* make sure it's visible */
-@@ -132,6 +140,8 @@ buffer_diff_core (const guchar *buf_a,
+@@ -137,6 +145,8 @@ buffer_diff_core (const guchar *buf_a,
                diff_pixel |= channel_diff << (channel * 8);
              }
  
@@ -115,7 +115,7 @@ index 5c682e1..9db00ab 100644
            if ((diff_pixel & 0x00ffffff) == 0)
              {
                /* alpha only difference, convert to luminance */
-@@ -143,12 +153,21 @@ buffer_diff_core (const guchar *buf_a,
+@@ -148,12 +158,21 @@ buffer_diff_core (const guchar *buf_a,
        }
    }
  
@@ -138,7 +138,7 @@ index 5c682e1..9db00ab 100644
  {
    int w1, h1, w2, h2, w, h;
    cairo_surface_t *coerced1, *coerced2, *diff;
-@@ -164,11 +183,14 @@ reftest_compare_surfaces (cairo_surface_t *surface1,
+@@ -169,11 +188,14 @@ reftest_compare_surfaces (cairo_surface_t *surface1,
                             cairo_image_surface_get_stride (coerced1),
                             cairo_image_surface_get_data (coerced2),
                             cairo_image_surface_get_stride (coerced2),
