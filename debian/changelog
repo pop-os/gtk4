@@ -1,4 +1,4 @@
-gtk4 (4.4.0+ds1-4) UNRELEASED; urgency=medium
+gtk4 (4.4.0+ds1-4) unstable; urgency=medium
 
   [ Simon McVittie ]
   * Simplify graphene dependency.
@@ -13,13 +13,30 @@ gtk4 (4.4.0+ds1-4) UNRELEASED; urgency=medium
   * Remove dependency from gtk-4-examples to gtk-3-examples.
     This was because the demos shared GSettings schemas, but they no longer
     have the same name.
+  * Remove alternative dependency on libgdk-pixbuf2.0-dev.
+    We don't support skipping a Debian release, and this package's
+    dependencies make it unlikely to be backported.
+  * d/rules: Don't enable ffmpeg when experimental builds are copied to Ubuntu
+  * d/p/reftest-compare-Treat-colour-channels-as-undefined-if-alp.patch:
+    Add patch to ignore colour differences on pixels with zero alpha.
+    This makes some of the remaining failing tests pass on mips*el.
+  * d/p/debian/testsuite-Don-t-test-the-old-gl-renderer.patch:
+    Add patch to disable testing of the old 'gl' renderer.
+    The newer 'ngl' renderer is already the default, and 'gl' was removed
+    upstream in 4.5.x, so 'gl' doesn't seem worthwhile to try to support.
+    It also crashes in a couple of tests on mips*el. Let's focus testing
+    effort on the renderer that has a future.
+  * d/p/debian/Skip-some-known-failing-tests-on-mips-family-architecture.patch:
+    Add patch to skip remaining failing gsk tests on mips*el
+    (workaround for #993550)
+  * Release to unstable (Closes: #992907)
 
   [ Jeremy Bicha ]
   * Build-Depend on libsysprof-capture-4-dev instead of sysprof
     in preparation for the sysprof package split (see #971243).
     Depend on version 3.40 to avoid re-exporting its symbols in our ABI.
 
- -- Simon McVittie <smcv@debian.org>  Wed, 01 Sep 2021 23:13:39 +0100
+ -- Simon McVittie <smcv@debian.org>  Fri, 03 Sep 2021 08:52:36 +0100
 
 gtk4 (4.4.0+ds1-3) experimental; urgency=medium
 
