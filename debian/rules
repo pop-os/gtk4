@@ -129,6 +129,8 @@ endif
 ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes), yes)
 # Not in main repository
 configure_flags_deb += -Dcloudproviders=disabled
+else
+configure_flags_deb += -Dcloudproviders=enabled
 endif
 
 configure_flags_udeb = \
