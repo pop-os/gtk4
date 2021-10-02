@@ -90,7 +90,7 @@ configure_flags_common = \
 	${NULL}
 
 configure_flags_deb = \
-	--auto-features enabled \
+	-Dauto_features=enabled \
 	-Dbroadway-backend=false \
 	-Dman-pages=true \
 	-Dmedia-ffmpeg=$(media_ffmpeg) \
@@ -137,7 +137,7 @@ configure_flags_deb += -Dcloudproviders=disabled
 endif
 
 configure_flags_udeb = \
-	--auto-features disabled \
+	-Dauto_features=disabled \
 	-Dbroadway-backend=false \
 	-Dbuild-examples=false \
 	-Ddemos=false \
