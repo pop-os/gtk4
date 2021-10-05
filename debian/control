@@ -2,7 +2,7 @@ Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Simon McVittie <smcv@debian.org>, Iain Lane <laney@debian.org>
+Uploaders: Simon McVittie <smcv@debian.org>, Iain Lane <laney@debian.org>, Marco Trevisan (Treviño) <marco@ubuntu.com>
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
@@ -193,7 +193,8 @@ Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
          ${shlibs:Depends},
          libgtk-4-common,
          libgtk-4-1 (= ${binary:Version})
-Suggests: libgtk-4-doc
+Suggests: libgtk-4-doc,
+          gtk-4-examples
 Description: development files for the GTK library
  GTK is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK is suitable
