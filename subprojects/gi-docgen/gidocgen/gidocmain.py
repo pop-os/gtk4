@@ -7,7 +7,7 @@ import sys
 import traceback
 
 from . import core, log
-from . import gdindex, gdgenerate, gdgenindices, gdgendeps, gdsearch
+from . import gdindex, gdgenerate, gdgenindices, gdgendeps, gdsearch, gdcheck
 
 
 class GIDocGenApp:
@@ -50,6 +50,10 @@ class GIDocGenApp:
                          add_args_func=gdsearch.add_args,
                          run_func=gdsearch.run,
                          help_msg=gdsearch.HELP_MSG)
+        self.add_command('check',
+                         add_args_func=gdcheck.add_args,
+                         run_func=gdcheck.run,
+                         help_msg=gdcheck.HELP_MSG)
 
     def run(self, args):
         """

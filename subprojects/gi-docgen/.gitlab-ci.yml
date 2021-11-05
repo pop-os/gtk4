@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2021 GNOME Foundation
+#
+# SPDX-License-Identifier: CC0-1.0
+
+stages:
+  - build
+  - check
+  - deploy
+
+#meson-build:
+#  stage: build
+#  needs: []
+#  script:
+#    - dnf install -y meson ninja-build python3-flake8 python3-mypy python3-markdown python3-jinja2 python3-toml python3-typogrify
+#    - meson _build .
+#    - meson test -C _build
+#
+#pip-build:
+#  stage: build
+#  needs: []
+#  script:
+#    - dnf install -y python3-pip
+#    - python3 -m pip install --user -e .
+
+.pip:
+  before_script:
+    - export PATH="$HOME/.local/bin:$PATH"
+    - dnf install -y python3-pip
+
+flake8:
+  stage: check
+  needs: []
+  script:
+    - dnf install -y python3-flake8
+    - flake8 --ignore E501,E402,F405,W503 --show-source gidocgen
+
+mypy:
+  stage: check
+  needs: []
+  script:
+    - dnf install -y python3-mypy
+    - mypy --ignore-missing-imports --disallow-incomplete-defs gidocgen
+  allow_failure: true
+
+reuse:
+  extends: .pip
+  stage: check
+  needs: []
+  script:
+    - pip install --user reuse
+    - reuse lint
+
+pages:
+  extends: .pip
+  stage: deploy
+  needs: []
+  script:
+    - pip install --user sphinx sphinx_rtd_theme
+    - cd docs
+    - python3 -m sphinx  -b html . _build
+    - mv _build ../public
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

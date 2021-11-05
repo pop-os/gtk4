@@ -47,57 +47,81 @@ namespace:
 The available qualifier fragments are:
 
 .. list-table::
-   :widths: 15 35 50
+   :widths: 10 15 25 50
    :header-rows: 1
 
    * - Fragment
+     - Argument
      - Description
      - Example
    * - ``alias``
+     - ``TypeName``
      - An alias to another type
      - ``[alias@Allocation]``
    * - ``callback``
+     - ``TypeName``
      - A callback type
      - ``[callback@Gtk.ListBoxForeachFunc]``
    * - ``class``
+     - ``TypeName``
      - An object class
      - ``[class@Widget]``, ``[class@Gdk.Surface]``, ``[class@Gsk.RenderNode]``
    * - ``const``
+     - ``CONSTANT``
      - A constant or pre-processor symbol
      - ``[const@Gdk.KEY_q]``
    * - ``ctor``
+     - ``TypeName.constructor``
      - A constructor function
      - ``[ctor@Gtk.Box.new]``, ``[ctor@Button.new_with_label]``
    * - ``enum``
+     - ``TypeName``
      - A plain enumeration
      - ``[enum@Orientation]``
    * - ``error``
+     - ``TypeName``
      - A ``GError`` domain enumeration
      - ``[error@Gtk.BuilderParseError]``
    * - ``flags``
+     - ``TypeName``
      - A bitfield
      - ``[flags@Gdk.ModifierType]``
    * - ``func``
+     - ``function``, ``TypeName.function``
      - A global or a type function
      - ``[func@Gtk.init]``, ``[func@show_uri]``, ``[func@Gtk.Window.list_toplevels]``
    * - ``iface``
+     - ``TypeName``
      - A ``GTypeInterface``
      - ``[iface@Gtk.Buildable]``
    * - ``method``
+     - ``TypeName.method``, ``TypeNameClass.method``
      - An instance or class method
      - ``[method@Gtk.Widget.show]``, ``[method@WidgetClass.add_binding]``
    * - ``property``
+     - ``TypeName:property``
      - A ``GObject`` property
      - ``[property@Gtk.Orientable:orientation]``
    * - ``signal``
+     - ``TypeName::signal``
      - A ``GObject`` signal
      - ``[signal@Gtk.RecentManager::changed]``
    * - ``struct``
+     - ``TypeName``
      - A plain C structure or union
      - ``[struct@Gtk.TextIter]``
    * - ``vfunc``
+     - ``TypeName.virtual``
      - A virtual function in a class or interface
      - ``[vfunc@Gtk.Widget.measure]``
+   * - ``type``
+     - ``TypeName``
+     - A registered type
+     - ``[type@Widget]``, ``[type@Gdk.ModifierType]``, ``[type@Gtk.TextIter]``
+   * - ``id``
+     - ``function``
+     - A C symbol
+     - ``[id@gtk_window_new]``, ``[id@g_signal_connect]``
 
 The generic ``type`` fragment, followed by a type, will look up the given type
 and generate the appropriate link for it. The type can be fully qualified or
@@ -125,7 +149,8 @@ to link to the function; for instance:
     // Equivalent to [method@Gtk.Widget.show], will link to gtk_widget_show()
     [id@gtk_widget_show]
 
-The ``id`` fragment can only be used for symbols within the current namespace.
+    // Equivalent to [func@GObject.signal_emit], will link to g_signal_emit()
+    [id@g_signal_emit]
 
 It's important to note that the ``method`` and ``func`` fragments can have
 multiple meanings:

@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
  */
 
-@import url("pygment.css");
+@import url("solarized-light.css") (prefers-color-scheme: light);
+@import url("solarized-dark.css") (prefers-color-scheme: dark);
+
 @import url("fonts.css");
 
 /*********************************
@@ -34,7 +36,7 @@
   /* typography */
   --body-font-family: "Red Hat Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
   --body-font-scale: 0.95;
-  --body-font-size: calc(var(--body-font-scale) * clamp(16px, 1vw, 20px));
+  --body-font-size: calc(var(--body-font-scale) * clamp(16px, 1vw, 18px));
   --body-font-weight: normal;
 
   --monospace-font-family: "Source Code Pro", monospace;
@@ -82,11 +84,6 @@
     --box-bg: rgba(135, 135, 135, 0.1);
     --box-text-color: #fff;
     --heading-docblock-color: #b7b7b7;
-  }
-
-  /* fix dark theme syntax highlighting with a filter (for now) */
-  .highlight pre span {
-  	filter: brightness(6);
   }
 }
 
@@ -499,6 +496,34 @@ footer {
   transition: border .3s linear;
 }
 
+.toc {
+  display: block;
+  margin-top: 2em;
+  z-index: 3;
+  min-width: 15ch;
+  font-size: 80%;
+}
+
+.toc nav {
+  margin-left: 2em;
+  margin-right: 2em;
+}
+
+#toc-title {
+  text-transform: uppercase;
+  font-weight: var(--heading-weight);
+}
+
+.toc-list {
+  list-style-type: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.toc-list-item {
+  padding-top: .25em;
+}
+
 /*********************************
  * ANCHORS & TOGGLERS
  *********************************/
@@ -836,7 +861,10 @@ table.returns tr.arg-description td {
 .type-funcs h6,
 .implements a,
 .ancestors a,
+.descendants a,
+.implementations a,
 .sidebar .links a
+.toc a
 {
   font-family: var(--symbol-font-family);
   font-size: calc(1em * var(--symbol-font-scale));
@@ -865,5 +893,9 @@ table.returns tr.arg-description td {
     position: static;
     height: initial;
     order: 1;
+  }
+
+  .toc {
+    display: hidden;
   }
 }

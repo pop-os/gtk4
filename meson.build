@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.4.0',
+        version: '4.4.1',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -483,7 +483,6 @@ if wayland_enabled
 
   wayland_pkgs = [
     'wayland-client @0@'.format(wayland_req),
-    'wayland-protocols @0@'.format(wayland_proto_req),
     'xkbcommon @0@'.format(xkbcommon_req),
     'wayland-egl',
   ]
@@ -693,12 +692,24 @@ if get_option('f16c').enabled()
 # if !defined(__amd64__) && !defined(__x86_64__)
 #   error "F16C intrinsics are only available on x86_64"
 # endif
+#if !defined __has_attribute
+# error "No __has_attribute() support"
+#endif
+#if !__has_attribute(ifunc)
+# error "ifunc not supported"
+#endif
+static int resolved_ifunc (void) { return 0; }
+static void *resolve_ifunc (void) { return resolved_ifunc; }
+int ifunc_test (void) __attribute__((ifunc ("resolve_ifunc")));
+#else
+int ifunc_test (void) { return 0; }
 #endif
 #if defined(__SSE__) || defined(_MSC_VER)
 # include <immintrin.h>
 #else
 # error "No F16C intrinsics available"
 #endif
+
 int main () {
   float f[4] = { 0, };
   unsigned short h[4] = { 0, };
@@ -711,7 +722,7 @@ int main () {
   __builtin_cpu_supports ("f16c");
 #endif
 
-    return 0;
+    return ifunc_test ();
 }'''
   if cc.get_id() != 'msvc'
     test_f16c_cflags = [ '-mf16c' ]

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
 import os
+import re
 import toml
 
 from urllib.parse import urljoin
@@ -154,19 +155,36 @@ class GIDocConfig:
     def objects(self):
         return self._config.get('object', {})
 
-    def is_hidden(self, name, category=None, key=None):
+    def match_object(self, name, match_key, category=None, key=None):
+        def obj_matches(obj, name):
+            n = obj.get('name')
+            p = obj.get('pattern')
+            if n is not None and n == name:
+                return True
+            elif p is not None and re.match(p, name):
+                return True
+            return False
         for obj in self.objects:
-            if obj['name'] == name:
+            if obj_matches(obj, name):
                 if category is None:
-                    return obj.get('hidden', False)
+                    return obj.get(match_key, False)
                 else:
-                    obj_category = obj.get(category)
-                    if obj_category is None:
-                        return False
-                    for c in obj_category:
-                        if c['name'] == key:
-                            return c.get('hidden', False)
+                    assert key is not None
+                obj_category = obj.get(category)
+                if obj_category is None:
+                    return False
+                for c in obj_category:
+                    if obj_matches(c, key):
+                        return c.get(match_key, False)
         return False
+
+    def is_hidden(self, name, category=None, key=None):
+        return self.match_object(name, 'hidden', category, key)
+
+    def is_skipped(self, name, category=None, key=None):
+        if self.is_hidden(name, category, key):
+            return True
+        return self.match_object(name, 'check_ignore', category, key)
 
 
 class GITemplateConfig:

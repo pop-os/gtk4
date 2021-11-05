@@ -14,24 +14,28 @@ GI_NAMESPACES = {
     'glib': "http://www.gtk.org/introspection/glib/1.0",
 }
 
-FUNDAMENTAL_TYPES = [
+FUNDAMENTAL_INTEGRAL_TYPES = [
     'gint8', 'guint8', 'int8_t', 'uint8_t',
     'gint16', 'guint16', 'int16_t', 'uint16_t',
     'gint32', 'guint32', 'int32_t', 'uint32_t',
     'gint64', 'guint64', 'int64_t', 'uint64_t',
-    'gint', 'guint', 'int', 'unsigned', 'unsigned int',
+    'gint', 'int',
+    'guint', 'unsigned', 'unsigned int',
     'gfloat', 'float',
     'gdouble', 'double', 'long double',
     'gchar', 'guchar', 'char', 'unsigned char',
     'gshort', 'gushort', 'short', 'unsigned short',
     'glong', 'gulong', 'long', 'unsigned long',
-    'utf8', 'filename',
     'gunichar',
-    'gpointer', 'gconstpointer',
-    'gchar*', 'char*', 'guchar*',
     'gsize', 'gssize', 'size_t',
     'gboolean', 'bool',
     'va_list',
+]
+
+FUNDAMENTAL_TYPES = FUNDAMENTAL_INTEGRAL_TYPES + [
+    'gpointer', 'gconstpointer',
+    'gchar*', 'char*', 'guchar*',
+    'utf8', 'filename',
 ]
 
 GLIB_ALIASES = {
@@ -44,6 +48,8 @@ GLIB_ALIASES = {
 }
 
 FUNDAMENTAL_CTYPES = {
+    'utf8': 'char*',
+    'filename': 'char*',
     'GObject.Object': 'GObject*',
     'GObject.InitiallyUnowned': 'GInitiallyUnowned*',
     'GObject.ParamSpec': 'GObject.ParamSpec*',
@@ -92,10 +98,12 @@ class GirParser:
                 repository.girfile = girfile.name
             self._repository = repository
             self._repository.resolve_empty_ctypes(self._seen_types)
-            self._repository.resolve_interface_requires()
-            self._repository.resolve_class_type()
+            self._repository.resolve_class_ctype()
             self._repository.resolve_class_implements()
             self._repository.resolve_class_ancestors()
+            self._repository.resolve_class_descendants()
+            self._repository.resolve_interface_requires()
+            self._repository.resolve_interface_implementations()
             self._repository.resolve_moved_to()
             self._repository.resolve_symbols()
 
@@ -106,7 +114,7 @@ class GirParser:
             return self._dependencies[name]
 
     def _push_namespace(self, ns: ast.Namespace) -> None:
-        assert(ns not in self._current_namespace)
+        assert ns not in self._current_namespace
         self._current_namespace.append(ns)
 
     def _pop_namespace(self) -> None:
@@ -119,15 +127,18 @@ class GirParser:
 
     def _lookup_type(self, name: str, ctype: T.Optional[str] = None) -> ast.Type:
         """Look up a type, and if not found, register it"""
+        is_fundamental = False
         if name in FUNDAMENTAL_TYPES:
             if name in GLIB_ALIASES:
                 fqtn = GLIB_ALIASES[name]
             else:
                 fqtn = name
+            is_fundamental = True
         elif name == 'GType':
             # This is messy, because GType is part of GObject, but GLib ends up
             # registering it first
             fqtn = 'GObject.Type'
+            is_fundamental = True
         elif '.' in name:
             fqtn = name
         else:
@@ -151,14 +162,14 @@ class GirParser:
                     if t.resolved and t.ctype == ctype:
                         log.debug(f"Found seen type: {t} (with ctype)")
                         return t
-                t = ast.Type(name=fqtn, ctype=ctype)
+                t = ast.Type(name=fqtn, ctype=ctype, is_fundamental=is_fundamental)
                 found_types.append(t)
                 log.debug(f"Seen new type: {t} (with ctype)")
                 return t
             log.debug(f"Found seen type: {found_types[0]}")
             return found_types[0]
         # First time we saw this type
-        res = ast.Type(name=fqtn, ctype=ctype)
+        res = ast.Type(name=fqtn, ctype=ctype, is_fundamental=is_fundamental)
         self._seen_types[fqtn] = [res]
         log.debug(f"Seen new type: {res}")
         return res
@@ -176,6 +187,8 @@ class GirParser:
                 repository = self._parse_tree(tree.getroot())
                 if repository is not None:
                     repository.girfile = girfile
+                    repository.resolve_moved_to()
+                    repository.resolve_symbols()
                     ns = repository.namespace
                     self._dependencies[ns.name] = repository
                     found = True
@@ -322,10 +335,10 @@ class GirParser:
         child = node.find('core:array', GI_NAMESPACES)
         if child is not None:
             name = node.attrib.get('name')
-            zero_terminated = int(child.attrib.get('zero-terminated', 0))
-            fixed_size = int(child.attrib.get('fixed-size', -1))
-            length = int(child.attrib.get('length', -1))
             array_type = child.attrib.get(_cns('type'))
+            attr_zero_terminated = child.attrib.get('zero-terminated')
+            attr_fixed_size = child.attrib.get('fixed-size')
+            attr_length = child.attrib.get('length')
 
             target: T.Optional[ast.Type] = None
             child_type = child.find('core:type', GI_NAMESPACES)
@@ -333,18 +346,40 @@ class GirParser:
                 ttype = child_type.attrib.get(_cns('type'))
                 tname = child_type.attrib.get('name')
                 if tname is None and ttype is not None:
-                    log.debug(f"Unnabled element type {ttype}")
+                    log.debug(f"Unlabled element type {ttype}")
                     target = ast.Type(name=ttype.replace('*', ''), ctype=ttype)
                 if tname == 'none' and ttype == 'void':
                     target = ast.VoidType()
-                elif tname != 'gpointer' and ttype == 'gpointer':
+                elif ttype == 'gpointer' and tname in FUNDAMENTAL_INTEGRAL_TYPES:
+                    # API returning a pointer with an overridden fundamental type,
+                    # like in-out/out signal arguments
+                    ctype = self._lookup_type(name=tname, ctype=f"{tname}*")
+                elif ttype == 'gpointer' and tname != 'gpointer':
                     # API returning gpointer to avoid casting
                     target = self._lookup_type(name=tname)
-                else:
+                elif tname:
                     target = self._lookup_type(name=tname, ctype=ttype)
+                else:
+                    target = ast.VoidType()
             else:
                 target = ast.VoidType()
-            ctype = ast.ArrayType(name=name, zero_terminated=zero_terminated, fixed_size=fixed_size, length=length,
+            # This sort of complete brain damage is par for the course in g-i, sadly; I really
+            # need to go into it with a sledgehammer and make the output complete, instead of
+            # relying on assumptions made in 2010.
+            zero_terminated = False
+            fixed_size = -1
+            length = -1
+            if attr_zero_terminated is not None:
+                zero_terminated = bool(attr_zero_terminated == '1')
+            else:
+                zero_terminated = bool(attr_fixed_size is None and attr_length is None)
+            if attr_fixed_size is not None:
+                fixed_size = int(attr_fixed_size)
+            if attr_length is not None:
+                length = int(attr_length)
+
+            ctype = ast.ArrayType(name=name, zero_terminated=zero_terminated,
+                                  fixed_size=fixed_size, length=length,
                                   ctype=array_type, value_type=target)
         else:
             child = node.find('core:type', GI_NAMESPACES)
@@ -377,7 +412,11 @@ class GirParser:
                                             value_type=ast.Type(vtname))
                     else:
                         ctype = self._lookup_type(name=tname, ctype=ttype)
-                elif tname != 'gpointer' and ttype == 'gpointer':
+                elif ttype == 'gpointer' and tname in FUNDAMENTAL_INTEGRAL_TYPES:
+                    # API returning a pointer with an overridden fundamental type,
+                    # like in-out/out signal arguments
+                    ctype = self._lookup_type(name=tname, ctype=f"{tname}*")
+                elif ttype == 'gpointer' and tname != 'gpointer':
                     # API returning gpointer to avoid casting
                     ctype = self._lookup_type(name=tname)
                 else:
@@ -567,6 +606,8 @@ class GirParser:
         throws = node.attrib.get('throws', '0') == '1'
         shadows = node.attrib.get('shadows')
         shadowed_by = node.attrib.get('shadowed-by')
+        set_property = node.attrib.get(_glibns('set-property'))
+        get_property = node.attrib.get(_glibns('get-property'))
 
         child = node.find('core:return-value', GI_NAMESPACES)
         return_value = self._parse_return_value(child)
@@ -579,7 +620,8 @@ class GirParser:
         for child in children:
             params.append(self._parse_parameter(child))
 
-        res = ast.Method(name=name, identifier=identifier, instance_param=instance_param, throws=throws)
+        res = ast.Method(name=name, identifier=identifier, instance_param=instance_param, throws=throws,
+                         set_property=set_property, get_property=get_property)
         res.set_return_value(return_value)
         res.set_parameters(params)
         res.set_introspectable(node.attrib.get('introspectable', '1') != '0')
@@ -700,12 +742,15 @@ class GirParser:
         construct_only = node.attrib.get('construct-only', '0') == '1'
         construct = node.attrib.get('construct', '0') == '1'
         transfer = node.attrib.get('transfer-ownership')
+        setter = node.attrib.get('setter')
+        getter = node.attrib.get('getter')
 
         ctype = self._parse_ctype(node)
 
         res = ast.Property(name=name, transfer=transfer, target=ctype,
                            writable=writable, readable=readable,
-                           construct=construct, construct_only=construct_only)
+                           construct=construct, construct_only=construct_only,
+                           setter=setter, getter=getter)
         res.set_introspectable(node.attrib.get('introspectable', '1') != '0')
         res.set_version(node.attrib.get('version'))
         self._maybe_parse_docs(node, res)

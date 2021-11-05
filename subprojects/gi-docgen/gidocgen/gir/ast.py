@@ -88,7 +88,7 @@ class GIRElement:
     def __init__(self, name: T.Optional[str] = None, namespace: T.Optional[str] = None):
         self.name = name
         self.namespace = namespace
-        if self.namespace is not None:
+        if self.namespace is None:
             if self.name is not None and '.' in self.name:
                 self.namespace = self.name.split('.')[0]
         self.info = Info()
@@ -162,14 +162,15 @@ class GIRElement:
 
 class Type(GIRElement):
     """Base class for all Type nodes"""
-    def __init__(self, name: str, ctype: T.Optional[str] = None, namespace: T.Optional[str] = None):
+    def __init__(self, name: str, ctype: T.Optional[str] = None, namespace: T.Optional[str] = None, is_fundamental: bool = False):
         super().__init__(name=name, namespace=namespace)
         self.ctype = ctype
+        self.is_fundamental = is_fundamental
 
     def __eq__(self, other):
         if isinstance(other, Type):
             if self.namespace is not None:
-                return self.namespace == other.namespace and self.name == self.name
+                return self.namespace == other.namespace and self.name == other.name
             elif self.ctype is not None:
                 return self.name == other.name and self.ctype == other.ctype
             else:
@@ -199,7 +200,9 @@ class Type(GIRElement):
 
     @property
     def fqtn(self):
-        if '.' in self.name:
+        if self.is_fundamental:
+            return self.name
+        elif '.' in self.name:
             return self.name
         elif self.namespace is not None:
             return f"{self.namespace}.{self.name}"
@@ -217,6 +220,7 @@ class ArrayType(GIRElement):
         self.fixed_size = fixed_size
         self.length = length
         self.value_type = value_type
+        self.is_fundamental = False
 
 
 class ListType(GIRElement):
@@ -225,6 +229,7 @@ class ListType(GIRElement):
         super().__init__(name)
         self.ctype = ctype
         self.value_type = value_type
+        self.is_fundamental = False
 
 
 class MapType(GIRElement):
@@ -234,6 +239,7 @@ class MapType(GIRElement):
         self.ctype = ctype
         self.key_type = key_type
         self.value_type = value_type
+        self.is_fundamental = False
 
 
 class GType:
@@ -363,9 +369,12 @@ class Function(Callable):
 
 
 class Method(Callable):
-    def __init__(self, name: str, identifier: str, instance_param: Parameter, throws: bool = False):
+    def __init__(self, name: str, identifier: str, instance_param: Parameter, throws: bool = False,
+                 set_property: T.Optional[str] = None, get_property: T.Optional[str] = None):
         super().__init__(name, None, identifier, throws)
         self.instance_param = instance_param
+        self.set_property = set_property
+        self.get_property = get_property
 
     def __contains__(self, param):
         if isinstance(param, Parameter) and param == self.instance_param:
@@ -389,6 +398,7 @@ class Callback(Callable):
     def __init__(self, name: str, namespace: str, ctype: T.Optional[str], throws: bool = False):
         super().__init__(name=name, namespace=namespace, identifier=None, throws=throws)
         self.ctype = ctype
+        self.is_fundamental = False
 
     @property
     def base_ctype(self):
@@ -451,7 +461,7 @@ class ErrorDomain(Enumeration):
 
 class Property(GIRElement):
     def __init__(self, name: str, transfer: str, target: Type, writable: bool = True, readable: bool = True, construct: bool = False,
-                 construct_only: bool = False):
+                 construct_only: bool = False, setter: T.Optional[str] = None, getter: T.Optional[str] = None):
         super().__init__(name)
         self.transfer = transfer
         self.writable = writable
@@ -459,6 +469,8 @@ class Property(GIRElement):
         self.construct = construct
         self.construct_only = construct_only
         self.target = target
+        self.setter = setter
+        self.getter = getter
 
 
 class Signal(GIRElement):
@@ -502,6 +514,7 @@ class Interface(Type):
         self.functions: T.List[Function] = []
         self.fields: T.List[Field] = []
         self.prerequisite: T.Optional[str] = None
+        self.implementations: T.List[Type] = []
 
     @property
     def type_struct(self) -> T.Optional[str]:
@@ -560,6 +573,7 @@ class Class(Type):
         self.functions: T.List[Function] = []
         self.fields: T.List[Field] = []
         self.callbacks: T.List[Callback] = []
+        self.descendants: T.List[Type] = []
 
     @property
     def type_struct(self) -> T.Optional[str]:
@@ -903,7 +917,7 @@ class Namespace:
     def find_prerequisite_type(self, name: str) -> T.Optional[Type]:
         if name in self._classes:
             return self._classes[name]
-        if name is self._interfaces:
+        if name in self._interfaces:
             return self._interfaces[name]
         return None
 
@@ -934,6 +948,15 @@ class Repository:
                 return repo.namespace
         return None
 
+    def _lookup_type(self, name: str) -> T.Optional[Type]:
+        types = self.types.get(name)
+        if types is None:
+            return None
+        for t in types:
+            if t.resolved:
+                return t
+        return types[0]
+
     def resolve_empty_ctypes(self, seen_types: T.Mapping[str, T.List[Type]]) -> None:
         for fqtn in seen_types:
             types = seen_types[fqtn]
@@ -947,13 +970,14 @@ class Repository:
 
     def resolve_interface_requires(self) -> None:
         def find_prerequisite_type(includes, ns, name):
-            for repo in includes.values():
-                if repo.namespace.name != ns:
-                    continue
-                prereq = repo.namespace.find_prerequisite_type(name)
-                if prereq is not None:
-                    return Type(name=f"{repo.namespace.name}.{prereq.name}", ctype=prereq.ctype)
-            return None
+            repository = includes.get(ns)
+            if repository is None:
+                return None
+            prereq = repository.namespace.find_prerequisite_type(name)
+            # If the prerequisite type is unqualified, then we qualify it here
+            if '.' not in prereq.name:
+                prereq.name = f"{repository.namespace.name}.{prereq.name}"
+            return prereq
 
         ifaces = self.namespace.get_interfaces()
         for iface in ifaces:
@@ -970,12 +994,24 @@ class Repository:
                 prerequisite = self.namespace.find_prerequisite_type(iface.prerequisite.name)
             if prerequisite is not None:
                 if prerequisite.ctype is None:
-                    t = self.find_type(prerequisite.name)
-                    prerequisite.ctype = t.ctype
+                    if '.' not in prerequisite.name:
+                        name = f"{self.namespace.name}.{prerequisite.name}"
+                    else:
+                        name = prerequisite.name
+                    t = self._lookup_type(name)
+                    if t is not None:
+                        prerequisite.ctype = t.ctype
+                    else:
+                        # This is kind of a kludge, but apparently we can get into
+                        # class definitions missing a c:type; if that happens, we
+                        # take the identifier prefix of the namespace and append the
+                        # class name, because that's the inverse of how g-ir-scanner
+                        # determines the class name
+                        prerequisite.ctype = f"{self.namespace.identifier_prefix[0]}{prerequisite.name}"
                 iface.prerequisite = prerequisite
                 log.debug(f"Prerequisite type for interface {iface}: {iface.prerequisite}")
 
-    def resolve_class_type(self) -> None:
+    def resolve_class_ctype(self) -> None:
         classes = self.namespace.get_classes()
         for cls in classes:
             if cls.ctype is None:
@@ -983,7 +1019,7 @@ class Repository:
                     name = f"{self.namespace.name}.{cls.name}"
                 else:
                     name = cls.name
-                t = self.find_type(name)
+                t = self._lookup_type(name)
                 if t is not None:
                     cls.ctype = t.base_ctype
                 else:
@@ -997,13 +1033,14 @@ class Repository:
 
     def resolve_class_implements(self) -> None:
         def find_interface_type(includes, ns, name):
-            for repo in includes.values():
-                if repo.namespace.name != ns:
-                    continue
-                iface = repo.namespace.find_interface(name)
-                if iface is not None:
-                    return Type(name=f"{repo.namespace.name}.{iface.name}", ctype=iface.ctype)
-            return None
+            repository = includes.get(ns)
+            if repository is None:
+                return None
+            iface = repository.namespace.find_interface(name)
+            # If the interface type is unqualified, then we qualify it here
+            if '.' not in iface.name:
+                iface.name = f"{repository.namespace.name}.{iface.name}"
+            return iface
 
         classes = self.namespace.get_classes()
         for cls in classes:
@@ -1022,7 +1059,7 @@ class Repository:
                     iface_type = self.namespace.find_interface(iface.name)
                 if iface_type is not None:
                     if iface_type.ctype is None:
-                        t = self.find_type(iface_type.name)
+                        t = self._lookup_type(iface_type.name)
                         iface_type.ctype = t.ctype
                     cls.implements.append(iface_type)
             log.debug(f"Interfaces implemented by {cls}: {cls.implements}")
@@ -1060,7 +1097,7 @@ class Repository:
                     break
                 if real_parent.ctype is None:
                     log.debug(f"Looking up C type for {parent.fqtn}")
-                    t = self.find_type(parent.name)
+                    t = self._lookup_type(parent.name)
                     real_parent.ctype = t.ctype
                 log.debug(f"Adding ancestor {real_parent} for {cls}")
                 ancestors.append(real_parent)
@@ -1068,6 +1105,15 @@ class Repository:
             cls.ancestors = ancestors
             cls.parent = ancestors[0]
             log.debug(f"Ancestors for {cls}: parent: {cls.parent}, ancestors: {cls.ancestors}")
+
+    def resolve_class_descendants(self) -> None:
+        seen_parents = {}
+        for cls in self.namespace.get_classes():
+            if cls.parent is not None:
+                seen_parents.setdefault(cls.parent.name, []).append(cls)
+        for name, descendants in seen_parents.items():
+            if name in self.namespace._classes:
+                self.namespace._classes[name].descendants = descendants
 
     def resolve_moved_to(self) -> None:
         functions = list(self.namespace.get_functions())
@@ -1118,6 +1164,18 @@ class Repository:
                 symbols[m.identifier] = union
         self.namespace._symbols = symbols
 
+    def resolve_interface_implementations(self) -> None:
+        seen_impls = {}
+        for iface in self.namespace.get_interfaces():
+            for cls in self.namespace.get_classes():
+                if cls.implements is None:
+                    continue
+                if iface in cls.implements:
+                    seen_impls.setdefault(iface.name, []).append(cls)
+        for iface, seen in seen_impls.items():
+            if iface in self.namespace._interfaces:
+                self.namespace._interfaces[iface].implementations = seen
+
     def get_class_hierarchy(self, root=None):
         flat_tree = []
         seen_types = {}
@@ -1162,11 +1220,53 @@ class Repository:
     def namespace(self) -> T.Optional[Namespace]:
         return self._namespaces[0]
 
-    def find_type(self, name: str) -> T.Optional[Type]:
-        types = self.types.get(name)
-        if types is None:
-            return None
-        for t in types:
-            if t.resolved:
-                return t
-        return types[0]
+    def find_type(self, name: str, ns: T.Optional[str] = None) -> T.Optional[T.Tuple[Namespace, Type]]:
+        if ns is None or self.namespace.name == ns:
+            res = self.namespace.find_real_type(name)
+            if res is not None:
+                return (self.namespace, res)
+        for repo in self.includes.values():
+            if ns is not None and ns != repo.namespace.name:
+                continue
+            res = repo.namespace.find_real_type(name)
+            if res is not None:
+                return (repo.namespace, res)
+        return None
+
+    def find_symbol(self, name: str) -> T.Optional[T.Tuple[Namespace, Type]]:
+        log.debug(f"Looking for symbol {name} in current namespace {self.namespace.name}")
+        res = self.namespace.find_symbol(name)
+        if res is not None:
+            return (self.namespace, res)
+        for repo in self.includes.values():
+            log.debug(f"Looking for symbol {name} in namespace {repo.namespace.name}")
+            res = repo.namespace.find_symbol(name)
+            if res is not None:
+                return (repo.namespace, res)
+        return None
+
+    def find_class(self, name: str, ns: T.Optional[str] = None) -> T.Optional[T.Tuple[Namespace, Type]]:
+        if ns is None or self.namespace.name == ns:
+            res = self.namespace.find_class(name)
+            if res is not None:
+                return (self.namespace, res)
+        for repo in self.includes.values():
+            if ns is not None and ns != repo.namespace.name:
+                continue
+            res = repo.namespace.find_class(name)
+            if res is not None:
+                return (repo.namespace, res)
+        return None
+
+    def find_interface(self, name: str, ns: T.Optional[str] = None) -> T.Optional[T.Tuple[Namespace, Type]]:
+        if ns is None or self.namespace.name == ns:
+            res = self.namespace.find_interface(name)
+            if res is not None:
+                return (self.namespace, res)
+        for repo in self.includes.values():
+            if ns is not None and ns != repo.namespace.name:
+                continue
+            res = repo.namespace.find_interface(name)
+            if res is not None:
+                return (repo.namespace, res)
+        return None

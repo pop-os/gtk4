@@ -37,8 +37,28 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 </div>
 
 {{ sidebar_block(struct.ctors, struct.name, "Constructors", "ctor", "ctor") }}
-{{ sidebar_block(struct.methods, struct.name, "Instance methods", "method", "method") }}
 {{ sidebar_block(struct.type_funcs, struct.name, "Functions", "func", "type_func") }}
+{{ sidebar_block(struct.methods, struct.name, "Instance methods", "method", "method") }}
+{% endblock %}
+
+{% macro navbar_block(elements, section_title, section_link) -%}
+{% if elements|length > 0 %}
+<li class="toc-list-item"><a href="{{ section_link }}"><span class="link-text">{{ section_title }}</span></a></li>
+{% endif %}
+{% endmacro %}
+
+{% block navbar %}
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      {{ navbar_block(struct.ctors, "Constructors", "#constructors") }}
+      {{ navbar_block(struct.type_funcs, "Functions", "#type-functions") }}
+      {{ navbar_block(struct.methods, "Methods", "#methods") }}
+    </ul>
+  </nav>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -146,6 +166,38 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     </div>
     {% endif %}
 
+    {% if struct.type_funcs %}
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in struct.type_funcs %}
+      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="type_func.{{ struct.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ func.summary }}
+        </div>
+
+        {% if func.available_since or func.deprecated_since -%}
+        <div class="docblock">
+        {%- if func.available_since -%}
+        <p>Available since: {{ func.available_since }}</p>
+        {%- endif -%}
+        {%- if func.deprecated_since -%}
+        <p>Deprecated since: {{ func.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     {% if struct.methods %}
     <div class="toggle-wrapper methods">
       <h4 id="methods">
@@ -176,38 +228,6 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
       {% endfor %}
       </div>
 
-    </div>
-    {% endif %}
-
-    {% if struct.type_funcs %}
-    <div class="toggle-wrapper methods">
-      <h4 id="type-functions">
-        Functions
-        <a href="#type-functions" class="anchor"></a>
-      </h4>
-
-      <div class="docblock">
-      {% for func in struct.type_funcs %}
-      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
-        <h6><a href="type_func.{{ struct.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
-
-        <div class="docblock">
-          {{ func.summary }}
-        </div>
-
-        {% if func.available_since or func.deprecated_since -%}
-        <div class="docblock">
-        {%- if func.available_since -%}
-        <p>Available since: {{ func.available_since }}</p>
-        {%- endif -%}
-        {%- if func.deprecated_since -%}
-        <p>Deprecated since: {{ func.deprecated_since }}</p>
-        {%- endif -%}
-        </div>
-        {%- endif %}
-      </div>
-      {% endfor %}
-      </div>
     </div>
     {% endif %}
 

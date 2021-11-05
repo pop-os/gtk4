@@ -57,6 +57,7 @@
 #include "gtknative.h"
 #include "gtkwidgetprivate.h"
 #include "gtkjoinedmenuprivate.h"
+#include "gtkcssenumvalueprivate.h"
 
 /**
  * GtkTextView:
@@ -394,6 +395,8 @@ static void gtk_text_view_css_changed          (GtkWidget           *widget,
                                                 GtkCssStyleChange   *change);
 static void gtk_text_view_direction_changed    (GtkWidget        *widget,
                                                 GtkTextDirection  previous_direction);
+static void gtk_text_view_system_setting_changed (GtkWidget           *widget,
+                                                  GtkSystemSetting     setting);
 static void gtk_text_view_state_flags_changed  (GtkWidget        *widget,
 					        GtkStateFlags     previous_state);
 
@@ -570,6 +573,7 @@ static void gtk_text_view_update_im_spot_location (GtkTextView *text_view);
 static void gtk_text_view_insert_emoji (GtkTextView *text_view);
 
 static void update_node_ordering (GtkWidget    *widget);
+static void gtk_text_view_update_pango_contexts (GtkTextView *text_view);
 
 /* GtkTextHandle handlers */
 static void gtk_text_view_handle_drag_started  (GtkTextHandle         *handle,
@@ -816,6 +820,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
   widget_class->map = gtk_text_view_map;
   widget_class->css_changed = gtk_text_view_css_changed;
   widget_class->direction_changed = gtk_text_view_direction_changed;
+  widget_class->system_setting_changed = gtk_text_view_system_setting_changed;
   widget_class->state_flags_changed = gtk_text_view_state_flags_changed;
   widget_class->measure = gtk_text_view_measure;
   widget_class->size_allocate = gtk_text_view_size_allocate;
@@ -4981,7 +4986,6 @@ gtk_text_view_css_changed (GtkWidget         *widget,
 {
   GtkTextView *text_view;
   GtkTextViewPrivate *priv;
-  PangoContext *ltr_context, *rtl_context;
 
   text_view = GTK_TEXT_VIEW (widget);
   priv = text_view->priv;
@@ -4990,6 +4994,7 @@ gtk_text_view_css_changed (GtkWidget         *widget,
 
   if ((change == NULL ||
        gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT |
+                                             GTK_CSS_AFFECTS_TEXT_ATTRS |
                                              GTK_CSS_AFFECTS_BACKGROUND |
                                              GTK_CSS_AFFECTS_CONTENT)) &&
       priv->layout && priv->layout->default_style)
@@ -4997,16 +5002,13 @@ gtk_text_view_css_changed (GtkWidget         *widget,
       gtk_text_view_set_attributes_from_style (text_view,
                                                priv->layout->default_style);
       gtk_text_layout_default_style_changed (priv->layout);
+    }
 
-      ltr_context = gtk_widget_create_pango_context (widget);
-      pango_context_set_base_dir (ltr_context, PANGO_DIRECTION_LTR);
-      rtl_context = gtk_widget_create_pango_context (widget);
-      pango_context_set_base_dir (rtl_context, PANGO_DIRECTION_RTL);
-
-      gtk_text_layout_set_contexts (priv->layout, ltr_context, rtl_context);
-
-      g_object_unref (ltr_context);
-      g_object_unref (rtl_context);
+  if ((change == NULL ||
+       gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT)) &&
+      priv->layout)
+    {
+      gtk_text_view_update_pango_contexts (text_view);
     }
 }
 
@@ -5021,6 +5023,42 @@ gtk_text_view_direction_changed (GtkWidget        *widget,
       priv->layout->default_style->direction = gtk_widget_get_direction (widget);
 
       gtk_text_layout_default_style_changed (priv->layout);
+    }
+}
+
+static void
+gtk_text_view_update_pango_contexts (GtkTextView *text_view)
+{
+  GtkWidget *widget = GTK_WIDGET (text_view);
+  GtkTextViewPrivate *priv = text_view->priv;
+  gboolean update_ltr, update_rtl;
+
+  if (!priv->layout)
+    return;
+
+ update_ltr = gtk_widget_update_pango_context (widget, priv->layout->ltr_context, GTK_TEXT_DIR_LTR);
+
+ update_rtl = gtk_widget_update_pango_context (widget, priv->layout->rtl_context, GTK_TEXT_DIR_RTL);
+
+  if (update_ltr || update_rtl)
+    {
+      GtkTextIter start, end;
+
+      gtk_text_buffer_get_bounds (get_buffer (text_view), &start, &end);
+      gtk_text_layout_invalidate (priv->layout, &start, &end);
+      gtk_widget_queue_draw (widget);
+    }
+}
+
+static void
+gtk_text_view_system_setting_changed (GtkWidget        *widget,
+                                      GtkSystemSetting  setting)
+{
+  if (setting == GTK_SYSTEM_SETTING_DPI ||
+      setting == GTK_SYSTEM_SETTING_FONT_NAME ||
+      setting == GTK_SYSTEM_SETTING_FONT_CONFIG)
+    {
+      gtk_text_view_update_pango_contexts (GTK_TEXT_VIEW (widget));
     }
 }
 
@@ -6162,7 +6200,7 @@ gtk_text_view_check_cursor_blink (GtkTextView *text_view)
 static void
 gtk_text_view_pend_cursor_blink (GtkTextView *text_view)
 {
-  if (cursor_blinks (text_view))
+  if (cursor_blinks (text_view) && cursor_visible (text_view))
     {
       remove_blink_timeout (text_view);
       add_blink_timeout (text_view, TRUE);
@@ -7633,6 +7671,29 @@ gtk_text_view_end_selection_drag (GtkTextView *text_view)
  * Layout utils
  */
 
+static PangoUnderline
+get_pango_underline_from_style (GtkTextDecorationStyle style)
+{
+  switch (style)
+    {
+    case GTK_CSS_TEXT_DECORATION_STYLE_DOUBLE:
+      return PANGO_UNDERLINE_DOUBLE;
+    case GTK_CSS_TEXT_DECORATION_STYLE_WAVY:
+      return PANGO_UNDERLINE_ERROR;
+    case GTK_CSS_TEXT_DECORATION_STYLE_SOLID:
+    default:
+      return PANGO_UNDERLINE_SINGLE;
+    }
+
+  g_return_val_if_reached (PANGO_UNDERLINE_SINGLE);
+}
+
+static PangoOverline
+get_pango_overline_from_style (GtkTextDecorationStyle style)
+{
+  return PANGO_OVERLINE_SINGLE;
+}
+
 static void
 gtk_text_view_set_attributes_from_style (GtkTextView        *text_view,
                                          GtkTextAttributes  *values)
@@ -7640,6 +7701,9 @@ gtk_text_view_set_attributes_from_style (GtkTextView        *text_view,
   GtkCssStyle *style;
   const GdkRGBA black = { 0, };
   const GdkRGBA *color;
+  const GdkRGBA *decoration_color;
+  GtkTextDecorationLine decoration_line;
+  GtkTextDecorationStyle decoration_style;
 
   if (!values->appearance.bg_rgba)
     values->appearance.bg_rgba = gdk_rgba_copy (&black);
@@ -7657,6 +7721,69 @@ gtk_text_view_set_attributes_from_style (GtkTextView        *text_view,
     pango_font_description_free (values->font);
 
   values->font = gtk_css_style_get_pango_font (style);
+
+  values->letter_spacing = _gtk_css_number_value_get (style->font->letter_spacing, 100) * PANGO_SCALE;
+
+  /* text-decoration */
+
+  decoration_line = _gtk_css_text_decoration_line_value_get (style->font_variant->text_decoration_line);
+  decoration_style = _gtk_css_text_decoration_style_value_get (style->font_variant->text_decoration_style);
+  color = gtk_css_color_value_get_rgba (style->core->color);
+  decoration_color = gtk_css_color_value_get_rgba (style->font_variant->text_decoration_color
+                                                   ? style->font_variant->text_decoration_color
+                                                   : style->core->color);
+
+  if (decoration_line & GTK_CSS_TEXT_DECORATION_LINE_UNDERLINE)
+    {
+      values->appearance.underline = get_pango_underline_from_style (decoration_style);
+      if (values->appearance.underline_rgba)
+        *values->appearance.underline_rgba = *decoration_color;
+      else
+        values->appearance.underline_rgba = gdk_rgba_copy (decoration_color);
+    }
+  else
+    {
+      values->appearance.underline = PANGO_UNDERLINE_NONE;
+      gdk_rgba_free (values->appearance.underline_rgba);
+      values->appearance.underline_rgba = NULL;
+    }
+
+  if (decoration_line & GTK_CSS_TEXT_DECORATION_LINE_OVERLINE)
+    {
+      values->appearance.overline = get_pango_overline_from_style (decoration_style);
+      if (values->appearance.overline_rgba)
+        *values->appearance.overline_rgba = *decoration_color;
+      else
+        values->appearance.overline_rgba = gdk_rgba_copy (decoration_color);
+    }
+  else
+    {
+      values->appearance.overline = PANGO_OVERLINE_NONE;
+      gdk_rgba_free (values->appearance.overline_rgba);
+      values->appearance.overline_rgba = NULL;
+    }
+
+  if (decoration_line & GTK_CSS_TEXT_DECORATION_LINE_LINE_THROUGH)
+    {
+      values->appearance.strikethrough = TRUE;
+      if (values->appearance.strikethrough_rgba)
+        *values->appearance.strikethrough_rgba = *decoration_color;
+      else
+        values->appearance.strikethrough_rgba = gdk_rgba_copy (decoration_color);
+    }
+  else
+    {
+      values->appearance.strikethrough = FALSE;
+      gdk_rgba_free (values->appearance.strikethrough_rgba);
+      values->appearance.strikethrough_rgba = NULL;
+    }
+
+  /* letter-spacing */
+  values->letter_spacing = _gtk_css_number_value_get (style->font->letter_spacing, 100) * PANGO_SCALE;
+
+  /* OpenType features */
+  g_free (values->font_features);
+  values->font_features = gtk_css_style_compute_font_features (style);
 }
 
 static void
@@ -7715,8 +7842,8 @@ gtk_text_view_ensure_layout (GtkTextView *text_view)
   if (priv->layout == NULL)
     {
       GtkTextAttributes *style;
-      PangoContext *ltr_context, *rtl_context;
       const GList *iter;
+      PangoContext *ltr_context, *rtl_context;
 
       DV(g_print(G_STRLOC"\n"));
       
@@ -7749,14 +7876,14 @@ gtk_text_view_ensure_layout (GtkTextView *text_view)
 					  priv->overwrite_mode && priv->editable);
 
       ltr_context = gtk_widget_create_pango_context (GTK_WIDGET (text_view));
-      pango_context_set_base_dir (ltr_context, PANGO_DIRECTION_LTR);
       rtl_context = gtk_widget_create_pango_context (GTK_WIDGET (text_view));
+      pango_context_set_base_dir (ltr_context, PANGO_DIRECTION_LTR);
       pango_context_set_base_dir (rtl_context, PANGO_DIRECTION_RTL);
-
       gtk_text_layout_set_contexts (priv->layout, ltr_context, rtl_context);
-
       g_object_unref (ltr_context);
       g_object_unref (rtl_context);
+
+      gtk_text_view_update_pango_contexts (text_view);
 
       gtk_text_view_check_keymap_direction (text_view);
 
@@ -8310,17 +8437,32 @@ gtk_text_view_commit_text (GtkTextView   *text_view,
 {
   GtkTextViewPrivate *priv;
   gboolean had_selection;
+  GtkTextIter begin, end;
+  guint length;
 
   priv = text_view->priv;
 
   gtk_text_view_obscure_mouse_cursor (text_view);
   gtk_text_buffer_begin_user_action (get_buffer (text_view));
 
-  had_selection = gtk_text_buffer_get_selection_bounds (get_buffer (text_view),
-                                                        NULL, NULL);
-  
-  gtk_text_buffer_delete_selection (get_buffer (text_view), TRUE,
-                                    priv->editable);
+  had_selection = gtk_text_buffer_get_selection_bounds (get_buffer (text_view), &begin, &end);
+  gtk_text_iter_order (&begin, &end);
+  length = gtk_text_iter_get_offset (&end) - gtk_text_iter_get_offset (&begin);
+
+  if (gtk_text_buffer_delete_selection (get_buffer (text_view), TRUE, priv->editable))
+    {
+      /* If something was deleted, create a second group for the insert. This
+       * ensures that there are two undo operations. One for the deletion, and
+       * one for the insertion of new text. However, if there is only a single
+       * character overwritten, that isn't very useful, just keep the single
+       * undo group.
+       */
+      if (length > 1)
+        {
+          gtk_text_buffer_end_user_action (get_buffer (text_view));
+          gtk_text_buffer_begin_user_action (get_buffer (text_view));
+        }
+    }
 
   if (!strcmp (str, "\n"))
     {

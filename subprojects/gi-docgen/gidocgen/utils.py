@@ -66,6 +66,7 @@ CODEBLOCK_END_RE = re.compile(
 
 LINK_RE = re.compile(
     r'''
+    (?P<text>\[ [\w\s,\-_:]+ \])?
     \[
     (`)?
     (?P<fragment>[\w]+)
@@ -119,6 +120,7 @@ LANGUAGE_MAP = {
     'css': 'css',
     'plain': 'plain',
     'xml': 'xml',
+    'javascript': 'javascript',
 }
 
 MD_EXTENSIONS = [
@@ -195,6 +197,7 @@ class LinkGenerator:
         self._fragment = kwargs.get('fragment', '')
         self._endpoint = kwargs.get('endpoint', '')
         self._no_link = kwargs.get('no_link', False)
+        self._alt_text = kwargs.get('text')
 
         assert self._namespace is not None
 
@@ -235,26 +238,35 @@ class LinkGenerator:
                                            "Unable to parse link")))
 
     def _parse_id(self, fragment):
-        t = self._namespace.find_symbol(self._endpoint)
+        symbol = self._repository.find_symbol(self._endpoint)
+        if symbol is None:
+            return LinkParseError(self._line, self._start, self._end,
+                                  self._fragment, self._endpoint,
+                                  f"Unable to find symbol {self._endpoint}")
+        (ns, t) = symbol
         if isinstance(t, gir.Class) or \
            isinstance(t, gir.Interface) or \
            isinstance(t, gir.Record):
+            self._external = ns is not self._namespace
+            self._ns = ns.name
             self._fragment = 'method'
             self._symbol_name = f"{self._endpoint}()"
             self._name = t.name
-            self._method_name = self._endpoint.replace(self._namespace.symbol_prefix[0] + '_', '')
+            self._method_name = self._endpoint.replace(ns.symbol_prefix[0] + '_', '')
             self._method_name = self._method_name.replace(t.symbol_prefix + '_', '')
             return None
         elif isinstance(t, gir.Function):
+            self._external = ns is not self._namespace
+            self._ns = ns.name
             self._fragment = 'func'
             self._symbol_name = f"{self._endpoint}()"
             self._name = None
-            self._func_name = self._endpoint.replace(self._namespace.symbol_prefix[0] + '_', '')
+            self._func_name = self._endpoint.replace(ns.symbol_prefix[0] + '_', '')
             return None
         else:
             return LinkParseError(self._line, self._start, self._end,
                                   self._fragment, self._endpoint,
-                                  f"Unable to find symbol {self._endpoint}")
+                                  f"Unsupported symbol {self._endpoint}")
 
     def _parse_type(self, fragment):
         res = TYPE_RE.match(self._endpoint)
@@ -555,14 +567,16 @@ class LinkGenerator:
 
     @property
     def text(self):
-        if self._fragment in ['alias', 'class', 'const', 'enum', 'error', 'flags', 'iface', 'struct']:
+        if self._alt_text is not None:
+            return self._alt_text[1:len(self._alt_text) - 1]
+        elif self._fragment in ['alias', 'class', 'const', 'enum', 'error', 'flags', 'iface', 'struct']:
             return f"<code>{self._type}</code>"
         elif self._fragment == 'property':
             return f"<code>{self._type}:{self._property_name}</code>"
         elif self._fragment == 'signal':
             return f"<code>{self._type}::{self._signal_name}</code>"
         elif self._fragment in ['ctor', 'func', 'method', 'class_method']:
-            return f"{self._symbol_name}"
+            return f"<code>{self._symbol_name}</code>"
         elif self._fragment == 'vfunc':
             return f"<code>{self._ns}.{self._type}.{self._vfunc_name}</code>"
         else:
@@ -660,12 +674,13 @@ def preprocess_docs(text, namespace, summary=False, md=None, extensions=[], plai
             for m in LINK_RE.finditer(line, idx):
                 fragment = m.group('fragment')
                 endpoint = m.group('endpoint')
+                text = m.group('text')
                 start = m.start()
                 end = m.end()
                 link = LinkGenerator(line=line, start=start, end=end,
                                      namespace=namespace,
                                      fragment=fragment, endpoint=endpoint,
-                                     no_link=summary)
+                                     no_link=summary, text=text)
                 left_pad = line[idx:start]
                 replacement = re.sub(LINK_RE, str(link), line[start:end])
                 new_line.append(left_pad)
@@ -690,7 +705,7 @@ def preprocess_docs(text, namespace, summary=False, md=None, extensions=[], plai
 
     # Append a period, if one isn't there already
     last_line = processed_text[-1]
-    if last_line and last_line[-1] != '.':
+    if last_line and last_line[-1].isalpha():
         processed_text[-1] = ''.join([last_line, '.'])
 
     if md is None:
@@ -868,3 +883,12 @@ def default_search_paths():
         paths.extend([os.path.join(x, "gir-1.0") for x in xdg_data_dirs])
 
     return paths
+
+
+def find_extra_content_file(content_dirs, file):
+    for p in content_dirs:
+        full_path = os.path.join(p, file)
+        if os.path.isfile(full_path):
+            return full_path
+
+    raise FileNotFoundError(f"Content file {file} not found in any content directory")

@@ -21,6 +21,9 @@ The following attributes apply to properties.
   Defines the setter method for a given property. The value of the attribute is
   the C symbol of the function.
 
+``org.gtk.Property.default`` = ``s``
+  Defines the default value for a given property.
+
 Methods
 -------
 

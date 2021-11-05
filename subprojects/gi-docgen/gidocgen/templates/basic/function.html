@@ -20,7 +20,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 <div class="section">
   <h5>Function Macros</h5>
   <div class="links">
-  {% for f in namespace.function_macross %}
+  {% for f in namespace.function_macros %}
     <a class="function{% if func.name == f.name %} current{% endif %}" href="func.{{ f.name }}.html">{{ f.name }}</a>
   {% endfor %}
   </div>
@@ -163,6 +163,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
             <td>
             {%- if func.return_value.is_array -%}An array of&nbsp;{%- endif -%}
             {%- if func.return_value.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if func.return_value.is_list_model -%}A list model of&nbsp;{%- endif -%}
             {%- if func.return_value.link -%}
             {{ func.return_value.link|safe }}
             {%- else -%}

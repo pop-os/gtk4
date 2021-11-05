@@ -200,11 +200,13 @@ def checkpoint(prefix=None):
 
 
 def report():
+    global log_warnings_counter
     if log_quiet:
         return
     elapsed = (time.monotonic() - log_epoch)
     report = [""]
     report += [f"Elapsed time: {elapsed:.3f} seconds"]
     report += [f"Total warnings: {log_warnings_counter}"]
-    print("\n".join(report))
-    return log_warnings_counter != 0
+    if log_warnings_counter == 0:
+        return 0
+    return 1
