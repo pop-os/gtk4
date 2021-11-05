@@ -1,3 +1,14 @@
+gtk4 (4.4.1+ds1-1) UNRELEASED; urgency=medium
+
+  [ Jeremy Bicha ]
+  * debian/rules: Correctly enable auto features for deb build
+
+  [ Simon McVittie ]
+  * New upstream release
+  * libgtk-4-dev Suggests gtk-4-examples (Closes: #995752)
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 05 Nov 2021 10:00:35 +0000
+
 gtk4 (4.4.0+ds1-5) unstable; urgency=medium
 
   * Sort patch series in upstream-first order
