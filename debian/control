@@ -78,7 +78,7 @@ Build-Depends-Indep: libcairo2-doc,
                      python3-toml <!nodoc>,
                      python3-typogrify <!nodoc>,
 Rules-Requires-Root: no
-Standards-Version: 4.5.1
+Standards-Version: 4.6.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
 Homepage: https://www.gtk.org/
