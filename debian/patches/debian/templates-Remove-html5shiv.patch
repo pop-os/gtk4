@@ -9,7 +9,7 @@ references to external resources that can be a privacy breach.
  1 file changed, 1 deletion(-)
 
 diff --git a/subprojects/gi-docgen/gidocgen/templates/basic/base.html b/subprojects/gi-docgen/gidocgen/templates/basic/base.html
-index e353208..7c83cae 100644
+index 963a73e..ace1da3 100644
 --- a/subprojects/gi-docgen/gidocgen/templates/basic/base.html
 +++ b/subprojects/gi-docgen/gidocgen/templates/basic/base.html
 @@ -47,7 +47,6 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later

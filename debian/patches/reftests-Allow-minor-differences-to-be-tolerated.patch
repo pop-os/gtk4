@@ -28,7 +28,7 @@ Applied-upstream: no, upstream want reftests to be a strict pass/fail with ident
  3 files changed, 62 insertions(+), 3 deletions(-)
 
 diff --git a/testsuite/gsk/compare-render.c b/testsuite/gsk/compare-render.c
-index f3c3568..6766a01 100644
+index 9742358..cd6bf50 100644
 --- a/testsuite/gsk/compare-render.c
 +++ b/testsuite/gsk/compare-render.c
 @@ -98,6 +98,12 @@ get_output_file (const char *file,
@@ -44,7 +44,7 @@ index f3c3568..6766a01 100644
  static void
  save_image (cairo_surface_t *surface,
              const char      *test_name,
-@@ -244,12 +250,35 @@ main (int argc, char **argv)
+@@ -246,12 +252,35 @@ main (int argc, char **argv)
  
        if (diff_surface)
          {

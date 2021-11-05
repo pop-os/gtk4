@@ -17,10 +17,10 @@ Applied-upstream: no, upstream want reftests to be a strict pass/fail with ident
  4 files changed, 46 insertions(+), 6 deletions(-)
 
 diff --git a/testsuite/gsk/compare-render.c b/testsuite/gsk/compare-render.c
-index 5494c61..f3c3568 100644
+index a62252a..9742358 100644
 --- a/testsuite/gsk/compare-render.c
 +++ b/testsuite/gsk/compare-render.c
-@@ -234,11 +234,19 @@ main (int argc, char **argv)
+@@ -236,11 +236,19 @@ main (int argc, char **argv)
      }
    else
      {

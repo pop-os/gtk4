@@ -9,8 +9,8 @@ is not really in the scope of packaging gi-docgen.
 Forwarded: not-needed, Debian-specific
 ---
  .../gi-docgen/gidocgen/templates/basic/fonts.css   | 176 ---------------------
- .../gi-docgen/gidocgen/templates/basic/style.css   |   1 -
- 2 files changed, 177 deletions(-)
+ .../gi-docgen/gidocgen/templates/basic/style.css   |   2 -
+ 2 files changed, 178 deletions(-)
 
 diff --git a/subprojects/gi-docgen/gidocgen/templates/basic/fonts.css b/subprojects/gi-docgen/gidocgen/templates/basic/fonts.css
 index ce790e7..0a01b93 100644
@@ -197,14 +197,15 @@ index ce790e7..0a01b93 100644
 -  font-display: swap;
 -}
 diff --git a/subprojects/gi-docgen/gidocgen/templates/basic/style.css b/subprojects/gi-docgen/gidocgen/templates/basic/style.css
-index 8ff4bf1..434c2a9 100644
+index 889bbe8..89f0e4e 100644
 --- a/subprojects/gi-docgen/gidocgen/templates/basic/style.css
 +++ b/subprojects/gi-docgen/gidocgen/templates/basic/style.css
-@@ -5,7 +5,6 @@
-  */
+@@ -7,8 +7,6 @@
+ @import url("solarized-light.css") (prefers-color-scheme: light);
+ @import url("solarized-dark.css") (prefers-color-scheme: dark);
  
- @import url("pygment.css");
 -@import url("fonts.css");
- 
+-
  /*********************************
   * LIGHT THEME
+  *********************************/
