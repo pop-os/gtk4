@@ -86,7 +86,6 @@ debian/%: debian/%.in
 
 configure_flags_common = \
 	--libdir=/$(LIBDIR) \
-	-Dsassc=enabled \
 	${NULL}
 
 configure_flags_deb = \
