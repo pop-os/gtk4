@@ -36,12 +36,35 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   </div>
 </div>
 
+{{ sidebar_block(interface.type_funcs, interface.name, "Functions", "func", "type_func") }}
 {{ sidebar_block(interface.methods, interface.name, "Instance methods", "method", "method") }}
 {{ sidebar_block(interface.properties, interface.name, "Properties", "property", "property") }}
 {{ sidebar_block(interface.signals, interface.name, "Signals", "signal", "signal") }}
 {{ sidebar_block(interface.class_methods, interface.name, "Interface methods", "method", "class_method") }}
-{{ sidebar_block(interface.type_funcs, interface.name, "Functions", "func", "type_func") }}
 {{ sidebar_block(interface.virtual_methods, interface.name, "Virtual methods", "method", "vfunc") }}
+{% endblock %}
+
+{% macro navbar_block(elements, section_title, section_link) -%}
+{% if elements|length > 0 %}
+<li class="toc-list-item"><a href="{{ section_link }}"><span class="link-text">{{ section_title }}</span></a></li>
+{% endif %}
+{% endmacro %}
+
+{% block navbar %}
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      {{ navbar_block(interface.type_funcs, "Functions", "#type-functions") }}
+      {{ navbar_block(interface.methods, "Methods", "#methods") }}
+      {{ navbar_block(interface.properties, "Properties", "#properties") }}
+      {{ navbar_block(interface.signals, "Signals", "#signals") }}
+      {{ navbar_block(interface.class_methods, "Class methods", "#class-methods") }}
+      {{ navbar_block(interface.virtual_methods, "Virtual methods", "#virtual-methods") }}
+    </ul>
+  </nav>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -94,6 +117,61 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         {% endif %}
       </div>
     </summary>
+
+    <div class="toggle-wrapper prerequisite">
+      <h4 id="prerequisite">
+        Prerequisite
+        <a href="#prerequisite" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <p>In order to implement {{ interface.name }}, your type must inherit from
+        {% if interface.requires_namespace == namespace.name -%}
+        <a href="class.{{ interface.requires_name }}.html">
+        {%- else -%}
+        <a data-namespace="{{ interface.requires_namespace }}" data-link="class.{{ interface.requires_name }}.html" href="javascript:void(0)" class="external">
+        {%- endif -%}
+        <code>{{ interface.requires_ctype }}</code></a>.</p>
+      </div>
+    </div>
+
+    {% if interface.implementations %}
+    <div class="implementations toggle-wrapper default-hide">
+      <h4 id="implementations">Implementations<a href="#implementations" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+        {%- for impl in interface.implementations %}
+          <li><a href="class.{{ impl.name }}.html">{{ impl.ctype }}</a></li>
+        {% endfor -%}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if interface.type_funcs %}
+    <div class="methods toggle-wrapper">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in interface.type_funcs %}
+      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="type_func.{{ interface.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ func.summary }}
+        </div>
+
+        {% if func.deprecated_since %}
+        <div class="docblock"><p>Deprecated since: {{ func.deprecated_since.version }}</p></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
 
     {% if interface.methods %}
     <div class="methods toggle-wrapper">
@@ -189,7 +267,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         {%- endif %}
       </div>
       {% endfor %}
-
+      </div>
     </div>
     {% endif %}
 
@@ -230,8 +308,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         </tr>
         {% endfor %}
         </table>
-      {% endif %}
       </div>
+      {% endif %}
     </div>
     {% endif %}
 
@@ -253,31 +331,6 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 
         {% if method.deprecated_since %}
         <div class="docblock"><p>Deprecated since: {{ method.deprecated_since.version }}</p></div>
-        {% endif %}
-      </div>
-      {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-    {% if interface.type_funcs %}
-    <div class="methods toggle-wrapper">
-      <h4 id="type-functions">
-        Functions
-        <a href="#type-functions" class="anchor"></a>
-      </h4>
-
-      <div class="docblock">
-      {% for func in interface.type_funcs %}
-      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
-        <h6><a href="type_func.{{ interface.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
-
-        <div class="docblock">
-          {{ func.summary }}
-        </div>
-
-        {% if func.deprecated_since %}
-        <div class="docblock"><p>Deprecated since: {{ func.deprecated_since.version }}</p></div>
         {% endif %}
       </div>
       {% endfor %}

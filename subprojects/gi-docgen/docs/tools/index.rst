@@ -13,6 +13,7 @@ Commands
   
     generate
     gen-index
+    check
 
 SYNOPSIS
 ========
@@ -30,7 +31,10 @@ COMMANDS
   
 :doc:`gen-index`
   Generates the symbol indices for search
-  
+
+:doc:`check`
+  Checks the documentation
+
 OPTIONS
 =======
 

@@ -120,6 +120,27 @@ be used multiple times to specify multiple directories
 .B \-\-dry\-run
 parse the \fIGIR_FILE\fR without generating the documentation
 
+.SH The check command
+.sp
+The \fBcheck\fR command runs a series of checks on the introspection
+file, to verify that public API is properly documented. It can be used
+as part of a test suite.
+
+.B gi-docgen check [
+.I OPTIONS
+.B ] [
+.I GIR_FILE
+.B ]
+
+.SS "options:"
+.TP
+.BI \-\-config\fB= FILE
+use the given project configuration file
+.TP
+.BI \-\-add\-include\-path\fB= PATH
+add a directory to the path which the scanner uses to find GIR files. Can
+be used multiple times to specify multiple directories
+
 .SH The help command
 .sp
 The \fBhelp\fR command prints out the command line help. If you don't

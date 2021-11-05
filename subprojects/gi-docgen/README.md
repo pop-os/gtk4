@@ -84,5 +84,5 @@ If you need a general purpose documentation tool, I strongly recommend:
 Copyright 2021  GNOME Foundation
 
 GI-DocGen is released under the terms of the Apache License, version 2.0, or
-under the terms of the GNU General Publice License, either version 3.0 or,
+under the terms of the GNU General Public License, either version 3.0 or,
 at your option, any later version.

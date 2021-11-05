@@ -39,6 +39,24 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 {{ sidebar_block(enum.type_funcs, enum.name, "Type functions", "func", "type_func") }}
 {% endblock %}
 
+{% macro navbar_block(elements, section_title, section_link) -%}
+{% if elements|length > 0 %}
+<li class="toc-list-item"><a href="{{ section_link }}"><span class="link-text">{{ section_title }}</span></a></li>
+{% endif %}
+{% endmacro %}
+
+{% block navbar %}
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      {{ navbar_block(enum.type_funcs, "Functions", "#type-functions") }}
+    </ul>
+  </nav>
+</div>
+{% endblock %}
+
 {% block content %}
 <section id="main" class="content">
   <header>

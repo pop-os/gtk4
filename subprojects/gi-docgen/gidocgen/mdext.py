@@ -17,30 +17,45 @@ ARG_SIGIL_RE = re.compile(r"(^|\W)@([A-Za-z0-9_]+)\b")
 
 CONST_SIGIL_RE = re.compile(r"(^|\W)%([A-Z0-9_]+)\b")
 
+FUNCTION_RE = re.compile(r"(^|\s+)([a-z][a-z0-9_]*)\(\)(\s+|$)")
+
 
 class GtkDocPreprocessor(Preprocessor):
     """Remove all gtk-doc sigils from the Markdown text"""
     def run(self, lines):
         new_lines = []
+        inside_code_block = False
         for line in lines:
+            if line.startswith("```"):
+                if not inside_code_block:
+                    inside_code_block = True
+                else:
+                    inside_code_block = False
+
             new_line = line
-            # XXX: The order is important; signals and properties have
-            # higher precedence than types
 
-            # Signal sigil
-            new_line = re.sub(SIGNAL_SIGIL_RE, r"\g<1>`\g<2>::\g<3>`", new_line)
+            # Never transform code blocks
+            if not inside_code_block:
+                # XXX: The order is important; signals and properties have
+                # higher precedence than types
 
-            # Property sigil
-            new_line = re.sub(PROP_SIGIL_RE, r"\g<1>`\g<2>:\g<3>`", new_line)
+                # Signal sigil
+                new_line = re.sub(SIGNAL_SIGIL_RE, r"\g<1>`\g<2>::\g<3>`", new_line)
 
-            # Type sigil
-            new_line = re.sub(TYPE_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
+                # Property sigil
+                new_line = re.sub(PROP_SIGIL_RE, r"\g<1>`\g<2>:\g<3>`", new_line)
 
-            # Constant sygil
-            new_line = re.sub(CONST_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
+                # Type sigil
+                new_line = re.sub(TYPE_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
 
-            # Argument sygil
-            new_line = re.sub(ARG_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
+                # Constant sygil
+                new_line = re.sub(CONST_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
+
+                # Argument sygil
+                new_line = re.sub(ARG_SIGIL_RE, r"\g<1>`\g<2>`", new_line)
+
+                # Function
+                new_line = re.sub(FUNCTION_RE, r"\g<1>`\g<2>()`\g<3>", new_line)
 
             new_lines.append(new_line)
         return new_lines

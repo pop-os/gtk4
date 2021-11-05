@@ -122,8 +122,8 @@ The following keys are used, if found:
 
 ``content_files`` = ``list(s)``
   A list of tuples. The first element of the tuple is a Markdown
-  file name, relative to the directory specified by the ``--content-dir``
-  command line argument; the second element of the tuple is the
+  file name, relative to the directories specified by the ``--content-dir``
+  command line arguments; the second element of the tuple is the
   title used for the link to the content file. When generating the
   API reference, gi-docgen will transform the Markdown file into
   an HTML one, using the same pre-processing filters applied to the
@@ -132,8 +132,8 @@ The following keys are used, if found:
   the namespace.
 
 ``content_images`` = ``list(s)``
-  A list of files, relative to the directory specified by the
-  ``--content-dir`` command line argument. The files will be copied
+  A list of files, relative to the directories specified by the
+  ``--content-dir`` command line arguments. The files will be copied
   in the root directory of the namespace.
 
 ``urlmap_file`` = ``s``
@@ -181,6 +181,28 @@ This annotation applies to all possible top-level types:
  - records
  - unions
 
+The ``object`` key is always an array of dictionaries; each element in the array
+can have a ``name`` key, used to match the object name exactly; or a ``pattern``
+key, which uses a regular expression to match the object name.
+
+Each object can contain the following keys:
+
+ - ``name``: the name of the symbol to match exactly
+ - ``pattern``: a regular expression to match the symbol name
+ - ``hidden``: whether the symbol should be hidden from the documentation
+ - ``check_ignore``: whether the symbol should be skipped when checking the
+   documentation
+
+Each element can also have the following sections:
+
+ - ``property``
+ - ``signal``
+ - ``constructor``
+ - ``method``
+ - ``function``
+
+Each one of these sections can contain array of objects.
+
 The following example will hide the ``backend`` property on the ``Printer`` type:
 
 ::
@@ -204,9 +226,14 @@ The following example will hide the ``private-changed`` signal on the
       name = "private-changed"
       hidden = true
 
-The ``object`` key is always an array of dictionaries; each element in the array
-has a ``name`` key, used to match it; it can also have a ``property`` and a
-``signal`` keys, each containing an array of dictionaries with a ``name`` key.
+The following example will skip the ``quark`` function on the ``ParserError``
+type when checking the documentation:
 
-The ``hidden`` key can be used in both an ``object`` element, or in the
-``property`` and ``signal`` elements.
+::
+
+    [[object]]
+    name = "ParserError"
+
+      [[object.function]]
+      name = "quark"
+      check_ignore = true

@@ -68,6 +68,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <table>
           <tr><td>Type:</td>
             <td>
+            {%- if property.is_array -%}An array of&nbsp;{%- endif -%}
+            {%- if property.is_list -%}A list of&nbsp;{%- endif -%}
             {%- if property.link -%}
             {{ property.link|safe }}
             {%- else -%}

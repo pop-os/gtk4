@@ -40,8 +40,11 @@ OPTIONS
   Only load the introspection data, without generating the index.
 
 ``--content-dir DIR``
-  The directory for extra content, like additional files and images
-  specified in the project configuration file.
+  The directories for extra content, like additional files and images
+  specified in the project configuration file. This argument may be
+  called multiple times to specify several lookup directories, the
+  content files will be looked these directories in the same order
+  they are added.
 
 ``--output-dir DIR``
   Generates the index file under ``DIR``.

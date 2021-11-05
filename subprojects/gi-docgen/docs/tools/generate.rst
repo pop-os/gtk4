@@ -43,8 +43,11 @@ OPTIONS
   templates directory is inside the ``gi-docgen`` installation.
 
 ``--content-dir DIR``
-  The directory for extra content, like additional files and images
-  specified in the project configuration file.
+  The directories for extra content, like additional files and images
+  specified in the project configuration file. This argument may be
+  called multiple times to specify several lookup directories, content
+  files will be looked up in the content directories in the
+  same order they are added.
 
 ``--theme-name NAME``
   The name of the template to use. Overrides the name specified by

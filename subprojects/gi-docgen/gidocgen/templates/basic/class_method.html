@@ -91,7 +91,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
       {% endif %}
     </div>
 
-    {% if class_method.arguments|length > 1 %}
+    {% if class_method.arguments|length != 0 %}
     <div class="parameters toggle-wrapper">
       <h4 id="parameters">
         Parameters
@@ -156,6 +156,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
             <td>
             {%- if class_method.return_value.is_array -%}An array of&nbsp;{%- endif -%}
             {%- if class_method.return_value.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if class_method.return_value.is_list_model -%}A list model of&nbsp;{%- endif -%}
             {%- if class_method.return_value.link -%}
             {{ class_method.return_value.link|safe }}
             {%- else -%}
