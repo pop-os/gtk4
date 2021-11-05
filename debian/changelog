@@ -1,3 +1,12 @@
+gtk4 (4.4.1+ds1-2) unstable; urgency=medium
+
+  * d/control.in, d/rules: Gate libgtk-4-media-ffmpeg with a build-profile.
+    If we only build it for experimental uploads, but there is no version
+    currently in experimental, then its entry in the overrides file will be
+    removed after a while, causing the next upload to be considered NEW.
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 05 Nov 2021 16:46:50 +0000
+
 gtk4 (4.4.1+ds1-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
