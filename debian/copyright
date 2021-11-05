@@ -509,12 +509,14 @@ Files:
  subprojects/gi-docgen/*
 Copyright:
  2020-2021 GNOME Foundation
-License: CC0-1.0 and, CC-BY-SA-3.0, and Apache-2.0 or GPL-3.0+
+License: CC0-1.0, and CC-BY-SA-3.0, and Apache-2.0 or GPL-3.0+
 
 Files:
  subprojects/gi-docgen/gidocgen/templates/basic/fzy.js
+ subprojects/gi-docgen/gidocgen/templates/basic/solarized-*.css
 Copyright:
  2014 John Hawthorn
+ 2014 John Louis Del Rosario, Hank Gay, John Mastro, Brandon Bennett
 License: Expat
 
 License: GPL-3.0+
