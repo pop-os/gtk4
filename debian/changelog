@@ -1,13 +1,19 @@
-gtk4 (4.4.1+ds1-1) UNRELEASED; urgency=medium
+gtk4 (4.4.1+ds1-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * debian/rules: Correctly enable auto features for deb build
 
   [ Simon McVittie ]
   * New upstream release
+  * Rebase patch series, dropping patches that were applied upstream
+  * d/copyright: Update
   * libgtk-4-dev Suggests gtk-4-examples (Closes: #995752)
+  * Stop enabling a Meson option that no longer exists.
+    This was merely a warning with Meson 0.59, but is an error with
+    Meson 0.60. (Closes: #998551)
+  * Standards-Version: 4.6.0 (no changes required)
 
- -- Simon McVittie <smcv@debian.org>  Fri, 05 Nov 2021 10:00:35 +0000
+ -- Simon McVittie <smcv@debian.org>  Fri, 05 Nov 2021 12:54:16 +0000
 
 gtk4 (4.4.0+ds1-5) unstable; urgency=medium
 
