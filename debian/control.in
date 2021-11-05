@@ -237,6 +237,7 @@ Description: GStreamer media backend for the GTK graphical user interface librar
  This package contains the media module that uses GStreamer as backend.
 
 Package: @MEDIA_FFMPEG_PKG@
+Build-Profiles: <pkg.gtk4.ffmpeg>
 Section: x11
 Architecture: any
 Multi-Arch: foreign

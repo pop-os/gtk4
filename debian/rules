@@ -52,17 +52,6 @@ export README_MD_MAYBE_GZ := README.md$(shell find -maxdepth 1 -size +4k -name R
 # corresponding ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
-# Upstream consider the ffmpeg backend to be experimental, let's not
-# inflict that on suites other than experimental.
-ifeq (,$(filter-out Debian/experimental %/UNRELEASED,$(DEB_VENDOR)/$(DEB_DISTRIBUTION)))
-$(info Enabling ffmpeg because this is an experimental or UNRELEASED build)
-media_ffmpeg = enabled
-else
-$(info Disabling ffmpeg by default)
-media_ffmpeg = disabled
-dh_options += -N$(MEDIA_FFMPEG_PKG)
-endif
-
 debian/%: debian/%.in
 	dh_testdir
 	sed \
@@ -92,7 +81,6 @@ configure_flags_deb = \
 	-Dauto_features=enabled \
 	-Dbroadway-backend=false \
 	-Dman-pages=true \
-	-Dmedia-ffmpeg=$(media_ffmpeg) \
 	-Dx11-backend=true \
 	${NULL}
 
@@ -128,6 +116,14 @@ ifeq ($(filter %-tests,$(built_binaries)),)
 configure_flags_deb += -Dinstall-tests=false
 else
 configure_flags_deb += -Dinstall-tests=true
+endif
+
+# Upstream consider the ffmpeg backend to be experimental, let's not
+# build that by default.
+ifeq ($(filter $(MEDIA_FFMPEG_PKG),$(built_binaries)),)
+configure_flags_deb += -Dmedia-ffmpeg=disabled
+else
+configure_flags_deb += -Dmedia-ffmpeg=enabled
 endif
 
 ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes), yes)
