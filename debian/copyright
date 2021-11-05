@@ -489,7 +489,8 @@ License: sun-permissive
 
 Files:
  .gitlab-ci/clang-format-diff.py
-License: Apache-2.0 with LLVM-exception
+Copyright: unspecified, originating from LLVM
+License: Apache-2.0 with LLVM exception
 
 Files:
  gsk/gl/stb_rect_pack.*
@@ -549,7 +550,7 @@ License: Apache-2.0
  On Debian systems, a copy of the Apache License version 2.0
  can be found in /usr/share/common-licenses/Apache-2.0.
 
-License: Apache-2.0 with LLVM-exception
+License: Apache-2.0 with LLVM exception
  On Debian systems the full text of the Apache Software License 2.0 can be
  found in the `/usr/share/common-licenses/Apache-2.0' file.
  .
