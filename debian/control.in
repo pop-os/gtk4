@@ -16,10 +16,10 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                gobject-introspection (>= 1.41.3),
                gsettings-desktop-schemas <!nocheck>,
                iso-codes <!nocheck>,
-               libavcodec-dev (>= 7:4.1.0),
-               libavfilter-dev (>= 7:4.1.0),
-               libavformat-dev (>= 7:4.1.0),
-               libavutil-dev (>= 7:4.1.0),
+               libavcodec-dev (>= 7:4.1.0) [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
+               libavfilter-dev (>= 7:4.1.0) [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
+               libavformat-dev (>= 7:4.1.0) [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
+               libavutil-dev (>= 7:4.1.0) [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
                libcairo2-dev (>= 1.14.0),
                libcolord-dev (>= 0.1.9),
                libcloudproviders-dev (>= 0.3.1),
@@ -40,7 +40,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                libpolkit-gobject-1-dev (>= 0.105) [linux-any],
                librsvg2-common <!nocheck>,
                librsvg2-dev,
-               libswscale-dev (>= 7:4.1.0),
+               libswscale-dev (>= 7:4.1.0) [amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x],
                libsysprof-capture-4-dev (>= 3.40.1) [linux-any],
                libvulkan-dev [linux-any],
                libwayland-dev (>= 1.16.91) [linux-any],
@@ -239,7 +239,7 @@ Description: GStreamer media backend for the GTK graphical user interface librar
 Package: @MEDIA_FFMPEG_PKG@
 Build-Profiles: <pkg.gtk4.ffmpeg>
 Section: x11
-Architecture: any
+Architecture: amd64 arm64 armel armhf i386 mips64el mipsel ppc64el s390x
 Multi-Arch: foreign
 Depends: ${misc:Depends},
          ${shlibs:Depends},
