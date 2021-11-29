@@ -1,3 +1,12 @@
+gtk4 (4.4.1+ds1-3) unstable; urgency=medium
+
+  * debian/control.in: Don't build ffmpeg backend on architectures where
+    ffmpeg doesn't build
+  * debian/rules: Build with cloudproviders support (except on Ubuntu)
+  * debian/rules: Enable sysprof support on Linux
+
+ -- Jeremy Bicha <jbicha@debian.org>  Mon, 29 Nov 2021 18:18:30 -0500
+
 gtk4 (4.4.1+ds1-2) unstable; urgency=medium
 
   * d/control.in, d/rules: Gate libgtk-4-media-ffmpeg with a build-profile.
