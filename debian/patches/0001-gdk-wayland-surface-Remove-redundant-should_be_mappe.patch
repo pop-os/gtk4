@@ -1,0 +1,70 @@
+From ccdbc5438a2572dffee09cbc3a4bed33c13f7f4a Mon Sep 17 00:00:00 2001
+From: Ian Douglas Scott <idscott@system76.com>
+Date: Tue, 30 Nov 2021 10:29:30 -0800
+Subject: [PATCH 1/2] gdk/wayland/surface: Remove redundant `should_be_mapped`
+ code
+
+As far as I can tell, the code here is redundant and probably ended up
+this way for historical reasons. A drag surface without
+`->is_drag_surface` would be created if `gdk_display_create_surface`
+were called with `GDK_SURFACE_TEMP`, but drag surfaces never seem to be
+created that way.
+
+In `gtk4-demos`, drag and drop and popovers seem to be working normally
+with this.
+---
+ gdk/wayland/gdksurface-wayland.c | 19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
+
+diff --git a/gdk/wayland/gdksurface-wayland.c b/gdk/wayland/gdksurface-wayland.c
+index c2d4ea464c..16a01970f1 100644
+--- a/gdk/wayland/gdksurface-wayland.c
++++ b/gdk/wayland/gdksurface-wayland.c
+@@ -118,7 +118,6 @@ struct _GdkWaylandSurface
+   unsigned int mapped : 1;
+   unsigned int awaiting_frame : 1;
+   unsigned int awaiting_frame_frozen : 1;
+-  unsigned int is_drag_surface : 1;
+ 
+   int pending_buffer_offset_x;
+   int pending_buffer_offset_y;
+@@ -2825,27 +2824,12 @@ find_grab_input_seat (GdkSurface *surface,
+   return NULL;
+ }
+ 
+-static gboolean
+-should_be_mapped (GdkSurface *surface)
+-{
+-  GdkWaylandSurface *impl = GDK_WAYLAND_SURFACE (surface);
+-
+-  /* Don't map crazy temp that GTK uses for internal X11 shenanigans. */
+-  if (GDK_IS_DRAG_SURFACE (surface) && surface->x < 0 && surface->y < 0)
+-    return FALSE;
+-
+-  if (impl->is_drag_surface)
+-    return FALSE;
+-
+-  return TRUE;
+-}
+-
+ static void
+ gdk_wayland_surface_map_toplevel (GdkSurface *surface)
+ {
+   GdkWaylandSurface *impl = GDK_WAYLAND_SURFACE (surface);
+ 
+-  if (!should_be_mapped (surface))
++  if (!GDK_IS_WAYLAND_TOPLEVEL (surface))
+     return;
+ 
+   if (impl->mapped)
+@@ -4703,7 +4687,6 @@ create_dnd_surface (GdkDisplay *display)
+                                                  GDK_SURFACE_TEMP,
+                                                  NULL,
+                                                  0, 0, 100, 100);
+-  GDK_WAYLAND_SURFACE (surface)->is_drag_surface = TRUE;
+ 
+   return surface;
+ }
+-- 
+2.32.0
+

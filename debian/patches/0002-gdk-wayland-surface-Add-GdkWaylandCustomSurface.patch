@@ -1,0 +1,308 @@
+From 1b886e946ddd7b7e7d03403f68c867a9e8a6fba2 Mon Sep 17 00:00:00 2001
+From: Ian Douglas Scott <idscott@system76.com>
+Date: Tue, 4 Jan 2022 12:12:09 -0800
+Subject: [PATCH 2/2] gdk/wayland/surface: Add `GdkWaylandCustomSurface`
+
+Meant for uses like `layer-shell` surfaces.
+---
+ gdk/wayland/gdksurface-wayland.c | 163 ++++++++++++++++++++++++++++++-
+ gdk/wayland/gdkwaylandsurface.h  |  35 +++++++
+ 2 files changed, 197 insertions(+), 1 deletion(-)
+
+diff --git a/gdk/wayland/gdksurface-wayland.c b/gdk/wayland/gdksurface-wayland.c
+index 16a01970f1..1bd19fe892 100644
+--- a/gdk/wayland/gdksurface-wayland.c
++++ b/gdk/wayland/gdksurface-wayland.c
+@@ -71,6 +71,12 @@
+  * The Wayland implementation of `GdkPopup`.
+  */
+ 
++/**
++ * GdkWaylandCustomSurface:
++ *
++ * Plain `wl_surface` for custom use.
++ */
++
+ #define SURFACE_IS_TOPLEVEL(surface)  TRUE
+ 
+ #define MAX_WL_BUFFER_SIZE (4083) /* 4096 minus header, string argument length and NUL byte */
+@@ -300,6 +306,25 @@ G_DEFINE_TYPE_WITH_CODE (GdkWaylandDragSurface, gdk_wayland_drag_surface, GDK_TY
+                          G_IMPLEMENT_INTERFACE (GDK_TYPE_DRAG_SURFACE,
+                                                 gdk_wayland_drag_surface_iface_init))
+ 
++struct _GdkWaylandCustomSurface
++{
++  GdkWaylandSurface parent_instance;
++  GdkWaylandCustomSurfaceGetPopupFunc get_popup_func;
++  gpointer get_popup_target;
++  GDestroyNotify get_popup_target_destroy_notify;
++};
++
++typedef struct
++{
++  GdkWaylandSurfaceClass parent_class;
++} GdkWaylandCustomSurfaceClass;
++
++
++G_DEFINE_TYPE (GdkWaylandCustomSurface, gdk_wayland_custom_surface, GDK_TYPE_WAYLAND_SURFACE);
++
++static gboolean gdk_wayland_custom_surface_get_popup (GdkWaylandCustomSurface *custom_surface,
++                                                      GdkWaylandPopup *wayland_popup);
++
+ static void gdk_wayland_surface_maybe_resize (GdkSurface *surface,
+                                               int         width,
+                                               int         height,
+@@ -674,6 +699,17 @@ configure_drag_surface_geometry (GdkSurface *surface)
+                                    impl->scale);
+ }
+ 
++static void
++configure_custom_surface_geometry (GdkSurface *surface)
++{
++  GdkWaylandSurface *impl = GDK_WAYLAND_SURFACE (surface);
++
++  gdk_wayland_surface_update_size (surface,
++                                   impl->next_layout.configured_width,
++                                   impl->next_layout.configured_height,
++                                   impl->scale);
++}
++
+ static gboolean
+ gdk_wayland_surface_compute_size (GdkSurface *surface)
+ {
+@@ -687,6 +723,8 @@ gdk_wayland_surface_compute_size (GdkSurface *surface)
+         configure_popup_geometry (surface);
+       else if (GDK_IS_DRAG_SURFACE (impl))
+         configure_drag_surface_geometry (surface);
++      else if (GDK_IS_WAYLAND_CUSTOM_SURFACE (impl))
++        configure_custom_surface_geometry (surface);
+ 
+       impl->next_layout.surface_geometry_dirty = FALSE;
+     }
+@@ -2698,7 +2736,7 @@ gdk_wayland_surface_create_xdg_popup (GdkSurface     *surface,
+   if (!impl->display_server.wl_surface)
+     return FALSE;
+ 
+-  if (!is_realized_shell_surface (parent_impl))
++  if (!is_realized_shell_surface (parent_impl) && !GDK_IS_WAYLAND_CUSTOM_SURFACE (parent))
+     return FALSE;
+ 
+   if (is_realized_toplevel (impl))
+@@ -2750,6 +2788,14 @@ gdk_wayland_surface_create_xdg_popup (GdkSurface     *surface,
+       g_assert_not_reached ();
+     }
+ 
++  if (GDK_IS_WAYLAND_CUSTOM_SURFACE (parent))
++    {
++      if (!gdk_wayland_custom_surface_get_popup (GDK_WAYLAND_CUSTOM_SURFACE (parent), GDK_WAYLAND_POPUP (surface))) {
++        g_warning ("Wayland custom surface failed to create child popup.");
++        return FALSE;
++      }
++    }
++
+   gdk_popup_layout_get_shadow_width (layout,
+                                      &impl->shadow_left,
+                                      &impl->shadow_right,
+@@ -5152,3 +5198,118 @@ gdk_wayland_drag_surface_iface_init (GdkDragSurfaceInterface *iface)
+   iface->present = gdk_wayland_drag_surface_present;
+ }
+ 
++/**
++ * gdk_wayland_popup_get_xdg_popup:
++ * @wayland_popup: (type GdkWaylandPopup): a Wayland popup
++ *
++ * Retrieves the xdg-shell popup object for the given GDK popup.
++ *
++ * Returns: (nullable): the XDG popup
++ */
++struct xdg_popup *gdk_wayland_popup_get_xdg_popup (GdkWaylandPopup *wayland_popup) {
++  return GDK_WAYLAND_SURFACE (wayland_popup)->display_server.xdg_popup;
++}
++
++/**
++ * gdk_wayland_popup_get_xdg_popup_v6:
++ * @wayland_popup: (type GdkWaylandPopup): a Wayland popup
++ *
++ * Retrieves the xdg-shell-v6 popup object for the given GDK popup.
++ *
++ * Returns: (nullable): the XDG popup
++ */
++struct zxdg_popup_v6 *gdk_wayland_popup_get_zxdg_popup_v6 (GdkWaylandPopup *wayland_popup) {
++  return GDK_WAYLAND_SURFACE (wayland_popup)->display_server.zxdg_popup_v6;
++}
++
++
++static void
++gdk_wayland_custom_surface_init (GdkWaylandCustomSurface *surface)
++{
++}
++
++static void
++gdk_wayland_custom_surface_finalize (GObject *object)
++{
++  GdkWaylandCustomSurface *custom_surface = GDK_WAYLAND_CUSTOM_SURFACE (object);
++
++  if (custom_surface->get_popup_target_destroy_notify != NULL)
++    custom_surface->get_popup_target_destroy_notify (custom_surface->get_popup_target);
++}
++
++static void
++gdk_wayland_custom_surface_class_init (GdkWaylandCustomSurfaceClass *class)
++{
++  GObjectClass *object_class = G_OBJECT_CLASS (class);
++
++  object_class->finalize = gdk_wayland_custom_surface_finalize;
++}
++
++/**
++ * gdk_wayland_custom_surface_new:
++ * @display: a `GdkWaylandDisplay`
++ *
++ * Creates a new `GtkWaylandCustomSurface`.
++ *
++ * Returns: the custom surface
++ */
++GdkWaylandCustomSurface*
++gdk_wayland_custom_surface_new (GdkWaylandDisplay *display)
++{
++  return g_object_new (GDK_TYPE_WAYLAND_CUSTOM_SURFACE,
++                       "display", display,
++                       "frame-clock", _gdk_frame_clock_idle_new (),
++                       NULL);
++}
++
++/**
++ * gdk_wayland_custom_surface_present:
++ * @custom_surface: the `GdkWaylandCustomSurface` to show
++ *
++ * Present @custom_surface
++ */
++void
++gdk_wayland_custom_surface_present (GdkWaylandCustomSurface *custom_surface,
++                                    int                      width,
++                                    int                      height)
++{
++  GdkSurface *surface = GDK_SURFACE (custom_surface);
++  GdkWaylandSurface *impl = GDK_WAYLAND_SURFACE (surface);
++
++  gdk_wayland_surface_show (surface);
++
++  impl->next_layout.configured_width = width;
++  impl->next_layout.configured_height = height;
++  impl->next_layout.surface_geometry_dirty = TRUE;
++  gdk_surface_request_layout (surface);
++
++  maybe_notify_mapped (surface);
++}
++
++static gboolean
++gdk_wayland_custom_surface_get_popup (GdkWaylandCustomSurface *custom_surface,
++                                      GdkWaylandPopup *wayland_popup) {
++  if (custom_surface->get_popup_func == NULL)
++    return FALSE;
++  return custom_surface->get_popup_func (custom_surface, wayland_popup, custom_surface->get_popup_target);
++}
++
++/**
++ * gdk_wayland_custom_surface_set_get_popup_func:
++ * @custom_surface: a `GdkWaylandCustomSurface`
++ * @get_popup_func: (nullable): callback for associating `GdkPopup` with parent
++ * @user_data: (closure): user data passed to @get_popup
++ * @destroy: destroy notifier for @user_data
++ */
++void
++gdk_wayland_custom_surface_set_get_popup_func (GdkWaylandCustomSurface            *custom_surface,
++                                               GdkWaylandCustomSurfaceGetPopupFunc get_popup_func,
++                                               gpointer                            user_data,
++                                               GDestroyNotify                      destroy) {
++  if (custom_surface->get_popup_target_destroy_notify != NULL)
++    custom_surface->get_popup_target_destroy_notify (custom_surface->get_popup_target);
++
++  custom_surface->get_popup_func = get_popup_func;
++  custom_surface->get_popup_target = user_data;
++  custom_surface->get_popup_target_destroy_notify = destroy;
++}
+diff --git a/gdk/wayland/gdkwaylandsurface.h b/gdk/wayland/gdkwaylandsurface.h
+index 851a4d5607..0765fe0991 100644
+--- a/gdk/wayland/gdkwaylandsurface.h
++++ b/gdk/wayland/gdkwaylandsurface.h
+@@ -26,6 +26,8 @@
+ 
+ #include <wayland-client.h>
+ 
++#include "gdkwaylanddisplay.h"
++
+ G_BEGIN_DECLS
+ 
+ #ifdef GTK_COMPILATION
+@@ -37,6 +39,7 @@ typedef GdkSurface GdkWaylandSurface;
+ typedef GdkToplevel GdkWaylandToplevel;
+ typedef GdkPopup GdkWaylandPopup;
+ #endif
++typedef struct _GdkWaylandCustomSurface GdkWaylandCustomSurface;
+ 
+ #define GDK_TYPE_WAYLAND_SURFACE              (gdk_wayland_surface_get_type())
+ #define GDK_WAYLAND_SURFACE(object)           (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_WAYLAND_SURFACE, GdkWaylandSurface))
+@@ -50,6 +53,10 @@ typedef GdkPopup GdkWaylandPopup;
+ #define GDK_WAYLAND_POPUP(object)             (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_WAYLAND_POPUP, GdkWaylandPopup))
+ #define GDK_IS_WAYLAND_POPUP(object)          (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_WAYLAND_POPUP))
+ 
++#define GDK_TYPE_WAYLAND_CUSTOM_SURFACE       (gdk_wayland_custom_surface_get_type ())
++#define GDK_WAYLAND_CUSTOM_SURFACE(object)    (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_WAYLAND_CUSTOM_SURFACE, GdkWaylandCustomSurface))
++#define GDK_IS_WAYLAND_CUSTOM_SURFACE(object) (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_WAYLAND_CUSTOM_SURFACE))
++
+ GDK_AVAILABLE_IN_ALL
+ GType                    gdk_wayland_surface_get_type             (void);
+ 
+@@ -59,6 +66,9 @@ GType                    gdk_wayland_toplevel_get_type            (void);
+ GDK_AVAILABLE_IN_ALL
+ GType                    gdk_wayland_popup_get_type               (void);
+ 
++GDK_AVAILABLE_IN_4_6
++GType                    gdk_wayland_custom_surface_get_type      (void);
++
+ GDK_AVAILABLE_IN_ALL
+ struct wl_surface       *gdk_wayland_surface_get_wl_surface       (GdkSurface *surface);
+ 
+@@ -66,6 +76,10 @@ typedef void (*GdkWaylandToplevelExported) (GdkToplevel *toplevel,
+                                             const char  *handle,
+                                             gpointer     user_data);
+ 
++typedef gboolean (*GdkWaylandCustomSurfaceGetPopupFunc) (GdkWaylandCustomSurface *custom_surface,
++                                                         GdkWaylandPopup         *popup,
++                                                         gpointer                 user_data);
++
+ GDK_AVAILABLE_IN_ALL
+ gboolean                 gdk_wayland_toplevel_export_handle (GdkToplevel              *toplevel,
+                                                              GdkWaylandToplevelExported callback,
+@@ -83,6 +97,27 @@ GDK_AVAILABLE_IN_ALL
+ void                     gdk_wayland_toplevel_set_application_id (GdkToplevel *toplevel,
+                                                                   const char  *application_id);
+ 
++GDK_AVAILABLE_IN_4_6
++struct xdg_popup        *gdk_wayland_popup_get_xdg_popup (GdkWaylandPopup *wayland_popup);
++
++GDK_AVAILABLE_IN_4_6
++struct zxdg_popup_v6    *gdk_wayland_popup_get_zxdg_popup_v6 (GdkWaylandPopup *wayland_popup);
++
++
++GDK_AVAILABLE_IN_4_6
++GdkWaylandCustomSurface *gdk_wayland_custom_surface_new (GdkWaylandDisplay *display);
++
++GDK_AVAILABLE_IN_4_6
++void                     gdk_wayland_custom_surface_set_get_popup_func (GdkWaylandCustomSurface            *custom_surface,
++                                                                        GdkWaylandCustomSurfaceGetPopupFunc get_popup_func,
++                                                                        gpointer                            user_data,
++                                                                        GDestroyNotify                      destroy);
++
++GDK_AVAILABLE_IN_4_6
++void                     gdk_wayland_custom_surface_present (GdkWaylandCustomSurface *custom_surface,
++                                                             int                      width,
++                                                             int                      height);
++
+ G_END_DECLS
+ 
+ #endif /* __GDK_WAYLAND_SURFACE_H__ */
+-- 
+2.32.0
+

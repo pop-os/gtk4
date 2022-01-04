@@ -1,0 +1,477 @@
+diff --git a/gdk/gdk-private.h b/gdk/gdk-private.h
+index 3701d51198..cd0a90b59f 100644
+--- a/gdk/gdk-private.h
++++ b/gdk/gdk-private.h
+@@ -33,8 +33,10 @@ PangoDirection gdk_unichar_direction (gunichar    ch);
+ PangoDirection gdk_find_base_dir     (const char *text,
+                                       int         len);
+ 
++GDK_AVAILABLE_IN_ALL
+ void           gdk_surface_set_widget (GdkSurface *surface,
+                                        gpointer    widget);
++GDK_AVAILABLE_IN_ALL
+ gpointer       gdk_surface_get_widget (GdkSurface *surface);
+ 
+ typedef struct
+diff --git a/gtk/gtkconstraintsolverprivate.h b/gtk/gtkconstraintsolverprivate.h
+index cb7f74e681..66c903f79b 100644
+--- a/gtk/gtkconstraintsolverprivate.h
++++ b/gtk/gtkconstraintsolverprivate.h
+@@ -27,6 +27,7 @@ G_BEGIN_DECLS
+ 
+ #define GTK_TYPE_CONSTRAINT_SOLVER (gtk_constraint_solver_get_type())
+ 
++GDK_AVAILABLE_IN_ALL
+ G_DECLARE_FINAL_TYPE (GtkConstraintSolver, gtk_constraint_solver, GTK, CONSTRAINT_SOLVER, GObject)
+ 
+ GtkConstraintSolver *
+diff --git a/gtk/gtkmain.c b/gtk/gtkmain.c
+index 6dd0f7e871..c3f17e464c 100644
+--- a/gtk/gtkmain.c
++++ b/gtk/gtkmain.c
+@@ -1212,7 +1212,7 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
+ }
+ 
+ static GtkWidget *
+-update_pointer_focus_state (GtkWindow *toplevel,
++update_pointer_focus_state (GtkRoot   *toplevel,
+                             GdkEvent  *event,
+                             GtkWidget *new_target)
+ {
+@@ -1308,7 +1308,7 @@ static GtkWidget *
+ handle_pointing_event (GdkEvent *event)
+ {
+   GtkWidget *target = NULL, *old_target = NULL, *event_widget;
+-  GtkWindow *toplevel;
++  GtkRoot *toplevel;
+   GdkEventSequence *sequence;
+   GdkDevice *device;
+   double x, y;
+@@ -1322,7 +1322,7 @@ handle_pointing_event (GdkEvent *event)
+   device = gdk_event_get_device (event);
+   gdk_event_get_position (event, &x, &y);
+ 
+-  toplevel = GTK_WINDOW (gtk_widget_get_root (event_widget));
++  toplevel = gtk_widget_get_root (event_widget);
+   native = GTK_WIDGET (gtk_widget_get_native (event_widget));
+ 
+   gtk_native_get_surface_transform (GTK_NATIVE (native), &native_x, &native_y);
+@@ -1391,7 +1391,8 @@ handle_pointing_event (GdkEvent *event)
+                                               event, GDK_CROSSING_NORMAL, NULL);
+             }
+ 
+-          gtk_window_maybe_update_cursor (toplevel, NULL, device);
++	  if (GTK_IS_WINDOW (toplevel)) // XXX
++              gtk_window_maybe_update_cursor (GTK_WINDOW (toplevel), NULL, device);
+         }
+       else if ((old_target != target) &&
+                (type == GDK_DRAG_ENTER || type == GDK_DRAG_MOTION || type == GDK_DROP_START))
+@@ -1440,7 +1441,8 @@ handle_pointing_event (GdkEvent *event)
+ 
+           gtk_synthesize_crossing_events (GTK_ROOT (toplevel), GTK_CROSSING_POINTER, target, new_target,
+                                           event, GDK_CROSSING_UNGRAB, NULL);
+-          gtk_window_maybe_update_cursor (toplevel, NULL, device);
++	  if (GTK_IS_WINDOW (toplevel)) // XXX
++            gtk_window_maybe_update_cursor (GTK_WINDOW (toplevel), NULL, device);
+           update_pointer_focus_state (toplevel, event, new_target);
+         }
+       else if (type == GDK_BUTTON_PRESS)
+diff --git a/gtk/gtkpointerfocus.c b/gtk/gtkpointerfocus.c
+index 3ad4418bdd..c3d2b1ebf8 100644
+--- a/gtk/gtkpointerfocus.c
++++ b/gtk/gtkpointerfocus.c
+@@ -31,7 +31,7 @@ target_destroyed (gpointer  data,
+ }
+ 
+ GtkPointerFocus *
+-gtk_pointer_focus_new (GtkWindow        *toplevel,
++gtk_pointer_focus_new (GtkRoot          *toplevel,
+                        GtkWidget        *widget,
+                        GdkDevice        *device,
+                        GdkEventSequence *sequence,
+diff --git a/gtk/gtkpointerfocusprivate.h b/gtk/gtkpointerfocusprivate.h
+index 7cd192902a..ad2ac57897 100644
+--- a/gtk/gtkpointerfocusprivate.h
++++ b/gtk/gtkpointerfocusprivate.h
+@@ -27,13 +27,13 @@ struct _GtkPointerFocus
+   int ref_count;
+   GdkDevice *device;
+   GdkEventSequence *sequence;
+-  GtkWindow *toplevel;
++  GtkRoot *toplevel;
+   GtkWidget *target; /* Unaffected by the implicit grab */
+   GtkWidget *grab_widget;
+   double x, y; /* In toplevel coordinates */
+ };
+ 
+-GtkPointerFocus * gtk_pointer_focus_new  (GtkWindow        *toplevel,
++GtkPointerFocus * gtk_pointer_focus_new  (GtkRoot          *toplevel,
+                                           GtkWidget        *widget,
+                                           GdkDevice        *device,
+                                           GdkEventSequence *sequence,
+diff --git a/gtk/gtkpopover.c b/gtk/gtkpopover.c
+index 706afc9108..d18e3443e1 100644
+--- a/gtk/gtkpopover.c
++++ b/gtk/gtkpopover.c
+@@ -627,7 +627,7 @@ maybe_request_motion_event (GtkPopover *popover)
+ 
+ 
+   device = gdk_seat_get_pointer (seat);
+-  focus = gtk_window_lookup_pointer_focus_widget (GTK_WINDOW (root),
++  focus = gtk_window_lookup_pointer_focus_widget (root,
+                                                   device, NULL);
+   if (!focus)
+     return;
+diff --git a/gtk/gtkprivate.h b/gtk/gtkprivate.h
+index 3495e07efc..1fa7a79362 100644
+--- a/gtk/gtkprivate.h
++++ b/gtk/gtkprivate.h
+@@ -92,6 +92,7 @@ gboolean         gtk_propagate_event_internal  (GtkWidget       *widget,
+                                                 GtkWidget       *topmost);
+ gboolean   gtk_propagate_event          (GtkWidget       *widget,
+                                          GdkEvent        *event);
++GDK_AVAILABLE_IN_ALL
+ void       gtk_main_do_event       (GdkEvent           *event);
+ 
+ GtkWidget *gtk_get_event_widget         (GdkEvent  *event);
+diff --git a/gtk/gtkwidget.c b/gtk/gtkwidget.c
+index 088c047c20..e00a404a71 100644
+--- a/gtk/gtkwidget.c
++++ b/gtk/gtkwidget.c
+@@ -3498,7 +3498,6 @@ gtk_widget_get_surface_allocation (GtkWidget     *widget,
+ 
+   native = gtk_widget_get_native (widget);
+ 
+-  g_assert (GTK_IS_WINDOW (native) || GTK_IS_POPOVER (native));
+   gtk_native_get_surface_transform (native, &nx, &ny);
+ 
+   if (gtk_widget_compute_bounds (widget, GTK_WIDGET (native), &bounds))
+@@ -5050,7 +5049,9 @@ gtk_widget_real_focus (GtkWidget        *widget,
+       return FALSE;
+     }
+ 
+-  focus = gtk_window_get_focus (GTK_WINDOW (gtk_widget_get_root (widget)));
++  focus = NULL;
++  if (GTK_IS_WINDOW (gtk_widget_get_root (widget)))
++    focus = gtk_window_get_focus (GTK_WINDOW (gtk_widget_get_root (widget)));
+ 
+   if (focus && gtk_widget_is_ancestor (focus, widget))
+     {
+diff --git a/gtk/gtkwidgetprivate.h b/gtk/gtkwidgetprivate.h
+index e1e336e6e6..4224558681 100644
+--- a/gtk/gtkwidgetprivate.h
++++ b/gtk/gtkwidgetprivate.h
+@@ -221,16 +221,19 @@ struct _GtkWidgetClassPrivate
+ void          gtk_widget_root               (GtkWidget *widget);
+ void          gtk_widget_unroot             (GtkWidget *widget);
+ GtkCssNode *  gtk_widget_get_css_node       (GtkWidget *widget);
++GDK_AVAILABLE_IN_ALL
+ void         _gtk_widget_set_visible_flag   (GtkWidget *widget,
+                                              gboolean   visible);
+ gboolean     _gtk_widget_get_alloc_needed   (GtkWidget *widget);
+ gboolean     gtk_widget_needs_allocate      (GtkWidget *widget);
++GDK_AVAILABLE_IN_ALL
+ void         gtk_widget_ensure_resize       (GtkWidget *widget);
+ void         gtk_widget_ensure_allocate     (GtkWidget *widget);
+ void          _gtk_widget_scale_changed     (GtkWidget *widget);
+ 
+ GdkSurface * gtk_widget_get_surface         (GtkWidget *widget);
+ 
++GDK_AVAILABLE_IN_ALL
+ void         gtk_widget_render              (GtkWidget            *widget,
+                                              GdkSurface           *surface,
+                                              const cairo_region_t *region);
+diff --git a/gtk/gtkwindow.c b/gtk/gtkwindow.c
+index 44cf033d2a..6801df1565 100644
+--- a/gtk/gtkwindow.c
++++ b/gtk/gtkwindow.c
+@@ -241,8 +241,6 @@ typedef struct
+   GdkSurface  *surface;
+   GskRenderer *renderer;
+ 
+-  GList *foci;
+-
+   GtkConstraintSolver *constraint_solver;
+ 
+   int surface_width;
+@@ -536,6 +534,16 @@ gtk_window_accessible_interface_init (GtkAccessibleInterface *iface)
+   iface->get_platform_state = gtk_window_accessible_get_platform_state;
+ }
+ 
++static GList**
++get_foci (GtkRoot *root) {
++  // XXX hack
++  GList **foci = g_object_get_data (G_OBJECT (root), "foci");
++  if (foci == NULL)
++    foci = g_new0 (GList*, 1);
++  g_object_set_data (G_OBJECT (root), "foci", foci);
++  return foci;
++}
++
+ static void
+ add_tab_bindings (GtkWidgetClass   *widget_class,
+ 		  GdkModifierType   modifiers,
+@@ -1529,9 +1537,8 @@ device_removed_cb (GdkSeat   *seat,
+                    GdkDevice *device,
+                    gpointer   user_data)
+ {
+-  GtkWindow *window = user_data;
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+-  GList *l = priv->foci;
++  GList **foci = get_foci (GTK_ROOT (user_data));
++  GList *l = *foci;
+ 
+   while (l)
+     {
+@@ -1542,7 +1549,7 @@ device_removed_cb (GdkSeat   *seat,
+ 
+       if (focus->device == device)
+         {
+-          priv->foci = g_list_delete_link (priv->foci, l);
++          *foci = g_list_delete_link (*foci, l);
+           gtk_pointer_focus_unref (focus);
+         }
+ 
+@@ -2098,7 +2105,7 @@ gtk_window_native_layout (GtkNative *native,
+           GtkWidget *focus;
+ 
+           device = gdk_seat_get_pointer (seat);
+-          focus = gtk_window_lookup_pointer_focus_widget (GTK_WINDOW (widget),
++          focus = gtk_window_lookup_pointer_focus_widget (GTK_ROOT (widget),
+                                                           device, NULL);
+           if (focus)
+             {
+@@ -2566,8 +2573,8 @@ gtk_window_dispose (GObject *object)
+   if (priv->group)
+     gtk_window_group_remove_window (priv->group, window);
+ 
+-  g_list_free_full (priv->foci, (GDestroyNotify) gtk_pointer_focus_unref);
+-  priv->foci = NULL;
++  //g_list_free_full (priv->foci, (GDestroyNotify) gtk_pointer_focus_unref);
++  //priv->foci = NULL;
+ 
+   gtk_window_set_focus (window, NULL);
+   gtk_window_set_default_widget (window, NULL);
+@@ -6323,14 +6330,14 @@ gtk_window_unexport_handle (GtkWindow *window)
+ }
+ 
+ static GtkPointerFocus *
+-gtk_window_lookup_pointer_focus (GtkWindow        *window,
++gtk_window_lookup_pointer_focus (GtkRoot          *window,
+                                  GdkDevice        *device,
+                                  GdkEventSequence *sequence)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
++  GList **foci = get_foci (window);
+   GList *l;
+ 
+-  for (l = priv->foci; l; l = l->next)
++  for (l = *foci; l; l = l->next)
+     {
+       GtkPointerFocus *focus = l->data;
+ 
+@@ -6342,7 +6349,7 @@ gtk_window_lookup_pointer_focus (GtkWindow        *window,
+ }
+ 
+ GtkWidget *
+-gtk_window_lookup_pointer_focus_widget (GtkWindow        *window,
++gtk_window_lookup_pointer_focus_widget (GtkRoot          *window,
+                                         GdkDevice        *device,
+                                         GdkEventSequence *sequence)
+ {
+@@ -6353,7 +6360,7 @@ gtk_window_lookup_pointer_focus_widget (GtkWindow        *window,
+ }
+ 
+ GtkWidget *
+-gtk_window_lookup_effective_pointer_focus_widget (GtkWindow        *window,
++gtk_window_lookup_effective_pointer_focus_widget (GtkRoot          *window,
+                                                   GdkDevice        *device,
+                                                   GdkEventSequence *sequence)
+ {
+@@ -6364,7 +6371,7 @@ gtk_window_lookup_effective_pointer_focus_widget (GtkWindow        *window,
+ }
+ 
+ GtkWidget *
+-gtk_window_lookup_pointer_focus_implicit_grab (GtkWindow        *window,
++gtk_window_lookup_pointer_focus_implicit_grab (GtkRoot          *window,
+                                                GdkDevice        *device,
+                                                GdkEventSequence *sequence)
+ {
+@@ -6375,14 +6382,14 @@ gtk_window_lookup_pointer_focus_implicit_grab (GtkWindow        *window,
+ }
+ 
+ void
+-gtk_window_update_pointer_focus (GtkWindow        *window,
++gtk_window_update_pointer_focus (GtkRoot          *window,
+                                  GdkDevice        *device,
+                                  GdkEventSequence *sequence,
+                                  GtkWidget        *target,
+                                  double            x,
+                                  double            y)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
++  GList **foci = get_foci (window);
+   GtkPointerFocus *focus;
+ 
+   focus = gtk_window_lookup_pointer_focus (window, device, sequence);
+@@ -6399,10 +6406,10 @@ gtk_window_update_pointer_focus (GtkWindow        *window,
+         {
+           GList *pos;
+ 
+-          pos = g_list_find (priv->foci, focus);
++          pos = g_list_find (*foci, focus);
+           if (pos)
+             {
+-              priv->foci = g_list_remove (priv->foci, focus);
++              *foci = g_list_remove (*foci, focus);
+               gtk_pointer_focus_unref (focus);
+             }
+         }
+@@ -6412,7 +6419,7 @@ gtk_window_update_pointer_focus (GtkWindow        *window,
+   else if (target)
+     {
+       focus = gtk_pointer_focus_new (window, target, device, sequence, x, y);
+-      priv->foci = g_list_prepend (priv->foci, focus);
++      *foci = g_list_prepend (*foci, focus);
+     }
+ }
+ 
+@@ -6420,8 +6427,8 @@ void
+ gtk_window_update_pointer_focus_on_state_change (GtkWindow *window,
+                                                  GtkWidget *widget)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+-  GList *l = priv->foci;
++  GList **foci = get_foci (GTK_ROOT (window));
++  GList *l = *foci;
+ 
+   while (l)
+     {
+@@ -6441,7 +6448,7 @@ gtk_window_update_pointer_focus_on_state_change (GtkWindow *window,
+       if (GTK_WIDGET (focus->toplevel) == widget)
+         {
+           /* Unmapping the toplevel, remove pointer focus */
+-          priv->foci = g_list_remove_link (priv->foci, l);
++          *foci = g_list_remove_link (*foci, l);
+           gtk_pointer_focus_unref (focus);
+           g_list_free (l);
+         }
+@@ -6462,8 +6469,8 @@ gtk_window_maybe_revoke_implicit_grab (GtkWindow *window,
+                                        GdkDevice *device,
+                                        GtkWidget *grab_widget)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+-  GList *l = priv->foci;
++  GList **foci = get_foci (GTK_ROOT (window));
++  GList *l = *foci;
+ 
+   while (l)
+     {
+@@ -6471,13 +6478,13 @@ gtk_window_maybe_revoke_implicit_grab (GtkWindow *window,
+ 
+       l = l->next;
+ 
+-      if (focus->toplevel != window)
++      if (focus->toplevel != GTK_ROOT (window))
+         continue;
+ 
+       if ((!device || focus->device == device) &&
+           focus->target != grab_widget &&
+           !gtk_widget_is_ancestor (focus->target, grab_widget))
+-        gtk_window_set_pointer_focus_grab (window,
++        gtk_window_set_pointer_focus_grab (GTK_ROOT (window),
+                                            focus->device,
+                                            focus->sequence,
+                                            NULL);
+@@ -6485,7 +6492,7 @@ gtk_window_maybe_revoke_implicit_grab (GtkWindow *window,
+ }
+ 
+ void
+-gtk_window_set_pointer_focus_grab (GtkWindow        *window,
++gtk_window_set_pointer_focus_grab (GtkRoot          *window,
+                                    GdkDevice        *device,
+                                    GdkEventSequence *sequence,
+                                    GtkWidget        *grab_widget)
+@@ -6557,10 +6564,10 @@ gtk_window_maybe_update_cursor (GtkWindow *window,
+                                 GtkWidget *widget,
+                                 GdkDevice *device)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
++  GList **foci = get_foci (GTK_ROOT (window));
+   GList *l;
+ 
+-  for (l = priv->foci; l; l = l->next)
++  for (l = *foci; l; l = l->next)
+     {
+       GtkPointerFocus *focus = l->data;
+       GtkWidget *grab_widget, *target;
+@@ -6592,7 +6599,8 @@ gtk_window_maybe_update_cursor (GtkWindow *window,
+             continue;
+         }
+ 
+-      update_cursor (focus->toplevel, focus->device, grab_widget, target);
++      if (GTK_IS_WINDOW (focus->toplevel)) // XXX
++        update_cursor (GTK_WINDOW (focus->toplevel), focus->device, grab_widget, target);
+ 
+       if (device)
+         break;
+@@ -6685,11 +6693,11 @@ gtk_window_get_foci_on_widget (GtkWindow *window,
+                                GtkWidget *widget,
+                                guint     *n_devices)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
++  GList **foci = get_foci (GTK_ROOT (window));
+   GPtrArray *array = g_ptr_array_new ();
+   GList *l;
+ 
+-  for (l = priv->foci; l; l = l->next)
++  for (l = *foci; l; l = l->next)
+     {
+       GtkPointerFocus *focus = l->data;
+       GtkWidget *target;
+@@ -6797,10 +6805,10 @@ gtk_window_grab_notify (GtkWindow *window,
+                         GtkWidget *new_grab_widget,
+                         gboolean   from_grab)
+ {
+-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
++  GList **foci = get_foci (GTK_ROOT (window));
+   GList *l;
+ 
+-  for (l = priv->foci; l; l = l->next)
++  for (l = *foci; l; l = l->next)
+     {
+       GtkPointerFocus *focus = l->data;
+ 
+diff --git a/gtk/gtkwindowprivate.h b/gtk/gtkwindowprivate.h
+index a9546272ec..cd847107bb 100644
+--- a/gtk/gtkwindowprivate.h
++++ b/gtk/gtkwindowprivate.h
+@@ -90,23 +90,23 @@ gboolean      gtk_window_export_handle   (GtkWindow               *window,
+                                           gpointer                 user_data);
+ void          gtk_window_unexport_handle (GtkWindow               *window);
+ 
+-GtkWidget *      gtk_window_lookup_pointer_focus_widget (GtkWindow        *window,
++GtkWidget *      gtk_window_lookup_pointer_focus_widget (GtkRoot          *window,
+                                                          GdkDevice        *device,
+                                                          GdkEventSequence *sequence);
+-GtkWidget *      gtk_window_lookup_effective_pointer_focus_widget (GtkWindow        *window,
++GtkWidget *      gtk_window_lookup_effective_pointer_focus_widget (GtkRoot          *window,
+                                                                    GdkDevice        *device,
+                                                                    GdkEventSequence *sequence);
+-GtkWidget *      gtk_window_lookup_pointer_focus_implicit_grab (GtkWindow        *window,
++GtkWidget *      gtk_window_lookup_pointer_focus_implicit_grab (GtkRoot          *window,
+                                                                 GdkDevice        *device,
+                                                                 GdkEventSequence *sequence);
+ 
+-void             gtk_window_update_pointer_focus (GtkWindow        *window,
++void             gtk_window_update_pointer_focus (GtkRoot          *window,
+                                                   GdkDevice        *device,
+                                                   GdkEventSequence *sequence,
+                                                   GtkWidget        *target,
+                                                   double            x,
+                                                   double            y);
+-void             gtk_window_set_pointer_focus_grab (GtkWindow        *window,
++void             gtk_window_set_pointer_focus_grab (GtkRoot          *window,
+                                                     GdkDevice        *device,
+                                                     GdkEventSequence *sequence,
+                                                     GtkWidget        *grab_widget);

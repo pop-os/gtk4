@@ -5,3 +5,7 @@ debian/templates-Remove-html5shiv.patch
 debian/testsuite-Don-t-test-the-old-gl-renderer.patch
 debian/Skip-some-known-failing-tests-on-mips-family-architecture.patch
 debian/Disable-clipboard-test.patch
+
+0001-gdk-wayland-surface-Remove-redundant-should_be_mappe.patch
+0002-gdk-wayland-surface-Add-GdkWaylandCustomSurface.patch
+hacks-for-custom-gtkroot.patch
