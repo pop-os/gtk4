@@ -185,7 +185,7 @@ index 16a01970f1..1bd19fe892 100644
 +  GdkSurface *surface = GDK_SURFACE (custom_surface);
 +  GdkWaylandSurface *impl = GDK_WAYLAND_SURFACE (surface);
 +
-+  gdk_wayland_surface_show (surface);
++  gdk_wayland_surface_show (surface, FALSE);
 +
 +  impl->next_layout.configured_width = width;
 +  impl->next_layout.configured_height = height;
@@ -258,7 +258,7 @@ index 851a4d5607..0765fe0991 100644
  GDK_AVAILABLE_IN_ALL
  GType                    gdk_wayland_popup_get_type               (void);
  
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +GType                    gdk_wayland_custom_surface_get_type      (void);
 +
  GDK_AVAILABLE_IN_ALL
@@ -279,23 +279,23 @@ index 851a4d5607..0765fe0991 100644
  void                     gdk_wayland_toplevel_set_application_id (GdkToplevel *toplevel,
                                                                    const char  *application_id);
  
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +struct xdg_popup        *gdk_wayland_popup_get_xdg_popup (GdkWaylandPopup *wayland_popup);
 +
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +struct zxdg_popup_v6    *gdk_wayland_popup_get_zxdg_popup_v6 (GdkWaylandPopup *wayland_popup);
 +
 +
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +GdkWaylandCustomSurface *gdk_wayland_custom_surface_new (GdkWaylandDisplay *display);
 +
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +void                     gdk_wayland_custom_surface_set_get_popup_func (GdkWaylandCustomSurface            *custom_surface,
 +                                                                        GdkWaylandCustomSurfaceGetPopupFunc get_popup_func,
 +                                                                        gpointer                            user_data,
 +                                                                        GDestroyNotify                      destroy);
 +
-+GDK_AVAILABLE_IN_4_6
++GDK_AVAILABLE_IN_4_4
 +void                     gdk_wayland_custom_surface_present (GdkWaylandCustomSurface *custom_surface,
 +                                                             int                      width,
 +                                                             int                      height);
