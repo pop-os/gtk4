@@ -1,5 +1,6 @@
 libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
 * Build-Depends-Package: libgtk-4-dev
+ _gtk_widget_set_visible_flag@Base 4.4.1+ds1-3
  gdk_anchor_hints_get_type@Base 4.0.0
  gdk_app_launch_context_get_display@Base 4.0.0
  gdk_app_launch_context_get_type@Base 4.0.0
@@ -434,6 +435,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_surface_get_mapped@Base 4.0.0
  gdk_surface_get_scale_factor@Base 4.0.0
  gdk_surface_get_type@Base 4.0.0
+ gdk_surface_get_widget@Base 4.4.1+ds1-3
  gdk_surface_get_width@Base 4.0.0
  gdk_surface_hide@Base 4.0.0
  gdk_surface_is_destroyed@Base 4.0.0
@@ -446,6 +448,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_surface_set_device_cursor@Base 4.0.0
  gdk_surface_set_input_region@Base 4.0.0
  gdk_surface_set_opaque_region@Base 4.0.0
+ gdk_surface_set_widget@Base 4.4.1+ds1-3
  gdk_surface_translate_coordinates@Base 4.0.0
  gdk_texture_download@Base 4.0.0
  gdk_texture_get_height@Base 4.0.0
@@ -508,34 +511,40 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_vulkan_context_get_type@Base 4.0.0
  gdk_vulkan_error_get_type@Base 4.0.0
  gdk_vulkan_error_quark@Base 4.0.0
- (arch=linux-any)gdk_wayland_cairo_context_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_device_get_node_path@Base 4.0.0
- (arch=linux-any)gdk_wayland_device_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_device_get_wl_keyboard@Base 4.0.0
- (arch=linux-any)gdk_wayland_device_get_wl_pointer@Base 4.0.0
- (arch=linux-any)gdk_wayland_device_get_wl_seat@Base 4.0.0
+ gdk_wayland_cairo_context_get_type@Base 4.0.0
+ gdk_wayland_custom_surface_get_type@Base 4.4.1+ds1-3
+ gdk_wayland_custom_surface_new@Base 4.4.1+ds1-3
+ gdk_wayland_custom_surface_present@Base 4.4.1+ds1-3
+ gdk_wayland_custom_surface_set_get_popup_func@Base 4.4.1+ds1-3
+ gdk_wayland_device_get_node_path@Base 4.0.0
+ gdk_wayland_device_get_type@Base 4.0.0
+ gdk_wayland_device_get_wl_keyboard@Base 4.0.0
+ gdk_wayland_device_get_wl_pointer@Base 4.0.0
+ gdk_wayland_device_get_wl_seat@Base 4.0.0
  gdk_wayland_device_get_xkb_keymap@Base 4.3.1
  gdk_wayland_display_get_egl_display@Base 4.3.1
- (arch=linux-any)gdk_wayland_display_get_startup_notification_id@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_get_wl_display@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_query_registry@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_set_cursor_theme@Base 4.0.0
- (arch=linux-any)gdk_wayland_display_set_startup_notification_id@Base 4.0.0
- (arch=linux-any)gdk_wayland_gl_context_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_monitor_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_monitor_get_wl_output@Base 4.0.0
- (arch=linux-any)gdk_wayland_popup_get_type@Base 4.0.0
+ gdk_wayland_display_get_startup_notification_id@Base 4.0.0
+ gdk_wayland_display_get_type@Base 4.0.0
+ gdk_wayland_display_get_wl_compositor@Base 4.0.0
+ gdk_wayland_display_get_wl_display@Base 4.0.0
+ gdk_wayland_display_query_registry@Base 4.0.0
+ gdk_wayland_display_set_cursor_theme@Base 4.0.0
+ gdk_wayland_display_set_startup_notification_id@Base 4.0.0
+ gdk_wayland_gl_context_get_type@Base 4.0.0
+ gdk_wayland_monitor_get_type@Base 4.0.0
+ gdk_wayland_monitor_get_wl_output@Base 4.0.0
+ gdk_wayland_popup_get_type@Base 4.0.0
+ gdk_wayland_popup_get_xdg_popup@Base 4.4.1+ds1-3
+ gdk_wayland_popup_get_zxdg_popup_v6@Base 4.4.1+ds1-3
  gdk_wayland_seat_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_seat_get_wl_seat@Base 4.0.0
- (arch=linux-any)gdk_wayland_surface_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_surface_get_wl_surface@Base 4.0.0
- (arch=linux-any)gdk_wayland_toplevel_export_handle@Base 4.0.0
- (arch=linux-any)gdk_wayland_toplevel_get_type@Base 4.0.0
- (arch=linux-any)gdk_wayland_toplevel_set_application_id@Base 4.0.0
- (arch=linux-any)gdk_wayland_toplevel_set_transient_for_exported@Base 4.0.0
- (arch=linux-any)gdk_wayland_toplevel_unexport_handle@Base 4.0.0
+ gdk_wayland_seat_get_wl_seat@Base 4.0.0
+ gdk_wayland_surface_get_type@Base 4.0.0
+ gdk_wayland_surface_get_wl_surface@Base 4.0.0
+ gdk_wayland_toplevel_export_handle@Base 4.0.0
+ gdk_wayland_toplevel_get_type@Base 4.0.0
+ gdk_wayland_toplevel_set_application_id@Base 4.0.0
+ gdk_wayland_toplevel_set_transient_for_exported@Base 4.0.0
+ gdk_wayland_toplevel_unexport_handle@Base 4.0.0
  gdk_x11_app_launch_context_get_type@Base 4.0.0
  gdk_x11_cairo_context_get_type@Base 4.0.0
  gdk_x11_device_get_id@Base 4.0.0
@@ -1534,6 +1543,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_constraint_new@Base 4.0.0
  gtk_constraint_new_constant@Base 4.0.0
  gtk_constraint_relation_get_type@Base 4.0.0
+ gtk_constraint_solver_get_type@Base 4.4.1+ds1-3
  gtk_constraint_strength_get_type@Base 4.0.0
  gtk_constraint_target_get_type@Base 4.0.0
  gtk_constraint_vfl_parser_error_get_type@Base 4.0.0
@@ -2537,6 +2547,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_lock_button_get_type@Base 4.0.0
  gtk_lock_button_new@Base 4.0.0
  gtk_lock_button_set_permission@Base 4.0.0
+ gtk_main_do_event@Base 4.4.1+ds1-3
  gtk_map_list_model_get_model@Base 4.0.0
  gtk_map_list_model_get_type@Base 4.0.0
  gtk_map_list_model_has_map@Base 4.0.0
@@ -4439,6 +4450,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_widget_contains@Base 4.0.0
  gtk_widget_create_pango_context@Base 4.0.0
  gtk_widget_create_pango_layout@Base 4.0.0
+ gtk_widget_ensure_resize@Base 4.4.1+ds1-3
  gtk_widget_error_bell@Base 4.0.0
  gtk_widget_get_allocated_baseline@Base 4.0.0
  gtk_widget_get_allocated_height@Base 4.0.0
@@ -4540,6 +4552,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_widget_remove_css_class@Base 4.0.0
  gtk_widget_remove_mnemonic_label@Base 4.0.0
  gtk_widget_remove_tick_callback@Base 4.0.0
+ gtk_widget_render@Base 4.4.1+ds1-3
  gtk_widget_set_can_focus@Base 4.0.0
  gtk_widget_set_can_target@Base 4.0.0
  gtk_widget_set_child_visible@Base 4.0.0
