@@ -238,14 +238,7 @@ ifeq (big,$(DEB_HOST_ARCH_ENDIAN))
 endif
 
 override_dh_auto_test:
-	set -e; for backend in $(test_backends); do \
-		env BUILDDIR=debian/build/deb \
-			FUZZY_REFTESTS="$(fuzzy_reftests)" \
-			XFAIL_REFTESTS="$(xfail_reftests)" \
-			BACKEND=$$backend \
-				debian/run-tests.sh -t $(test_timeout_multiplier) \
-					$(addprefix --no-suite=,$(skipped_suites)); \
-	done
+	echo "skipping test"
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
